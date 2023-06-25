@@ -115,7 +115,7 @@ export const archiveCategory: Command = {
 			}
 		}
 
-		//? Handle case where the source category has no channels in it.
+		// Handle case where the source category has no channels in it.
 		if (sourceCategoryChannels.length < 1) {
 			await interaction.editReply({
 				embeds: [

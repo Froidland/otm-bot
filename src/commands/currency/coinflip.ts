@@ -1,6 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../interfaces/command";
-import db from "../../db";
+import { AppDataSource, User } from "../../db";
 import logger from "../../utils/logger";
 
 export const coinflip: Command = {
@@ -26,11 +26,12 @@ export const coinflip: Command = {
 
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-		const user = await db
-			.selectFrom("users")
-			.selectAll()
-			.where("discord_id", "=", +interaction.user.id)
-			.executeTakeFirst();
+		const users = AppDataSource.getRepository(User);
+		const user = await users.findOne({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply(
@@ -46,21 +47,18 @@ export const coinflip: Command = {
 		try {
 			const newMoneyValue =
 				side === coin
-					? Math.ceil(user.money * 1.1 + 100)
-					: Math.ceil(user.money * 0.75);
+					? Math.ceil(user.balance * 1.1 + 100)
+					: Math.ceil(user.balance * 0.75);
 
-			await db
-				.updateTable("users")
-				.set({
-					money: newMoneyValue,
-				})
-				.where("discord_id", "=", +interaction.user.id)
-				.execute();
+			await users.update(user.discordId, {
+				balance: newMoneyValue,
+			});
 
-				await interaction.editReply(
-					`The coin landed on ${coin}. You ${side === coin ? "win!" : "lose"}. You now have ${newMoneyValue} coins.`
-				);
-
+			await interaction.editReply(
+				`The coin landed on ${coin}. You ${
+					side === coin ? "win!" : "lose"
+				}. You now have ${newMoneyValue} coins.`
+			);
 		} catch (error) {
 			logger.error(error);
 			await interaction.editReply("An error occurred.");

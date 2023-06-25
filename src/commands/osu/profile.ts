@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import { v2 } from "osu-api-extended";
 import { Command } from "../../interfaces/command";
-import db from "../../db";
+import { AppDataSource, User } from "../../db";
 import { getFlagUrl } from "../../utils";
 
 export const profile: Command = {
@@ -21,19 +21,20 @@ export const profile: Command = {
 		),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
+		const users = AppDataSource.getRepository(User);
 
 		const usernameOption = interaction.options.get("username", false);
 		let searchParameter: string | number | null;
 
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
 		if (usernameOption === null) {
-			const user = await db
-				.selectFrom("users")
-				.selectAll()
-				.where("discord_id", "=", +interaction.user.id)
-				.executeTakeFirst();
+			const user = await users.findOne({
+				where: {
+					discordId: interaction.user.id,
+				},
+			});
 
-			if (user === undefined || user.user_id === null) {
+			if (!user || user.osuId === null) {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
@@ -48,11 +49,12 @@ export const profile: Command = {
 				return;
 			}
 
-			searchParameter = user.user_id;
+			searchParameter = user.osuId;
 		} else {
 			searchParameter = interaction.options.get("username").value as string;
 		}
 
+		// TODO: Add support for other game modes.
 		const userDetails = await v2.user.details(
 			searchParameter,
 			"osu",

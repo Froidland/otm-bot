@@ -7,8 +7,8 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import { Command } from "../../interfaces/command";
-import db from "../../db";
 import { createId } from "@paralleldrive/cuid2";
+import { AppDataSource, Tournament, User } from "../../db";
 
 export const createTournament: Command = {
 	data: new SlashCommandBuilder()
@@ -38,9 +38,9 @@ export const createTournament: Command = {
 				.setDescription("The win condition rule for the tournament.")
 				.setRequired(true)
 				.addChoices(
-					{ name: "Score", value: "score" },
-					{ name: "Accuracy", value: "acc" },
-					{ name: "Miss count", value: "misses" }
+					{ name: "Score", value: "Score" },
+					{ name: "Accuracy", value: "Accuracy" },
+					{ name: "Miss count", value: "MissCount" }
 				)
 		)
 		.addStringOption((option) =>
@@ -49,9 +49,8 @@ export const createTournament: Command = {
 				.setDescription("The scoring type the tournament is based on.")
 				.setRequired(true)
 				.addChoices(
-					{ name: "ScoreV1", value: "v1" },
-					{ name: "ScoreV2", value: "v2" },
-					{ name: "Lazer", value: "lazer" }
+					{ name: "ScoreV1", value: "ScoreV1" },
+					{ name: "ScoreV2", value: "ScoreV2" }
 				)
 		)
 		.addStringOption((option) =>
@@ -60,9 +59,18 @@ export const createTournament: Command = {
 				.setDescription("The type of tournament it will be.")
 				.setRequired(true)
 				.addChoices(
-					{ name: "Team based", value: "team_based" },
-					{ name: "1v1", value: "one_vs_one" },
-					{ name: "Battle Royale", value: "battle_royale" }
+					{
+						name: "Team based",
+						value: "TeamBased",
+					},
+					{
+						name: "One vs One",
+						value: "OneVsOne",
+					},
+					{
+						name: "Battle Royale",
+						value: "BattleRoyale",
+					}
 				)
 		)
 		.addRoleOption((option) =>
@@ -129,20 +137,16 @@ export const createTournament: Command = {
 		.setDMPermission(false),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
+		const users = AppDataSource.getRepository(User);
+		const tournaments = AppDataSource.getRepository(Tournament);
 		const id = createId();
 
-		let isStaffChannelUsed = false;
-		let isRefereeChannelUsed = false;
-		let isSchedulesChannelUsed = false;
-
 		// Check if the user has linked their account.
-		const user = await db
-			.selectFrom("users")
-			.selectAll()
-			.where("discord_id", "=", +interaction.user.id)
-			.execute();
+		const user = await users.findOne({
+			where: { discordId: interaction.user.id },
+		});
 
-		if (user.length < 1) {
+		if (!user) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -167,7 +171,6 @@ export const createTournament: Command = {
 		let createdChannelsCount = 0;
 
 		// Check if the channels are already used by another tournament and if one of the options is the same as another one.
-
 		if (staffChannel !== null) {
 			if (
 				staffChannel === refereeChannel ||
@@ -187,16 +190,11 @@ export const createTournament: Command = {
 				return;
 			}
 
-			isStaffChannelUsed =
-				(await db
-					.selectFrom("tournaments")
-					.select("staff_channel_id")
-					.where("staff_channel_id", "=", +staffChannel.id)
-					.executeTakeFirst()) === undefined
-					? false
-					: true;
+			const usedStaffChannel = await tournaments.findOne({
+				where: { staffChannelId: staffChannel.id },
+			});
 
-			if (isStaffChannelUsed) {
+			if (!usedStaffChannel) {
 				createdChannelsCount++;
 				staffChannel = undefined;
 			}
@@ -223,16 +221,11 @@ export const createTournament: Command = {
 				return;
 			}
 
-			isRefereeChannelUsed =
-				(await db
-					.selectFrom("tournaments")
-					.select("referee_channel_id")
-					.where("referee_channel_id", "=", +refereeChannel.id)
-					.executeTakeFirst()) === undefined
-					? false
-					: true;
+			const usedRefereeChannel = await tournaments.findOne({
+				where: { refereeChannelId: refereeChannel.id },
+			});
 
-			if (isRefereeChannelUsed) {
+			if (!usedRefereeChannel) {
 				createdChannelsCount++;
 				refereeChannel = undefined;
 			}
@@ -259,16 +252,11 @@ export const createTournament: Command = {
 				return;
 			}
 
-			isSchedulesChannelUsed =
-				(await db
-					.selectFrom("tournaments")
-					.select("schedules_channel_id")
-					.where("schedules_channel_id", "=", +schedulesChannel.id)
-					.executeTakeFirst()) === undefined
-					? false
-					: true;
+			const usedSchedulesChannel = await tournaments.findOne({
+				where: { schedulesChannelId: schedulesChannel.id },
+			});
 
-			if (isSchedulesChannelUsed) {
+			if (!usedSchedulesChannel) {
 				createdChannelsCount++;
 				schedulesChannel = undefined;
 			}
@@ -318,21 +306,20 @@ export const createTournament: Command = {
 		embedDescription += "-------------------------------------------\n";
 
 		const winCondition = interaction.options.get("win-condition").value as
-			| "score"
-			| "acc"
-			| "misses";
+			| "Score"
+			| "Accuracy"
+			| "MissCount";
 		embedDescription += `:green_circle: **Win condition:** \`${winCondition}\`\n`;
 
 		const scoring = interaction.options.get("scoring").value as
-			| "v1"
-			| "v2"
-			| "lazer";
+			| "ScoreV1"
+			| "ScoreV2";
 		embedDescription += `:green_circle: **Scoring:** \`${scoring}\`\n`;
 
 		const tournamentType = interaction.options.get("type").value as
-			| "team_based"
-			| "one_vs_one"
-			| "battle_royale";
+			| "TeamBased"
+			| "OneVsOne"
+			| "BattleRoyale";
 		embedDescription += `:green_circle: **Type:** \`${tournamentType}\`\n`;
 
 		const staffRole =
@@ -501,26 +488,23 @@ export const createTournament: Command = {
 		}
 
 		// Insert the tournament into the database.
-
-		await db
-			.insertInto("tournaments")
-			.values({
-				id,
-				name,
-				acronym,
-				win_condition: winCondition,
-				scoring,
-				type: tournamentType,
-				staff_role_id: +staffRole.id,
-				referee_role_id: +refereeRole.id,
-				player_role_id: +playerRole.id,
-				creator_id: +interaction.user.id,
-				server_id: +interaction.guild.id,
-				staff_channel_id: +staffChannel.id,
-				referee_channel_id: +refereeChannel.id,
-				schedules_channel_id: +schedulesChannel.id,
-			})
-			.executeTakeFirst();
+		// TODO: If the tournament creation fails, delete the created channels and roles.
+		await tournaments.insert({
+			id,
+			name,
+			acronym,
+			winCondition,
+			scoring,
+			style: tournamentType,
+			staffRoleId: staffRole.id,
+			refereeRoleId: refereeRole.id,
+			playerRoleId: playerRole.id,
+			creator: user,
+			serverId: interaction.guild.id,
+			staffChannelId: staffChannel.id,
+			refereeChannelId: refereeChannel.id,
+			schedulesChannelId: schedulesChannel.id,
+		});
 
 		const embed = new EmbedBuilder()
 			.setColor("Green")

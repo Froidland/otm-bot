@@ -1,7 +1,8 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../interfaces/command";
-import db from "../../db";
+import { AppDataSource, User } from "../../db";
 
+// TODO: Honestly, this command is kinda useless, so I might just remove it.
 export const unlink: Command = {
 	data: new SlashCommandBuilder()
 		.setName("unlink")
@@ -10,14 +11,15 @@ export const unlink: Command = {
 		),
 	execute: async (interaction) => {
 		await interaction.deferReply({ ephemeral: true });
+		const users = AppDataSource.getRepository(User);
 
-		const user = await db
-			.selectFrom("users")
-			.selectAll()
-			.where("discord_id", "=", +interaction.user.id)
-			.executeTakeFirst();
+		const user = await users.findOne({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
-		if (user === undefined || user.user_id === null) {
+		if (!user || user.osuId === null) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -32,14 +34,10 @@ export const unlink: Command = {
 			return;
 		}
 
-		await db
-			.updateTable("users")
-			.set({
-				user_id: null,
-				username: null,
-			})
-			.where("discord_id", "=", +interaction.user.id)
-			.execute();
+		await users.update(user.discordId, {
+			osuId: null,
+			username: null,
+		});
 
 		await interaction.editReply({
 			content: `Unlinked osu! username \`${user.username}\` from your discord account.`,

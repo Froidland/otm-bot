@@ -1,6 +1,6 @@
 import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Command } from "../../interfaces/command";
-import db from "../../db";
+import { AppDataSource, User } from "../../db";
 
 export const balance: Command = {
 	data: new SlashCommandBuilder()
@@ -8,12 +8,12 @@ export const balance: Command = {
 		.setDescription("Check your balance."),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-
-		const user = await db
-			.selectFrom("users")
-			.selectAll()
-			.where("discord_id", "=", +interaction.user.id)
-			.executeTakeFirst();
+		const users = AppDataSource.getRepository(User);
+		const user = await users.findOne({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply(
@@ -22,6 +22,6 @@ export const balance: Command = {
 			return;
 		}
 
-		await interaction.editReply(`You have ${user.money} coins.`);
+		await interaction.editReply(`You have ${user.balance} coins.`);
 	},
 };

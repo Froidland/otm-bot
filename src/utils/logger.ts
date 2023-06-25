@@ -3,6 +3,8 @@ import * as winston from "winston";
 const { combine, timestamp, printf, colorize } = winston.format;
 const logDatePattern = process.env.LOG_DATE_PATTERN ?? "DD-MM-YYYY";
 
+// TODO: Don't really know if the logger should be in the utils folder.
+// TODO: I'm thinking about using a different logging library, maybe Pino. Need to do some research.
 export const logger = winston.createLogger({
 	level: "info",
 	format: combine(
