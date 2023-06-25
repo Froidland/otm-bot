@@ -9,7 +9,16 @@
 		"build": "esbuild src/main.ts --bundle --platform=node --packages=external --outfile=app.js",
 		"package": "esbuild src/main.ts --bundle --platform=node --outfile=app.js"
 	},
-	"keywords": [],
+	"keywords": [
+		"discord",
+		"bot",
+		"typescript",
+		"esbuild",
+		"mysql",
+		"mariadb",
+		"typeorm",
+		"osu!"
+	],
 	"author": "Francisco Hauva <phauva@gmail.com>",
 	"license": "MIT",
 	"dependencies": {
