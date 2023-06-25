@@ -3,7 +3,6 @@ import { Lobby, Team, Tournament, User } from "./models";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-// TODO: Figure out why the CreateDateColumn and UpdateDateColumn decorators aren't working.
 export const AppDataSource = new DataSource({
 	type: "mariadb",
 	host: process.env.DATABSE_HOST ?? "localhost",

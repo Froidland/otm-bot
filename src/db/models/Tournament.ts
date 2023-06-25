@@ -77,4 +77,14 @@ export class Tournament {
 		cascade: true,
 	})
 	lobbies: Lobby[];
+
+	@CreateDateColumn({
+		type: "timestamp",
+	})
+	createdAt: Date;
+
+	@UpdateDateColumn({
+		type: "timestamp",
+	})
+	updatedAt: Date;
 }

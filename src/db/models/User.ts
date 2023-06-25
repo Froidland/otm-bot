@@ -15,8 +15,7 @@ import { Team } from "./Team";
 	name: "users",
 })
 export class User {
-	@PrimaryColumn("varchar", {
-	})
+	@PrimaryColumn("varchar")
 	discordId: string;
 
 	@Column("int", {
@@ -26,6 +25,7 @@ export class User {
 
 	@Column("varchar", {
 		nullable: true,
+		length: 32,
 	})
 	username?: string;
 
@@ -42,4 +42,14 @@ export class User {
 
 	@ManyToMany(() => Team, (team) => team.members)
 	joinedTeams: Team[];
+
+	@CreateDateColumn({
+		type: "timestamp",
+	})
+	createdAt: Date;
+
+	@UpdateDateColumn({
+		type: "timestamp",
+	})
+	updatedAt: Date;
 }

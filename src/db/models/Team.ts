@@ -2,6 +2,7 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
+	JoinTable,
 	ManyToMany,
 	OneToMany,
 	PrimaryColumn,
@@ -83,8 +84,20 @@ export class Team {
 	captain: User;
 
 	@ManyToMany(() => User, (user) => user.joinedTeams)
+	@JoinTable()
 	members: User[];
 
 	@ManyToMany(() => Lobby, (lobby) => lobby.teams)
+	@JoinTable()
 	joinedLobbies: Lobby[];
+
+	@CreateDateColumn({
+		type: "timestamp",
+	})
+	createdAt: Date;
+
+	@UpdateDateColumn({
+		type: "timestamp",
+	})
+	updatedAt: Date;
 }

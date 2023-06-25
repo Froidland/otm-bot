@@ -63,4 +63,14 @@ export class Lobby {
 
 	@ManyToMany(() => Team, (team) => team.joinedLobbies)
 	teams: Team[];
+
+	@CreateDateColumn({
+		type: "timestamp",
+	})
+	createdAt: Date;
+
+	@UpdateDateColumn({
+		type: "timestamp",
+	})
+	updatedAt: Date;
 }
