@@ -18,10 +18,35 @@ export const profile: Command = {
 			option
 				.setName("username")
 				.setDescription("Username of the user to display the profile of.")
+		)
+		.addStringOption((option) =>
+			option
+				.setName("mode")
+				.setDescription("Game mode to display the profile of.")
+				.addChoices(
+					{
+						name: "standard",
+						value: "osu",
+					},
+					{
+						name: "taiko",
+						value: "taiko",
+					},
+					{
+						name: "catch",
+						value: "fruits",
+					},
+					{
+						name: "mania",
+						value: "mania",
+					}
+				)
 		),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
 		const users = AppDataSource.getRepository(User);
+
+		const modeOption = interaction.options.get("mode", false);
 
 		const usernameOption = interaction.options.get("username", false);
 		let searchParameter: string | number | null;
@@ -54,10 +79,11 @@ export const profile: Command = {
 			searchParameter = interaction.options.get("username").value as string;
 		}
 
-		// TODO: Add support for other game modes.
 		const userDetails = await v2.user.details(
 			searchParameter,
-			"osu",
+			modeOption === null
+				? "osu"
+				: (modeOption.value as "osu" | "taiko" | "fruits" | "mania"),
 			usernameOption === null ? "id" : "username"
 		);
 
