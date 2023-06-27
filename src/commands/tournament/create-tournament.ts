@@ -562,7 +562,7 @@ export const createTournament: Command = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"An unexpected error occured while creating the tournament."
+							"An unexpected error occurred while creating the tournament."
 						),
 				],
 			});
