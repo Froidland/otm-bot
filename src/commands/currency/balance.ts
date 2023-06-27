@@ -34,6 +34,13 @@ export const balance: Command = {
 			return;
 		}
 
-		await interaction.editReply(`You have ${user.balance} coins.`);
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Yellow")
+					.setTitle("Balance")
+					.setDescription(`You have **${user.balance}** coins.`),
+			],
+		});
 	},
 };
