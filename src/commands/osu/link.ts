@@ -31,7 +31,14 @@ export const link: Command = {
 			});
 
 			await interaction.editReply({
-				content: `Linked your discord account to username \`${user.username}\`.`,
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription(
+							`Linked your discord account to username \`${user.username}\`.`
+						),
+				],
 			});
 		} catch (error) {
 			await interaction.editReply({
