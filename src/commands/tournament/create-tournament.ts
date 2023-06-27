@@ -153,7 +153,7 @@ export const createTournament: Command = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							`**You must link your account before attempting to create a tournament.**`
+							"You don't have an account. Please use the `/link` command to link your osu! account."
 						),
 				],
 			});

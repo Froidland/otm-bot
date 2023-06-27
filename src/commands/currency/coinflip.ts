@@ -1,4 +1,8 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+	CommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder,
+} from "discord.js";
 import { Command } from "../../interfaces/command";
 import { AppDataSource, User } from "../../db";
 import logger from "../../utils/logger";
@@ -34,9 +38,17 @@ export const coinflip: Command = {
 		});
 
 		if (!user) {
-			await interaction.editReply(
-				"You don't have an account. Please use the `/link` command to link your osu! account."
-			);
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You don't have an account. Please use the `/link` command to link your osu! account."
+						),
+				],
+			});
+
 			return;
 		}
 
