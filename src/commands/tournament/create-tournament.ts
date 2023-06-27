@@ -9,6 +9,7 @@ import {
 import { Command } from "../../interfaces/command";
 import { createId } from "@paralleldrive/cuid2";
 import db from "../../db";
+import logger from "../../utils/logger";
 
 export const createTournament: Command = {
 	data: new SlashCommandBuilder()
@@ -72,6 +73,23 @@ export const createTournament: Command = {
 						value: "BattleRoyale",
 					}
 				)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("start-date")
+				.setDescription(
+					"The date at which the tournament will start. (Format: YYYY-MM-DD)"
+				)
+				.setRequired(true)
+		)
+		.addNumberOption((option) =>
+			option
+				.setName("team-size")
+				.setDescription(
+					"The size of the teams for the tournament. (Defaults to 8, max. 64)"
+				)
+				.setMaxValue(64)
+				.setRequired(false)
 		)
 		.addRoleOption((option) =>
 			option
@@ -153,6 +171,31 @@ export const createTournament: Command = {
 						.setDescription(
 							"You don't have an account. Please use the `/link` command to link your osu! account."
 						),
+				],
+			});
+
+			return;
+		}
+
+		const tournamentType = interaction.options.get("type").value as
+			| "TeamBased"
+			| "OneVsOne"
+			| "BattleRoyale";
+
+		const teamSize =
+			(interaction.options.get("team-size")?.value as number) ?? null;
+
+		const startDate = interaction.options.get("start-date").value as string;
+		const currentDate = new Date();
+		currentDate.setUTCHours(0, 0, 0, 0);
+
+		if (new Date(startDate) < currentDate) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("The start date cannot be in the past."),
 				],
 			});
 
@@ -297,10 +340,10 @@ export const createTournament: Command = {
 			.value.toString()
 			.toUpperCase();
 
-		let embedDescription = `**- ID:** \`${id}\`\n`;
-		embedDescription += `**- Name:** \`${name}\`\n`;
-		embedDescription += `**- Acronym:** \`${acronym}\`\n`;
-		embedDescription += `**- Owner:** \`${interaction.user.tag}\`\n`;
+		let embedDescription = `**\\- ID:** \`${id}\`\n`;
+		embedDescription += `**\\- Name:** \`${name}\`\n`;
+		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
+		embedDescription += `**\\- Owner:** \`${interaction.user.tag}\`\n`;
 		embedDescription += "-------------------------------------------\n";
 
 		const winCondition = interaction.options.get("win-condition").value as
@@ -314,10 +357,6 @@ export const createTournament: Command = {
 			| "ScoreV2";
 		embedDescription += `:green_circle: **Scoring:** \`${scoring}\`\n`;
 
-		const tournamentType = interaction.options.get("type").value as
-			| "TeamBased"
-			| "OneVsOne"
-			| "BattleRoyale";
 		embedDescription += `:green_circle: **Type:** \`${tournamentType}\`\n`;
 
 		const staffRole =
@@ -487,31 +526,46 @@ export const createTournament: Command = {
 
 		// Insert the tournament into the database.
 		// TODO: If the tournament creation fails, delete the created channels and roles.
-		await db.tournaments.insert({
-			id,
-			name,
-			acronym,
-			winCondition,
-			scoring,
-			style: tournamentType,
-			staffRoleId: staffRole.id,
-			refereeRoleId: refereeRole.id,
-			playerRoleId: playerRole.id,
-			creator: user,
-			serverId: interaction.guild.id,
-			staffChannelId: staffChannel.id,
-			refereeChannelId: refereeChannel.id,
-			schedulesChannelId: schedulesChannel.id,
-		});
+		try {
+			await db.tournaments.insert({
+				id,
+				name,
+				acronym,
+				winCondition,
+				scoring,
+				startDate,
+				teamSize,
+				style: tournamentType,
+				staffRoleId: staffRole.id,
+				refereeRoleId: refereeRole.id,
+				playerRoleId: playerRole.id,
+				creator: user,
+				serverId: interaction.guild.id,
+				staffChannelId: staffChannel.id,
+				refereeChannelId: refereeChannel.id,
+				schedulesChannelId: schedulesChannel.id,
+			});
 
-		const embed = new EmbedBuilder()
-			.setColor("Green")
-			.setTitle("Tournament successfully created.")
-			.setDescription(embedDescription)
-			.setTimestamp(new Date());
-
-		await interaction.editReply({
-			embeds: [embed],
-		});
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Tournament successfully created.")
+						.setDescription(embedDescription),
+				],
+			});
+		} catch (e) {
+			logger.error(e);
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An unexpected error occured while creating the tournament."
+						),
+				],
+			});
+		}
 	},
 };

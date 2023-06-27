@@ -70,7 +70,10 @@ export class Tournament {
 	})
 	style: "BattleRoyale" | "OneVsOne" | "TeamBased";
 
-	@Column("int", {})
+	@Column("int", {
+		default: 8,
+		nullable: true,
+	})
 	teamSize: number;
 
 	@OneToMany(() => Lobby, (lobby) => lobby.tournament, {
