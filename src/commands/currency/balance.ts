@@ -4,7 +4,7 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import { Command } from "../../interfaces/command";
-import { AppDataSource, User } from "../../db";
+import db from "../../db";
 
 export const balance: Command = {
 	data: new SlashCommandBuilder()
@@ -12,8 +12,7 @@ export const balance: Command = {
 		.setDescription("Check your balance."),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-		const users = AppDataSource.getRepository(User);
-		const user = await users.findOne({
+		const user = await db.users.findOne({
 			where: {
 				discordId: interaction.user.id,
 			},

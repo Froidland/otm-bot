@@ -5,8 +5,8 @@ import {
 } from "discord.js";
 import { v2 } from "osu-api-extended";
 import { Command } from "../../interfaces/command";
-import { AppDataSource, User } from "../../db";
 import { getFlagUrl } from "../../utils";
+import db from "../../db";
 
 export const profile: Command = {
 	data: new SlashCommandBuilder()
@@ -44,7 +44,6 @@ export const profile: Command = {
 		),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-		const users = AppDataSource.getRepository(User);
 
 		const modeOption = interaction.options.get("mode", false);
 
@@ -53,7 +52,7 @@ export const profile: Command = {
 
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
 		if (usernameOption === null) {
-			const user = await users.findOne({
+			const user = await db.users.findOne({
 				where: {
 					discordId: interaction.user.id,
 				},

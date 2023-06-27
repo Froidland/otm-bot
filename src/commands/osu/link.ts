@@ -1,7 +1,7 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { v2 } from "osu-api-extended";
 import { Command } from "../../interfaces/command";
-import { AppDataSource, User } from "../../db";
+import db from "../../db";
 
 // TODO: Implement OAuth2 flow to link osu! account to discord account.
 export const link: Command = {
@@ -18,13 +18,12 @@ export const link: Command = {
 		),
 	execute: async (interaction) => {
 		await interaction.deferReply({ ephemeral: true });
-		const users = AppDataSource.getRepository(User);
 		const username = interaction.options.get("username", true).value as string;
 
 		const user = await v2.user.details(username, "osu");
 
 		try {
-			await users.save({
+			await db.users.save({
 				discordId: interaction.user.id,
 				osuId: user.id,
 				username: user.username,

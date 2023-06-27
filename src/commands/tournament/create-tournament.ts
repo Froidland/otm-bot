@@ -8,7 +8,7 @@ import {
 } from "discord.js";
 import { Command } from "../../interfaces/command";
 import { createId } from "@paralleldrive/cuid2";
-import { AppDataSource, Tournament, User } from "../../db";
+import db from "../../db";
 
 export const createTournament: Command = {
 	data: new SlashCommandBuilder()
@@ -137,12 +137,10 @@ export const createTournament: Command = {
 		.setDMPermission(false),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-		const users = AppDataSource.getRepository(User);
-		const tournaments = AppDataSource.getRepository(Tournament);
 		const id = createId();
 
 		// Check if the user has linked their account.
-		const user = await users.findOne({
+		const user = await db.users.findOne({
 			where: { discordId: interaction.user.id },
 		});
 
@@ -190,7 +188,7 @@ export const createTournament: Command = {
 				return;
 			}
 
-			const usedStaffChannel = await tournaments.findOne({
+			const usedStaffChannel = await db.tournaments.findOne({
 				where: { staffChannelId: staffChannel.id },
 			});
 
@@ -221,7 +219,7 @@ export const createTournament: Command = {
 				return;
 			}
 
-			const usedRefereeChannel = await tournaments.findOne({
+			const usedRefereeChannel = await db.tournaments.findOne({
 				where: { refereeChannelId: refereeChannel.id },
 			});
 
@@ -252,7 +250,7 @@ export const createTournament: Command = {
 				return;
 			}
 
-			const usedSchedulesChannel = await tournaments.findOne({
+			const usedSchedulesChannel = await db.tournaments.findOne({
 				where: { schedulesChannelId: schedulesChannel.id },
 			});
 
@@ -489,7 +487,7 @@ export const createTournament: Command = {
 
 		// Insert the tournament into the database.
 		// TODO: If the tournament creation fails, delete the created channels and roles.
-		await tournaments.insert({
+		await db.tournaments.insert({
 			id,
 			name,
 			acronym,

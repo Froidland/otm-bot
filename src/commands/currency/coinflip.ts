@@ -4,8 +4,8 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import { Command } from "../../interfaces/command";
-import { AppDataSource, User } from "../../db";
 import logger from "../../utils/logger";
+import db from "../../db";
 
 export const coinflip: Command = {
 	data: new SlashCommandBuilder()
@@ -30,8 +30,7 @@ export const coinflip: Command = {
 
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-		const users = AppDataSource.getRepository(User);
-		const user = await users.findOne({
+		const user = await db.users.findOne({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -62,7 +61,7 @@ export const coinflip: Command = {
 					? Math.ceil(user.balance * 1.1 + 100)
 					: Math.ceil(user.balance * 0.75);
 
-			await users.update(user.discordId, {
+			await db.users.update(user.discordId, {
 				balance: newMoneyValue,
 			});
 
