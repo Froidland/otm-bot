@@ -16,7 +16,6 @@ import { Lobby } from "./Lobby";
 export class Tournament {
 	@PrimaryColumn({
 		type: "varchar",
-		nullable: false,
 	})
 	id: string;
 
