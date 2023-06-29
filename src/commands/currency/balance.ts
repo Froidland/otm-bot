@@ -3,8 +3,8 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { Command } from "../../interfaces/command";
-import db from "../../db";
+import { Command } from "@/interfaces/command";
+import db from "@/db";
 
 export const balance: Command = {
 	data: new SlashCommandBuilder()

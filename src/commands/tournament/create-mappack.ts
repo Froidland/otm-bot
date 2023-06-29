@@ -3,12 +3,12 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { Command } from "../../interfaces/command";
+import { Command } from "@/interfaces/command";
 import axios from "axios";
-import logger from "../../utils/logger";
+import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import AdmZip from "adm-zip";
-import S3Client from "../../utils/s3client";
+import S3Client from "@/utils/s3client";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { Stream } from "stream";

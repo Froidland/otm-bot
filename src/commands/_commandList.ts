@@ -1,4 +1,4 @@
-import { Command } from "../interfaces/command";
+import { Command } from "@/interfaces/command";
 import { coinflip } from "./currency";
 import { balance } from "./currency/balance";
 import { ping } from "./general";

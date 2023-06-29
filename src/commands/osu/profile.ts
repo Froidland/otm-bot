@@ -4,9 +4,9 @@ import {
 	SlashCommandBuilder,
 } from "discord.js";
 import { v2 } from "osu-api-extended";
-import { Command } from "../../interfaces/command";
-import { getFlagUrl } from "../../utils";
-import db from "../../db";
+import { Command } from "@/interfaces/command";
+import { getFlagUrl } from "@/utils";
+import db from "@/db";
 
 export const profile: Command = {
 	data: new SlashCommandBuilder()

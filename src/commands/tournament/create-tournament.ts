@@ -6,10 +6,10 @@ import {
 	Role,
 	SlashCommandBuilder,
 } from "discord.js";
-import { Command } from "../../interfaces/command";
+import { Command } from "@/interfaces/command";
 import { createId } from "@paralleldrive/cuid2";
-import db from "../../db";
-import logger from "../../utils/logger";
+import db from "@/db";
+import { logger } from "@/utils";
 
 export const createTournament: Command = {
 	data: new SlashCommandBuilder()

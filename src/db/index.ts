@@ -1,6 +1,6 @@
 export * from "./models";
 
-import { AppDataSource } from "./data-source";
+import AppDataSource from "./data-source";
 import { Tournament, Lobby, User, Team } from "./models";
 
 // TODO: This looks like a mess. Makes thinks look better in other files but this file is a mess. Research how to make this better.

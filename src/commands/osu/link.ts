@@ -1,7 +1,7 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import { v2 } from "osu-api-extended";
-import { Command } from "../../interfaces/command";
-import db from "../../db";
+import { Command } from "@/interfaces/command";
+import db from "@/db";
 
 // TODO: Implement OAuth2 flow to link osu! account to discord account.
 export const link: Command = {

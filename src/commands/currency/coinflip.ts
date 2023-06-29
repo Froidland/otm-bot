@@ -3,9 +3,9 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { Command } from "../../interfaces/command";
-import logger from "../../utils/logger";
-import db from "../../db";
+import { Command } from "@/interfaces/command";
+import { logger } from "@/utils";
+import db from "@/db";
 
 export const coinflip: Command = {
 	data: new SlashCommandBuilder()

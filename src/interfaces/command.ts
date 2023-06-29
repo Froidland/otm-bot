@@ -1,7 +1,6 @@
 import {
 	CommandInteraction,
 	SlashCommandBuilder,
-	SlashCommandSubcommandBuilder,
 	SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 

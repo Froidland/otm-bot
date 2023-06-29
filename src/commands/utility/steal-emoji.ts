@@ -1,5 +1,9 @@
-import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import { Command } from "../../interfaces/command";
+import {
+	CommandInteraction,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
+} from "discord.js";
+import { Command } from "@/interfaces/command";
 
 export const stealEmoji: Command = {
 	data: new SlashCommandBuilder()
