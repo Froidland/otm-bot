@@ -2,8 +2,10 @@ import {
 	ChannelType,
 	CommandInteraction,
 	EmbedBuilder,
+	GuildBasedChannel,
 	OverwriteResolvable,
 	PermissionFlagsBits,
+	Role,
 	SlashCommandBuilder,
 	TextChannel,
 } from "discord.js";
@@ -55,88 +57,90 @@ export const archiveCategory: Command = {
 		.setDMPermission(false),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
-		const sourceOption = interaction.options.get("source");
-		const targetOption = interaction.options.get("target");
-		const deleteSourceOption = interaction.options.get("delete");
+		const source = interaction.options.get("source", true)
+			.channel as GuildBasedChannel;
 
-		const prefixOption = interaction.options.get("prefix", false);
-		const viewRoleOption = interaction.options.get("view-role", false);
+		const target = interaction.options.get("target", true)
+			.channel as GuildBasedChannel;
+
+		const deleteSource = interaction.options.get("delete", true)
+			.value as boolean;
+
+		const prefix = interaction.options.get("prefix")?.value as
+			| string
+			| undefined;
+
+		const viewRole = interaction.options.get("view-role")?.role as
+			| Role
+			| undefined;
 
 		let targetChannelPermissions: OverwriteResolvable[] = [
 			{
-				id: interaction.guild.roles.everyone,
+				id: interaction.guild!.roles.everyone.id,
 				deny: [PermissionFlagsBits.ViewChannel],
 			},
 		];
 
-		if (viewRoleOption !== null) {
+		if (viewRole) {
 			targetChannelPermissions.push({
-				id: viewRoleOption.role.id,
+				id: viewRole.id,
 				allow: [PermissionFlagsBits.ViewChannel],
-				deny: [PermissionFlagsBits.SendMessages],
 			});
 		}
 
-		const sourceCategory = await interaction.guild.channels.fetch(
-			sourceOption.channel.id
-		);
-		const targetCategory = await interaction.guild.channels.fetch(
-			targetOption.channel.id
-		);
-
-		//? Handle case where the source category is the same as the target category.
-		if (sourceCategory.id === targetCategory.id) {
+		// If the source and target categories are the same, return an error.
+		if (source === target) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
-						.setDescription(
-							`\`The source category is the same as the target category.\``
-						),
+						.setDescription("Source and target categories cannot be the same."),
 				],
 			});
 
 			return;
 		}
 
-		const sourceCategoryChannels: TextChannel[] = [];
-		let targetCategoryChannelCount = 0;
-		for (const [_, channel] of interaction.guild.channels.cache) {
+		const sourceChannels: TextChannel[] = [];
+		let targetChannelCount = 0;
+
+		// Get all text channels in the source category and count the number of channels in the target category.
+		for (const [_, channel] of interaction.guild!.channels.cache) {
 			if (
-				channel.parent === sourceCategory &&
-				channel.type == ChannelType.GuildText
+				channel.type === ChannelType.GuildText &&
+				channel.parentId === source.id
 			) {
-				sourceCategoryChannels.push(channel);
+				sourceChannels.push(channel as TextChannel);
 			}
 
-			if (channel.parent === targetCategory) {
-				targetCategoryChannelCount++;
+			if (channel.parentId === target.id) {
+				targetChannelCount++;
 			}
 		}
 
-		// Handle case where the source category has no channels in it.
-		if (sourceCategoryChannels.length < 1) {
+		if (sourceChannels.length === 0) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
-						.setDescription(`\`The source category has no text channels.\``),
+						.setDescription("The source category is empty."),
 				],
 			});
 
 			return;
 		}
 
-		if (sourceCategoryChannels.length + targetCategoryChannelCount > 50) {
+		// If the target category has more than 50 channels, return an error.
+		if (targetChannelCount + sourceChannels.length > 50) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							`\`The target category doesn't have enough space to hold all the text channels in the source category.\``
+							"The target category cannot have more than 50 channels."
 						),
 				],
 			});
@@ -144,28 +148,30 @@ export const archiveCategory: Command = {
 			return;
 		}
 
-		for (const channel of sourceCategoryChannels) {
-			if (prefixOption) {
-				await channel.edit({
-					parent: targetCategory.id,
-					name: `${prefixOption.value}-${channel.name}`,
-					permissionOverwrites: targetChannelPermissions,
-				});
-				continue;
+		// Move all channels from the source category to the target category.
+		for (const channel of sourceChannels) {
+			if (prefix) {
+				await channel.setName(`${prefix}-${channel.name}`);
 			}
 
 			await channel.edit({
-				parent: targetCategory.id,
+				parent: target.id,
 				permissionOverwrites: targetChannelPermissions,
 			});
 		}
 
-		if (deleteSourceOption.value === true) {
-			await sourceCategory.delete();
+		// Delete the source category if the deleteSource option is true.
+		if (deleteSource) {
+			await source.delete();
 		}
 
 		await interaction.editReply({
-			content: "Successfully archived text channels in source category.",
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription("Category archived successfully."),
+			],
 		});
 	},
 };
