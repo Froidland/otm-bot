@@ -1,14 +1,16 @@
 import {
+	CategoryChannel,
 	ChannelType,
 	CommandInteraction,
 	EmbedBuilder,
+	GuildBasedChannel,
 	PermissionFlagsBits,
 	Role,
 	SlashCommandBuilder,
 } from "discord.js";
 import { Command } from "@/interfaces/command";
 import { createId } from "@paralleldrive/cuid2";
-import db from "@/db";
+import db, { ScoringType, TournamentType, WinCondition } from "@/db";
 import { logger } from "@/utils";
 
 export const createTournament: Command = {
@@ -71,6 +73,10 @@ export const createTournament: Command = {
 					{
 						name: "Battle Royale",
 						value: "BattleRoyale",
+					},
+					{
+						name: "Custom",
+						value: "Custom",
 					}
 				)
 		)
@@ -89,6 +95,23 @@ export const createTournament: Command = {
 					"The size of the teams for the tournament. (Defaults to 8, max. 64)"
 				)
 				.setMaxValue(64)
+				.setRequired(true)
+		)
+		.addNumberOption((option) =>
+			option
+				.setName("lobby-team-size")
+				.setDescription(
+					"The amount of players per team in the lobby. (Can't be higher than the team size)"
+				)
+				.setRequired(true)
+		)
+		.addChannelOption((option) =>
+			option
+				.setName("schedule-channel")
+				.setDescription(
+					"The channel where the schedules for the tournament will be posted."
+				)
+				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(false)
 		)
 		.addRoleOption((option) =>
@@ -96,6 +119,14 @@ export const createTournament: Command = {
 				.setName("staff-role")
 				.setDescription(
 					"The staff role for the tournament. One will be created based on the acronym if not specified."
+				)
+				.setRequired(false)
+		)
+		.addRoleOption((option) =>
+			option
+				.setName("mappooler-role")
+				.setDescription(
+					"The mappooler role for the tournament. One will be created based on the acronym if not specified."
 				)
 				.setRequired(false)
 		)
@@ -117,33 +148,6 @@ export const createTournament: Command = {
 		)
 		.addChannelOption((option) =>
 			option
-				.setName("staff-channel")
-				.setDescription(
-					"The staff channel for the tournament. One will be created if not specified."
-				)
-				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
-		)
-		.addChannelOption((option) =>
-			option
-				.setName("referee-channel")
-				.setDescription(
-					"The refeere channel for the tournament. One will be created if not specified."
-				)
-				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
-		)
-		.addChannelOption((option) =>
-			option
-				.setName("schedules-channel")
-				.setDescription(
-					"The schedules channel for the tournament. One will be created if not specified."
-				)
-				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
-		)
-		.addChannelOption((option) =>
-			option
 				.setName("parent-category")
 				.setDescription(
 					"The category under which the created channels will be placed."
@@ -159,7 +163,9 @@ export const createTournament: Command = {
 
 		// Check if the user has linked their account.
 		const user = await db.users.findOne({
-			where: { discordId: interaction.user.id },
+			where: {
+				discordId: interaction.user.id,
+			},
 		});
 
 		if (!user) {
@@ -177,395 +183,336 @@ export const createTournament: Command = {
 			return;
 		}
 
-		const tournamentType = interaction.options.get("type").value as
-			| "TeamBased"
-			| "OneVsOne"
-			| "BattleRoyale";
+		const name = interaction.options.get("name", true).value as string;
 
-		const teamSize =
-			(interaction.options.get("team-size")?.value as number) ?? null;
+		const acronym = (
+			interaction.options.get("acronym", true).value as string
+		).toUpperCase();
 
-		const startDate = interaction.options.get("start-date").value as string;
-		const currentDate = new Date();
-		currentDate.setUTCHours(0, 0, 0, 0);
+		const tournamentType = interaction.options.get("type", true)
+			.value as TournamentType;
 
-		if (new Date(startDate) < currentDate) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Error")
-						.setDescription("The start date cannot be in the past."),
-				],
-			});
+		const teamSize = interaction.options.get("team-size", true).value as number;
 
-			return;
-		}
+		const winCondition = interaction.options.get("win-condition", true)
+			.value as WinCondition;
 
-		let staffChannel =
-			interaction.options.get("staff-channel")?.channel ?? null;
-		let refereeChannel =
-			interaction.options.get("referee-channel")?.channel ?? null;
-		let schedulesChannel =
-			interaction.options.get("schedules-channel")?.channel ?? null;
+		const scoring = interaction.options.get("scoring", true)
+			.value as ScoringType;
 
-		let createdChannelsCount = 0;
+		const startDateOption = interaction.options.get("start-date", true)
+			.value as string;
 
-		// Check if the channels are already used by another tournament and if one of the options is the same as another one.
-		if (staffChannel !== null) {
-			if (
-				staffChannel === refereeChannel ||
-				staffChannel === schedulesChannel
-			) {
-				await interaction.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setColor("Red")
-							.setTitle("Error")
-							.setDescription(
-								`**The staff channel cannot be the same as one of the other options.**`
-							),
-					],
-				});
+		// Regex to check if the date is in the correct format.
+		const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-				return;
-			}
-
-			const usedStaffChannel = await db.tournaments.findOne({
-				where: { staffChannelId: staffChannel.id },
-			});
-
-			if (!usedStaffChannel) {
-				createdChannelsCount++;
-				staffChannel = undefined;
-			}
-		} else {
-			createdChannelsCount++;
-		}
-
-		if (refereeChannel !== null) {
-			if (
-				refereeChannel === staffChannel ||
-				refereeChannel === schedulesChannel
-			) {
-				await interaction.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setColor("Red")
-							.setTitle("Error")
-							.setDescription(
-								`**The referee channel cannot be the same as one of the other options.**`
-							),
-					],
-				});
-
-				return;
-			}
-
-			const usedRefereeChannel = await db.tournaments.findOne({
-				where: { refereeChannelId: refereeChannel.id },
-			});
-
-			if (!usedRefereeChannel) {
-				createdChannelsCount++;
-				refereeChannel = undefined;
-			}
-		} else {
-			createdChannelsCount++;
-		}
-
-		if (schedulesChannel !== null) {
-			if (
-				schedulesChannel === staffChannel ||
-				schedulesChannel === refereeChannel
-			) {
-				await interaction.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setColor("Red")
-							.setTitle("Error")
-							.setDescription(
-								`**The schedules channel cannot be the same as one of the other options.**`
-							),
-					],
-				});
-
-				return;
-			}
-
-			const usedSchedulesChannel = await db.tournaments.findOne({
-				where: { schedulesChannelId: schedulesChannel.id },
-			});
-
-			if (!usedSchedulesChannel) {
-				createdChannelsCount++;
-				schedulesChannel = undefined;
-			}
-		} else {
-			createdChannelsCount++;
-		}
-
-		const parentCategory =
-			interaction.options.get("parent-category")?.channel ?? null;
-
-		// Check if the parent category has enough space to hold all the channels that have to be created.
-		if (parentCategory !== null) {
-			let parentChannelsCount = 0;
-
-			for (const [_, channel] of interaction.guild.channels.cache) {
-				if (channel.parent === parentCategory) {
-					parentChannelsCount++;
-				}
-			}
-
-			if (parentChannelsCount + createdChannelsCount > 50) {
-				await interaction.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setColor("Red")
-							.setTitle("Error")
-							.setDescription(
-								`**The parent category doesn't have enough space to hold all the text channels that have to be created.**`
-							),
-					],
-				});
-
-				return;
-			}
-		}
-
-		const name = interaction.options.get("name").value as string;
-		const acronym = interaction.options
-			.get("acronym")
-			.value.toString()
-			.toUpperCase();
-
-		let embedDescription = `**\\- ID:** \`${id}\`\n`;
-		embedDescription += `**\\- Name:** \`${name}\`\n`;
-		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
-		embedDescription += `**\\- Owner:** \`${interaction.user.tag}\`\n`;
-		embedDescription += "-------------------------------------------\n";
-
-		const winCondition = interaction.options.get("win-condition").value as
-			| "Score"
-			| "Accuracy"
-			| "MissCount";
-		embedDescription += `:green_circle: **Win condition:** \`${winCondition}\`\n`;
-
-		const scoring = interaction.options.get("scoring").value as
-			| "ScoreV1"
-			| "ScoreV2";
-		embedDescription += `:green_circle: **Scoring:** \`${scoring}\`\n`;
-
-		embedDescription += `:green_circle: **Type:** \`${tournamentType}\`\n`;
-
-		const staffRole =
-			(interaction.options.get("staff-role")?.role as Role) ??
-			(await interaction.guild.roles.create({ name: `${acronym}: Staff` }));
-		embedDescription += `:green_circle: **Staff role:** ${staffRole}\n`;
-
-		const refereeRole =
-			(interaction.options.get("referee-role")?.role as Role) ??
-			(await interaction.guild.roles.create({ name: `${acronym}: Referee` }));
-		embedDescription += `:green_circle: **Referee role:** ${refereeRole}\n`;
-
-		const playerRole =
-			(interaction.options.get("player-role")?.role as Role) ??
-			(await interaction.guild.roles.create({ name: `${acronym}: Player` }));
-		embedDescription += `:green_circle: **Player role:** ${playerRole}\n`;
-
-		// Create the channels missing from the options.
-		// If the channel is set to null, it means that it has to be created.
-		// If the channel is set to undefined, it means that it has already been used by another tournament and another one has to be created.
-		// If the channel is set to a channel, it means that it has been set by the user.
-
-		if (staffChannel === null) {
-			staffChannel = await interaction.guild.channels.create({
-				name: "staff",
-				parent: parentCategory?.id ?? null,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: staffRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-				],
-			});
-
-			embedDescription += `:green_circle: **Staff channel:** Created ${staffChannel}\n`;
-		} else if (staffChannel === undefined) {
-			staffChannel = await interaction.guild.channels.create({
-				name: "staff",
-				parent: parentCategory?.id ?? null,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: staffRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-				],
-			});
-			embedDescription += `:red_circle: **Staff channel:** Already used by another tournament, created ${staffChannel}\n`;
-		} else {
-			embedDescription += `:yellow_circle: **Staff channel:** Used ${staffChannel}\n`;
-		}
-
-		if (refereeChannel === null) {
-			refereeChannel = await interaction.guild.channels.create({
-				name: "referee",
-				parent: parentCategory?.id ?? null,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: refereeRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-				],
-			});
-
-			embedDescription += `:green_circle: **Referee channel:** Created ${refereeChannel}\n`;
-		} else if (refereeChannel === undefined) {
-			refereeChannel = await interaction.guild.channels.create({
-				name: "referee",
-				parent: parentCategory?.id ?? null,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: refereeRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-				],
-			});
-
-			embedDescription += `:red_circle: **Referee channel:** Already used by another tournament, created ${refereeChannel}\n`;
-		} else {
-			embedDescription += `:yellow_circle: **Referee channel:** Used ${refereeChannel}\n`;
-		}
-
-		if (schedulesChannel === null) {
-			schedulesChannel = await interaction.guild.channels.create({
-				name: "schedules",
-				parent: parentCategory?.id ?? null,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: refereeRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-					{
-						id: playerRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-				],
-			});
-
-			embedDescription += `:green_circle: **Schedules channel:** Created ${schedulesChannel}\n`;
-		} else if (schedulesChannel === undefined) {
-			schedulesChannel = await interaction.guild.channels.create({
-				name: "schedules",
-				parent: parentCategory?.id ?? null,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: refereeRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-					{
-						id: playerRole,
-						allow: [
-							PermissionFlagsBits.ViewChannel,
-							PermissionFlagsBits.SendMessages,
-						],
-					},
-				],
-			});
-
-			embedDescription += `:red_circle: **Schedules channel:** Already used by another tournament, created ${schedulesChannel}\n`;
-		} else {
-			embedDescription += `:yellow_circle: **Schedules channel:** Used ${schedulesChannel}\n`;
-		}
-
-		// Insert the tournament into the database.
-		// TODO: If the tournament creation fails, delete the created channels and roles.
-		try {
-			await db.tournaments.insert({
-				id,
-				name,
-				acronym,
-				winCondition,
-				scoring,
-				startDate,
-				teamSize,
-				style: tournamentType,
-				staffRoleId: staffRole.id,
-				refereeRoleId: refereeRole.id,
-				playerRoleId: playerRole.id,
-				creator: user,
-				serverId: interaction.guild.id,
-				staffChannelId: staffChannel.id,
-				refereeChannelId: refereeChannel.id,
-				schedulesChannelId: schedulesChannel.id,
-			});
-
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle("Tournament successfully created.")
-						.setDescription(embedDescription),
-				],
-			});
-		} catch (e) {
-			logger.error(e);
+		if (!dateRegex.test(startDateOption)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"An unexpected error occurred while creating the tournament."
+							"The date you provided is invalid. Please use the format `YYYY-MM-DD`."
 						),
 				],
 			});
+
+			return;
 		}
+
+		// Get the year, month and day from the date string.
+		const [startDateYear, startDateMonth, startDateDay] =
+			startDateOption.split("-");
+
+		try {
+			Date.parse(startDateOption);
+		} catch (error) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"The date you provided is invalid. Please use the format `YYYY-MM-DD`."
+						),
+				],
+			});
+
+			return;
+		}
+
+		const startDate = new Date(
+			Date.UTC(+startDateYear, +startDateMonth - 1, +startDateDay)
+		);
+
+		const [staffRole, mappoolerRole, refereeRole, playerRole] =
+			await getTournamentRoles(interaction);
+
+		const [
+			staffChannel,
+			mappoolerChannel,
+			refereeChannel,
+			scheduleChannel,
+			playerChannel,
+		] = await getTournamentChannels(
+			interaction,
+			staffRole,
+			mappoolerRole,
+			refereeRole,
+			playerRole
+		);
+
+		let embedDescription = "**__Tournament identification:__**\n";
+		embedDescription += `**\\- ID:** \`${id}\`\n`;
+		embedDescription += `**\\- Name:** \`${name}\`\n`;
+		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
+		embedDescription += `**\\- Owner:** \`${interaction.user.tag}\`\n`;
+		embedDescription += "-------------------------------------------\n";
+		embedDescription += "**__Tournament settings:__**\n";
+		embedDescription += `**\\- Type:** \`${tournamentType}\`\n`;
+		embedDescription += `**\\- Scoring:** \`${scoring}\`\n`;
+		embedDescription += `**\\- Win condition:** \`${winCondition}\`\n`;
+		embedDescription += `**\\- Team size:** \`${teamSize ?? 8}\`\n`;
+		embedDescription += `**\\- Start date:** \`${startDate.toUTCString()}\`\n`;
+		embedDescription += "-------------------------------------------\n";
+		embedDescription += "**__Tournament roles:__**\n";
+		embedDescription += `**\\- Staff:** <@&${staffRole.id}>\n`;
+		embedDescription += `**\\- Mappooler:** <@&${mappoolerRole.id}>\n`;
+		embedDescription += `**\\- Referee:** <@&${refereeRole.id}>\n`;
+		embedDescription += `**\\- Player:** <@&${playerRole.id}>\n`;
+		embedDescription += "-------------------------------------------\n";
+		embedDescription += "**__Tournament channels:__**\n";
+		embedDescription += `**\\- Staff:** <#${staffChannel.id}>\n`;
+		embedDescription += `**\\- Mappooler:** <#${mappoolerChannel.id}>\n`;
+		embedDescription += `**\\- Referee:** <#${refereeChannel.id}>\n`;
+		embedDescription += `**\\- Schedules:** <#${scheduleChannel.id}>\n`;
+		embedDescription += `**\\- Player:** <#${playerChannel.id}>\n`;
+
+		try {
+			await db.tournaments.insert({
+				id,
+				name,
+				acronym,
+				serverId: interaction.guild!.id,
+				startDate,
+				staffChannelId: staffChannel.id,
+				mappoolerChannelId: mappoolerChannel.id,
+				refereeChannelId: refereeChannel.id,
+				scheduleChannelId: scheduleChannel.id,
+				staffRoleId: staffRole.id,
+				mappoolerRoleId: mappoolerRole.id,
+				refereeRoleId: refereeRole.id,
+				playerRoleId: playerRole.id,
+				creator: user,
+				winCondition,
+				scoring,
+				style: tournamentType,
+				teamSize,
+			});
+		} catch (error) {
+			logger.error(`Error while creating tournament: ${error}`);
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"There was an error while creating the tournament. Please try again later. Created roles and channels will be deleted."
+						),
+				],
+			});
+
+			// Roles
+			await staffRole.delete();
+			await mappoolerRole.delete();
+			await refereeRole.delete();
+			await playerRole.delete();
+
+			// Channels
+			await staffChannel.delete();
+			await mappoolerChannel.delete();
+			await refereeChannel.delete();
+			await scheduleChannel.delete();
+			await playerChannel.delete();
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Tournament created")
+					.setDescription(embedDescription),
+			],
+		});
 	},
 };
+
+/**
+ *
+ * @description Creates or gets the roles for the tournament with the correct permissions.
+ * @returns An array containing the staff, referee and player roles, in that order.
+ */
+async function getTournamentRoles(interaction: CommandInteraction) {
+	const guild = interaction.guild!;
+	const acronym = interaction.options.get("acronym", true).value as string;
+
+	let staffRole = interaction.options.get("staff-role")?.role as
+		| Role
+		| undefined;
+
+	let mappoolerRole = interaction.options.get("mappooler-role")?.role as
+		| Role
+		| undefined;
+
+	let refereeRole = interaction.options.get("referee-role")?.role as
+		| Role
+		| undefined;
+
+	let playerRole = interaction.options.get("player-role")?.role as
+		| Role
+		| undefined;
+
+	if (!staffRole) {
+		staffRole = await guild.roles.create({
+			name: `${acronym}: Staff`,
+		});
+	}
+
+	if (!mappoolerRole) {
+		mappoolerRole = await guild.roles.create({
+			name: `${acronym}: Mappooler`,
+		});
+	}
+
+	if (!refereeRole) {
+		refereeRole = await guild.roles.create({
+			name: `${acronym}: Referee`,
+		});
+	}
+
+	if (!playerRole) {
+		playerRole = await guild.roles.create({
+			name: `${acronym}: Player`,
+		});
+	}
+
+	return [staffRole, mappoolerRole, refereeRole, playerRole];
+}
+
+/**
+ *
+ * @description Creates the channels for the tournament with the correct permissions.
+ * @returns An array containing the staff, mappool, referee and player channels.
+ */
+async function getTournamentChannels(
+	interaction: CommandInteraction,
+	staffRole: Role,
+	mappoolerRole: Role,
+	refereeRole: Role,
+	playerRole: Role
+) {
+	const guild = interaction.guild!;
+	const parentCategory = interaction.options.get("parent-category")?.channel as
+		| CategoryChannel
+		| undefined;
+	const acronym = interaction.options.get("acronym", true).value as string;
+	let scheduleChannel = interaction.options.get("schedule-channel")?.channel as
+		| GuildBasedChannel
+		| undefined;
+
+	const staffChannel = await guild.channels.create({
+		name: `${acronym}-staff`,
+		parent: parentCategory,
+		permissionOverwrites: [
+			{
+				id: guild.roles.everyone.id,
+				deny: [PermissionFlagsBits.ViewChannel],
+			},
+			{
+				id: staffRole.id,
+				allow: [PermissionFlagsBits.ViewChannel],
+			},
+		],
+	});
+
+	const mappoolerChannel = await guild.channels.create({
+		name: `${acronym}-mappooler`,
+		parent: parentCategory,
+		permissionOverwrites: [
+			{
+				id: guild.roles.everyone.id,
+				deny: [PermissionFlagsBits.ViewChannel],
+			},
+			{
+				id: mappoolerRole.id,
+				allow: [PermissionFlagsBits.ViewChannel],
+			},
+		],
+	});
+
+	const refereeChannel = await guild.channels.create({
+		name: `${acronym}-referee`,
+		parent: parentCategory,
+		permissionOverwrites: [
+			{
+				id: guild.roles.everyone.id,
+				deny: [PermissionFlagsBits.ViewChannel],
+			},
+			{
+				id: refereeRole.id,
+				allow: [PermissionFlagsBits.ViewChannel],
+			},
+		],
+	});
+
+	if (!scheduleChannel) {
+		scheduleChannel = await guild.channels.create({
+			name: `${acronym}-schedules`,
+			parent: parentCategory,
+			permissionOverwrites: [
+				{
+					id: guild.roles.everyone.id,
+					deny: [PermissionFlagsBits.ViewChannel],
+				},
+				{
+					id: staffRole.id,
+					allow: [PermissionFlagsBits.ViewChannel],
+				},
+				{
+					id: playerRole.id,
+					allow: [PermissionFlagsBits.ViewChannel],
+				},
+			],
+		});
+	}
+
+	const playerChannel = await guild.channels.create({
+		name: `${acronym}-players`,
+		parent: parentCategory,
+		permissionOverwrites: [
+			{
+				id: guild.roles.everyone.id,
+				deny: [PermissionFlagsBits.ViewChannel],
+			},
+			{
+				id: staffRole.id,
+				allow: [PermissionFlagsBits.ViewChannel],
+			},
+			{
+				id: playerRole.id,
+				allow: [PermissionFlagsBits.ViewChannel],
+			},
+		],
+	});
+
+	return [
+		staffChannel,
+		mappoolerChannel,
+		refereeChannel,
+		scheduleChannel,
+		playerChannel,
+	];
+}
