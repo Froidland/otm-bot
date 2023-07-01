@@ -10,6 +10,23 @@ import {
 import { Tournament } from "./Tournament";
 import { Team } from "./Team";
 
+const lobbyStatuses = ["Pending", "Ongoing", "Completed"] as const;
+const lobbyStages = [
+	"Groups",
+	"RoundOf256",
+	"RoundOf128",
+	"RoundOf64",
+	"RoundOf32",
+	"RoundOf16",
+	"Quarterfinals",
+	"Semifinals",
+	"Finals",
+	"GrandFinals",
+] as const;
+
+export type LobbyStatus = (typeof lobbyStatuses)[number];
+export type LobbyStage = (typeof lobbyStages)[number];
+
 @Entity({
 	name: "lobbies",
 })
@@ -28,35 +45,14 @@ export class Lobby {
 
 	@Column("enum", {
 		default: "Pending",
-		enum: ["Pending", "Ongoing", "Completed"],
+		enum: lobbyStatuses,
 	})
-	status: "Pending" | "Ongoing" | "Completed";
+	status: LobbyStatus;
 
 	@Column("enum", {
-		enum: [
-			"Groups",
-			"RoundOf256",
-			"RoundOf128",
-			"RoundOf64",
-			"RoundOf32",
-			"RoundOf16",
-			"Quarterfinals",
-			"Semifinals",
-			"Finals",
-			"GrandFinals",
-		],
+		enum: lobbyStages,
 	})
-	stage:
-		| "Groups"
-		| "RoundOf256"
-		| "RoundOf128"
-		| "RoundOf64"
-		| "RoundOf32"
-		| "RoundOf16"
-		| "Quarterfinals"
-		| "Semifinals"
-		| "Finals"
-		| "GrandFinals";
+	stage: LobbyStage;
 
 	@Column("varchar")
 	mpLink?: string;

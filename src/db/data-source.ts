@@ -1,6 +1,5 @@
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
-import { resolve } from "path";
 import { Lobby, Team, Tournament, User } from "./models";
 dotenv.config();
 
