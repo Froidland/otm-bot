@@ -12,6 +12,7 @@ import { Command } from "@/interfaces/command";
 import { createId } from "@paralleldrive/cuid2";
 import db, { ScoringType, TournamentType, WinCondition } from "@/db";
 import { logger } from "@/utils";
+import { DateTime } from "luxon";
 
 export const createTournament: Command = {
 	data: new SlashCommandBuilder()
@@ -221,10 +222,6 @@ export const createTournament: Command = {
 			return;
 		}
 
-		// Get the year, month and day from the date string.
-		const [startDateYear, startDateMonth, startDateDay] =
-			startDateOption.split("-");
-
 		try {
 			Date.parse(startDateOption);
 		} catch (error) {
@@ -242,9 +239,9 @@ export const createTournament: Command = {
 			return;
 		}
 
-		const startDate = new Date(
-			Date.UTC(+startDateYear, +startDateMonth - 1, +startDateDay)
-		);
+		const startDateUTC = DateTime.fromFormat(startDateOption, "yyyy-MM-dd", {
+			zone: "utc",
+		});
 
 		const [staffRole, mappoolerRole, refereeRole, playerRole] =
 			await getTournamentRoles(interaction);
@@ -274,7 +271,7 @@ export const createTournament: Command = {
 		embedDescription += `**\\- Scoring:** \`${scoring}\`\n`;
 		embedDescription += `**\\- Win condition:** \`${winCondition}\`\n`;
 		embedDescription += `**\\- Team size:** \`${teamSize ?? 8}\`\n`;
-		embedDescription += `**\\- Start date:** \`${startDate.toUTCString()}\`\n`;
+		embedDescription += `**\\- Start date:** \`${startDateUTC.toString()}\`\n`;
 		embedDescription += "-------------------------------------------\n";
 		embedDescription += "**__Tournament roles:__**\n";
 		embedDescription += `**\\- Staff:** <@&${staffRole.id}>\n`;
@@ -295,7 +292,7 @@ export const createTournament: Command = {
 				name,
 				acronym,
 				serverId: interaction.guild!.id,
-				startDate,
+				startDate: startDateUTC.toJSDate(),
 				staffChannelId: staffChannel.id,
 				mappoolerChannelId: mappoolerChannel.id,
 				refereeChannelId: refereeChannel.id,
