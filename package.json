@@ -9,6 +9,7 @@
 		"build": "esbuild src/main.ts --bundle --platform=node --packages=external --outfile=app.js",
 		"package": "esbuild src/main.ts --bundle --platform=node --outfile=app.js"
 	},
+	"type": "module",
 	"keywords": [
 		"discord",
 		"bot",
