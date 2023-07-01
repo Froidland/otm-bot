@@ -1,4 +1,4 @@
-import DailyRotateFile = require("winston-daily-rotate-file");
+import DailyRotateFile from "winston-daily-rotate-file";
 import * as winston from "winston";
 const { combine, timestamp, printf, colorize } = winston.format;
 const logDatePattern = process.env.LOG_DATE_PATTERN ?? "DD-MM-YYYY";
