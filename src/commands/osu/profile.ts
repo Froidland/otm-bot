@@ -44,11 +44,12 @@ export const profile: Command = {
 		),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
+		// TODO: Refactor to comply with strict mode
 
 		const modeOption = interaction.options.get("mode", false);
 
 		const usernameOption = interaction.options.get("username", false);
-		let searchParameter: string | number | null;
+		let searchParameter: string | number;
 
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
 		if (usernameOption === null) {
@@ -58,7 +59,7 @@ export const profile: Command = {
 				},
 			});
 
-			if (!user || user.osuId === null) {
+			if (!user || user.osuId === undefined) {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
@@ -75,7 +76,7 @@ export const profile: Command = {
 
 			searchParameter = user.osuId;
 		} else {
-			searchParameter = interaction.options.get("username").value as string;
+			searchParameter = interaction.options.get("username")?.value as string;
 		}
 
 		const userDetails = await v2.user.details(
@@ -86,6 +87,7 @@ export const profile: Command = {
 			usernameOption === null ? "id" : "username"
 		);
 
+		// @ts-expect-error Unfortunately, the response can indeed have an error property, osu-api-extended doesn't throw an error when the user is not found.
 		if (userDetails["error"] !== undefined) {
 			await interaction.editReply({
 				embeds: [

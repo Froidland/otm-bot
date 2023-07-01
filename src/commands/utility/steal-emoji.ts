@@ -29,11 +29,11 @@ export const stealEmoji: Command = {
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
 
-		const emojiOption = interaction.options.get("emoji");
-		const emoji = emojiOption.value as string;
+		const emoji = interaction.options.get("emoji", true).value as string;
 
-		const emojiNameOption = interaction.options.get("name");
-		const emojiName = emojiNameOption?.value as string;
+		const emojiName = interaction.options.get("name")?.value as
+			| string
+			| undefined;
 
 		// Regex for matching custom discord emoji
 		// First capture group is for animated emojis (whether it has an "a" in front of it or not)
@@ -61,7 +61,8 @@ export const stealEmoji: Command = {
 
 		const emojiAttachment = Buffer.from(await emojiResponse.arrayBuffer());
 
-		const createdEmoji = await interaction.guild.emojis.create({
+		// Non-null because the command is guild-only.
+		const createdEmoji = await interaction.guild!.emojis.create({
 			name: emojiName || name,
 			attachment: emojiAttachment,
 		});

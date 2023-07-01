@@ -26,8 +26,8 @@ export const coinflip: Command = {
 					}
 				)
 				.setRequired(true)
-		),
-
+		)
+		.setDMPermission(false),
 	execute: async (interaction: CommandInteraction) => {
 		await interaction.deferReply();
 		const user = await db.users.findOne({
@@ -51,7 +51,7 @@ export const coinflip: Command = {
 			return;
 		}
 
-		const side = interaction.options.get("side").value as string;
+		const side = interaction.options.get("side", true).value as string;
 
 		const coin = Math.random() < 0.5 ? "heads" : "tails";
 

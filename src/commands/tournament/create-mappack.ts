@@ -41,11 +41,13 @@ export const createMappack: Command = {
 		const streamPromises: Promise<void>[] = [];
 		const zipFile = new AdmZip();
 
-		const batmapsetIdsOptionValue = interaction.options.get("beatmapset-ids")
-			.value as string;
+		const batmapsetIdsOptionValue = interaction.options.get(
+			"beatmapset-ids",
+			true
+		).value as string;
 
-		const nameOptionValue =
-			(interaction.options.get("name").value as string) ?? null;
+		const nameOptionValue = interaction.options.get("name", true)
+			?.value as string;
 
 		const fileKey =
 			nameOptionValue === null
@@ -57,18 +59,18 @@ export const createMappack: Command = {
 		const beatmapsetIds = batmapsetIdsOptionValue.split(" ").map((id) => +id);
 
 		for (const id of beatmapsetIds) {
-			const response = await axios.get(
-				`https://api.chimu.moe/v1/download/${id}`,
-				{
-					responseType: "stream",
-					headers: {
-						Accept: "application/octet-stream",
-					},
-				}
-			);
-
 			streamPromises.push(
-				new Promise<void>((resolve, reject) => {
+				new Promise<void>(async (resolve, reject) => {
+					const response = await axios.get(
+						`https://api.chimu.moe/v1/download/${id}`,
+						{
+							responseType: "stream",
+							headers: {
+								Accept: "application/octet-stream",
+							},
+						}
+					);
+
 					const stream: Stream = response.data;
 					const buffers: Array<Buffer> = [];
 
