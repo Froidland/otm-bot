@@ -36,6 +36,7 @@ export const createMappack: Command = {
 				.setRequired(true)
 		),
 	execute: async (interaction: CommandInteraction) => {
+		// TODO: Add some form of rate limiting to this command and also caching for the maps.
 		await interaction.deferReply();
 		const fileId = createId();
 		const streamPromises: Promise<void>[] = [];
@@ -46,13 +47,9 @@ export const createMappack: Command = {
 			true
 		).value as string;
 
-		const nameOptionValue = interaction.options.get("name", true)
-			?.value as string;
+		const name = interaction.options.get("name", true).value as string;
 
-		const fileKey =
-			nameOptionValue === null
-				? `${fileId}.zip`
-				: `${nameOptionValue}-${fileId}.zip`;
+		const fileKey = `${name}-${fileId}.zip`;
 
 		// Download all the maps and save them to a temp folder.
 

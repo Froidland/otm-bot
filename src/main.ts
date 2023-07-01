@@ -7,6 +7,8 @@ import { logger } from "./utils/";
 import { onInteraction, onMessageCreate, onReady } from "./events";
 dotenv.config();
 
+// TODO: Implement runtime checks for the environment variables. (Maybe use zod for this)
+
 (async () => {
 	const client = new Client({
 		intents: [

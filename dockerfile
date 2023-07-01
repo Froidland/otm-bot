@@ -19,6 +19,5 @@ COPY . .
 # Build the TypeScript project
 RUN pnpm run build
 
-
 # Specify the command to run the built project
 CMD ["node", "app.js"]
