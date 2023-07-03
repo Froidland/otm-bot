@@ -1,4 +1,8 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import {
+	ChatInputCommandInteraction,
+	EmbedBuilder,
+	SlashCommandBuilder,
+} from "discord.js";
 import { v2 } from "osu-api-extended";
 import { Command } from "@/interfaces/command";
 import db from "@/db";
@@ -16,9 +20,9 @@ export const link: Command = {
 				)
 				.setRequired(true)
 		),
-	execute: async (interaction) => {
+	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply({ ephemeral: true });
-		const username = interaction.options.get("username", true).value as string;
+		const username = interaction.options.getString("username", true);
 
 		const user = await v2.user.details(username, "osu");
 

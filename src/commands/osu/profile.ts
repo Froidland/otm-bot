@@ -1,4 +1,5 @@
 import {
+	ChatInputCommandInteraction,
 	CommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
@@ -42,13 +43,13 @@ export const profile: Command = {
 					}
 				)
 		),
-	execute: async (interaction: CommandInteraction) => {
+	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 		// TODO: Refactor to comply with strict mode
 
-		const modeOption = interaction.options.get("mode", false);
+		const modeOption = interaction.options.getString("mode", false);
 
-		const usernameOption = interaction.options.get("username", false);
+		const usernameOption = interaction.options.getString("username", false);
 		let searchParameter: string | number;
 
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
@@ -83,7 +84,7 @@ export const profile: Command = {
 			searchParameter,
 			modeOption === null
 				? "osu"
-				: (modeOption.value as "osu" | "taiko" | "fruits" | "mania"),
+				: (modeOption as "osu" | "taiko" | "fruits" | "mania"),
 			usernameOption === null ? "id" : "username"
 		);
 

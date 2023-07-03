@@ -1,4 +1,5 @@
 import {
+	ChatInputCommandInteraction,
 	CommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
@@ -28,7 +29,7 @@ export const coinflip: Command = {
 				.setRequired(true)
 		)
 		.setDMPermission(false),
-	execute: async (interaction: CommandInteraction) => {
+	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 		const user = await db.users.findOne({
 			where: {
@@ -51,7 +52,7 @@ export const coinflip: Command = {
 			return;
 		}
 
-		const side = interaction.options.get("side", true).value as string;
+		const side = interaction.options.getString("side", true);
 
 		const coin = Math.random() < 0.5 ? "heads" : "tails";
 

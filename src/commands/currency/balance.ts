@@ -1,4 +1,5 @@
 import {
+	ChatInputCommandInteraction,
 	CommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
@@ -10,7 +11,7 @@ export const balance: Command = {
 	data: new SlashCommandBuilder()
 		.setName("balance")
 		.setDescription("Check your balance."),
-	execute: async (interaction: CommandInteraction) => {
+	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 		const user = await db.users.findOne({
 			where: {
