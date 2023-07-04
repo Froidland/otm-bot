@@ -37,7 +37,7 @@ export const link: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Success")
+						.setTitle("Account Linked!")
 						.setDescription(
 							`Linked your discord account to username \`${user.username}\`.`
 						),
@@ -48,8 +48,10 @@ export const link: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
-						.setDescription(`\`Unable to link username in the DB.\``),
+						.setTitle("DB Error!")
+						.setDescription(
+							`Unable to link username in the DB. Please contact the bot owner if this error persists.`
+						),
 				],
 			});
 		}

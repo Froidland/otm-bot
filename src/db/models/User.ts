@@ -18,16 +18,13 @@ export class User {
 	@PrimaryColumn("varchar")
 	discordId: string;
 
-	@Column("int", {
-		nullable: true,
-	})
-	osuId?: number;
+	@Column("int", {})
+	osuId: number;
 
 	@Column("varchar", {
-		nullable: true,
 		length: 32,
 	})
-	username?: string;
+	username: string;
 
 	@Column("bigint", {
 		default: 0,

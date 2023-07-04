@@ -54,20 +54,21 @@ export const profile: Command = {
 
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
 		if (usernameOption === null) {
+			// Check if the user has linked their account.
 			const user = await db.users.findOne({
 				where: {
 					discordId: interaction.user.id,
 				},
 			});
 
-			if (!user || user.osuId === undefined) {
+			if (!user) {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
 							.setColor("Red")
-							.setTitle("Error")
+							.setTitle("No Account!")
 							.setDescription(
-								`\`Please link an osu! username in order to use this command with no arguments.\``
+								"You don't have an account. Please use the `/link` command to link your osu! account if you want to use this command without specifying a username"
 							),
 					],
 				});

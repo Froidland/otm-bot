@@ -31,6 +31,8 @@ export const coinflip: Command = {
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
+		
+		// Check if the user has linked their account.
 		const user = await db.users.findOne({
 			where: {
 				discordId: interaction.user.id,
@@ -42,7 +44,7 @@ export const coinflip: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("No Account!")
 						.setDescription(
 							"You don't have an account. Please use the `/link` command to link your osu! account."
 						),
