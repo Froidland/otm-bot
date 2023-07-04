@@ -62,12 +62,34 @@ export const createTryoutStage: Command = {
 			zone: "utc",
 		});
 
+		// Check if the user has linked their account.
+		const user = await db.users.findOne({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No Account!")
+						.setDescription(
+							"You don't have an account. Please use the `/link` command to link your osu! account."
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (!startDate.isValid || !endDate.isValid) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid date!")
+						.setTitle("Invalid Date!")
 						.setDescription(
 							"The date format you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
 						),
@@ -86,7 +108,7 @@ export const createTryoutStage: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid channel!")
+						.setTitle("Invalid Channel!")
 						.setDescription(
 							"This command needs to be run in a tryout staff channel."
 						),
@@ -110,7 +132,7 @@ export const createTryoutStage: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid custom ID!")
+						.setTitle("Invalid Custom ID!")
 						.setDescription(
 							"A tryout stage with the provided custom ID already exists."
 						),
@@ -154,7 +176,7 @@ export const createTryoutStage: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid date!")
+						.setTitle("Invalid Date!")
 						.setDescription(
 							`One of the dates provided collides with the existing tryout stage \`${collidingTryoutStage.name}\``
 						),
@@ -185,12 +207,23 @@ export const createTryoutStage: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Tryout stage created!")
+						.setTitle("Tryout Stage Created!")
 						.setDescription(embedDescription),
 				],
 			});
 		} catch (error) {
 			logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("DB Error!")
+						.setDescription(
+							"An error occurred while creating the tryout stage. All changes will be reverted. Please contact the bot owner if this error persists."
+						),
+				],
+			});
 		}
 	},
 };

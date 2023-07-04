@@ -183,7 +183,7 @@ export const createTournament: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("No Account!")
 						.setDescription(
 							"You don't have an account. Please use the `/link` command to link your osu! account."
 						),
@@ -246,7 +246,7 @@ export const createTournament: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Date!")
 						.setDescription(
 							"One of the dates you provided is invalid. Please use the format `YYYY-MM-DD HH:MM` for the dates."
 						),
@@ -261,7 +261,7 @@ export const createTournament: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Date!")
 						.setDescription(
 							"The registration end date cannot be before the start date."
 						),
@@ -270,6 +270,8 @@ export const createTournament: Command = {
 
 			return;
 		}
+
+		// TODO: Check for schedule channel collisions.
 
 		const [staffRole, mappoolerRole, refereeRole, playerRole] =
 			await getTournamentRoles(interaction);
@@ -339,15 +341,25 @@ export const createTournament: Command = {
 				teamSize,
 				lobbyTeamSize,
 			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Tournament Created!")
+						.setDescription(embedDescription),
+				],
+			});
 		} catch (error) {
 			logger.error(`Error while creating tournament: ${error}`);
+
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("DB Error!")
 						.setDescription(
-							"There was an error while creating the tournament. Please try again later. Created roles and channels will be deleted."
+							"There was an error while creating the tournament. All changes will be reverted. Please contact the bot owner if this error persists."
 						),
 				],
 			});
@@ -367,15 +379,6 @@ export const createTournament: Command = {
 
 			return;
 		}
-
-		await interaction.editReply({
-			embeds: [
-				new EmbedBuilder()
-					.setColor("Green")
-					.setTitle("Tournament created")
-					.setDescription(embedDescription),
-			],
-		});
 	},
 };
 

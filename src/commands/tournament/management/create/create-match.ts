@@ -108,7 +108,7 @@ export const createMatch: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Date!")
 						.setDescription(
 							"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
 						),
@@ -123,7 +123,7 @@ export const createMatch: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Date!")
 						.setDescription("You cannot create a lobby in the past."),
 				],
 			});
@@ -131,6 +131,7 @@ export const createMatch: Command = {
 			return;
 		}
 
+		// Check if the user has linked their account.
 		const user = await db.users.findOne({
 			where: {
 				discordId: interaction.user.id,
@@ -142,7 +143,7 @@ export const createMatch: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("No Account!")
 						.setDescription(
 							"You don't have an account. Please use the `/link` command to link your osu! account."
 						),
@@ -163,7 +164,7 @@ export const createMatch: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Channel!")
 						.setDescription(
 							"This channel is not a staff channel for a tournament."
 						),
@@ -182,7 +183,7 @@ export const createMatch: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Permissions!")
 						.setDescription("You are not a staff member for this tournament."),
 				],
 			});
@@ -206,7 +207,7 @@ export const createMatch: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid Custom ID!")
 						.setDescription(
 							"A lobby with that custom ID already exists for this tournament."
 						),

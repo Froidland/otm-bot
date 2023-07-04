@@ -107,6 +107,28 @@ export const createTryout: Command = {
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
 
+		// Check if the user has linked their account.
+		const user = await db.users.findOne({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No Account!")
+						.setDescription(
+							"You don't have an account. Please use the `/link` command to link your osu! account."
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (!playerRole) {
 			playerRole = (await interaction.guild?.roles.create({
 				name: `${acronym}: Player`,
@@ -200,9 +222,9 @@ export const createTryout: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("DB Error!")
 						.setDescription(
-							"An error occurred while creating the tryout. All changes will be reverted."
+							"An error occurred while creating the tryout. All changes will be reverted. Please contact the bot owner if this error persists."
 						),
 				],
 			});

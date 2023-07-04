@@ -97,7 +97,7 @@ export const createMappack: Command = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Download Error!")
 						.setDescription("Something went wrong while downloading the maps."),
 				],
 			});
@@ -118,7 +118,7 @@ export const createMappack: Command = {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setTitle("Error")
+						.setTitle("Upload Error!")
 						.setDescription(
 							"Something went wrong while uploading the zip file."
 						)
