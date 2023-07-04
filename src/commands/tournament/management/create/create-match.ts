@@ -10,6 +10,7 @@ import db, { TournamentStage } from "@/db";
 import { DateTime } from "luxon";
 import { createId } from "@paralleldrive/cuid2";
 import { logger } from "@/utils";
+import { NoAccountEmbed } from "@/embeds";
 
 export const createMatch: Command = {
 	data: new SlashCommandBuilder()
@@ -103,6 +104,21 @@ export const createMatch: Command = {
 			zone: "utc",
 		});
 
+		// Check if the user has linked their account.
+		const user = await db.users.findOne({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
 		if (!schedule.isValid) {
 			await interaction.editReply({
 				embeds: [
@@ -125,28 +141,6 @@ export const createMatch: Command = {
 						.setColor("Red")
 						.setTitle("Invalid Date!")
 						.setDescription("You cannot create a lobby in the past."),
-				],
-			});
-
-			return;
-		}
-
-		// Check if the user has linked their account.
-		const user = await db.users.findOne({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
-
-		if (!user) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("No Account!")
-						.setDescription(
-							"You don't have an account. Please use the `/link` command to link your osu! account."
-						),
 				],
 			});
 

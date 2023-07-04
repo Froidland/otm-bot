@@ -12,6 +12,7 @@ import { DateTime } from "luxon";
 import { createId } from "@paralleldrive/cuid2";
 import db from "@/db";
 import { logger } from "@/utils";
+import { NoAccountEmbed } from "@/embeds";
 
 export const createTryout: Command = {
 	data: new SlashCommandBuilder()
@@ -116,14 +117,7 @@ export const createTryout: Command = {
 
 		if (!user) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("No Account!")
-						.setDescription(
-							"You don't have an account. Please use the `/link` command to link your osu! account."
-						),
-				],
+				embeds: [NoAccountEmbed],
 			});
 
 			return;

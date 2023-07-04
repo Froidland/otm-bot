@@ -9,6 +9,7 @@ import db from "@/db";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import { LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
+import { NoAccountEmbed } from "@/embeds";
 
 export const createTryoutStage: Command = {
 	data: new SlashCommandBuilder()
@@ -71,14 +72,7 @@ export const createTryoutStage: Command = {
 
 		if (!user) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("No Account!")
-						.setDescription(
-							"You don't have an account. Please use the `/link` command to link your osu! account."
-						),
-				],
+				embeds: [NoAccountEmbed],
 			});
 
 			return;

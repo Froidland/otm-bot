@@ -14,6 +14,7 @@ import { createId } from "@paralleldrive/cuid2";
 import db, { ScoringType, TournamentType, WinCondition } from "@/db";
 import { logger } from "@/utils";
 import { DateTime } from "luxon";
+import { NoAccountEmbed } from "@/embeds";
 
 export const createTournament: Command = {
 	data: new SlashCommandBuilder()
@@ -180,14 +181,7 @@ export const createTournament: Command = {
 
 		if (!user) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("No Account!")
-						.setDescription(
-							"You don't have an account. Please use the `/link` command to link your osu! account."
-						),
-				],
+				embeds: [NoAccountEmbed],
 			});
 
 			return;
