@@ -49,6 +49,14 @@ export const createTryout: Command = {
 				)
 				.setRequired(true)
 		)
+		.addBooleanOption((option) =>
+			option
+				.setName("is-joinable")
+				.setDescription(
+					"Whether players can join the tryout stage. If false, only staff members can add players."
+				)
+				.setRequired(true)
+		)
 		.addRoleOption((option) =>
 			option
 				.setName("staff-role")
@@ -102,6 +110,7 @@ export const createTryout: Command = {
 		const acronym = interaction.options.getString("acronym", true);
 		const startDateString = interaction.options.getString("start-date", true);
 		const endDateString = interaction.options.getString("end-date", true);
+		const isJoinable = interaction.options.getBoolean("is-joinable", true);
 
 		let playerRole = interaction.options.getRole("player-role");
 		let staffRole = interaction.options.getRole("staff-role");
@@ -200,17 +209,21 @@ export const createTryout: Command = {
 			})) as GuildTextBasedChannel;
 		}
 
-		let embedDescription = `**\\- Name:** \`${name}\`\n`;
+		let embedDescription = `**\\- ID:** \`${id}\`\n`;
+		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += `**\\- Start Date:** \`${startDate.toRFC2822()}\`\n`;
 		embedDescription += `**\\- End Date:** \`${endDate.toRFC2822()}\`\n`;
+		embedDescription += `**\\- Is Joinable:** \`${
+			isJoinable ? "Yes" : "No"
+		}\`\n`;
 		embedDescription += `**\\- Staff Role:** ${staffRole.toString()}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole.toString()}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel.toString()}\n`;
-		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel.toString()}\n`;
+		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel.toString()}`;
 
 		try {
-			const tryout = await db.tryouts.insert({
+			await db.tryouts.insert({
 				id,
 				name,
 				serverId: interaction.guildId!,
@@ -220,6 +233,7 @@ export const createTryout: Command = {
 				scheduleChannelId: scheduleChannel.id,
 				startDate: startDate.toJSDate(),
 				endDate: endDate.toJSDate(),
+				isJoinable,
 			});
 
 			await interaction.editReply({
