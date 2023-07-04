@@ -7,7 +7,7 @@ import { Tournament, Match, User, Team } from "./models";
 const db = {
 	users: AppDataSource.getRepository(User),
 	tournaments: AppDataSource.getRepository(Tournament),
-	lobbies: AppDataSource.getRepository(Match),
+	matches: AppDataSource.getRepository(Match),
 	teams: AppDataSource.getRepository(Team),
 };
 

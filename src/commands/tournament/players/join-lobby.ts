@@ -45,7 +45,7 @@ export const joinLobby: Command = {
 			return;
 		}
 
-		const lobby = await db.lobbies.findOne({
+		const lobby = await db.matches.findOne({
 			where: {
 				tournament: [
 					{

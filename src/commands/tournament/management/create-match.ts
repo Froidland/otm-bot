@@ -189,7 +189,7 @@ export const createMatch: Command = {
 			return;
 		}
 
-		const existingLobby = await db.lobbies.findOne({
+		const existingLobby = await db.matches.findOne({
 			where: [
 				{
 					tournament: {
@@ -223,7 +223,7 @@ export const createMatch: Command = {
 		embedDescription += `**\\- Stage:** \`${stage}\``;
 
 		try {
-			await db.lobbies.insert({
+			await db.matches.insert({
 				id,
 				customId,
 				schedule: schedule.toJSDate(),

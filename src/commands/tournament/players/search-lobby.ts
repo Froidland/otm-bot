@@ -113,7 +113,7 @@ export const searchLobby: Command = {
 			return;
 		}
 
-		const lobbies = await db.lobbies.find({
+		const lobbies = await db.matches.find({
 			where: {
 				schedule: Between(fromDate.toJSDate(), toDate.toJSDate()),
 				tournament: [
