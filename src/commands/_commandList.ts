@@ -8,7 +8,7 @@ import {
 	createMappack,
 	createTournament,
 	createTryout,
-} from "./tournament/management";
+} from "./tournament/management/create";
 import { archiveCategory, stealEmoji } from "./utility";
 import { joinLobby, searchLobby } from "./tournament/players";
 

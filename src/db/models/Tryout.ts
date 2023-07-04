@@ -41,6 +41,9 @@ export class Tryout {
 	@Column("varchar")
 	serverId: string;
 
+	@Column("varchar")
+	isJoinable: boolean;
+
 	@OneToMany(() => TryoutLobby, (lobby) => lobby.id)
 	lobbies: TryoutLobby[];
 
