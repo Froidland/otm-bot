@@ -94,28 +94,29 @@ export const createMatch: Command = {
 
 		const customId = interaction.options.getString("custom-id", true);
 		const scheduleString = interaction.options.getString("schedule", true);
-		const stage = interaction.options.get("stage", true)
-			.value as TournamentStage;
+		const stage = interaction.options.getString(
+			"stage",
+			true
+		) as TournamentStage;
 
-		const dateRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
-		if (!dateRegex.test(scheduleString)) {
+		const schedule = DateTime.fromFormat(scheduleString, "yyyy-MM-dd HH:mm", {
+			zone: "utc",
+		});
+
+		if (!schedule.isValid) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"The schedule is not in the correct format. Please use the following format: `YYYY-MM-DD HH:MM`"
+							"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
 						),
 				],
 			});
 
 			return;
 		}
-
-		const schedule = DateTime.fromFormat(scheduleString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
 
 		if (schedule < DateTime.utc()) {
 			await interaction.editReply({
