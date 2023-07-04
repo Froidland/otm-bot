@@ -209,18 +209,21 @@ export const createTryout: Command = {
 			})) as GuildTextBasedChannel;
 		}
 
-		let embedDescription = `**\\- ID:** \`${id}\`\n`;
+		let embedDescription = "**__Tryout info:__**\n";
+		embedDescription += `**\\- Unique ID:** \`${id}\`\n`;
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
+		embedDescription += "**__Tryout settings:__**\n";
 		embedDescription += `**\\- Start Date:** \`${startDate.toRFC2822()}\`\n`;
 		embedDescription += `**\\- End Date:** \`${endDate.toRFC2822()}\`\n`;
 		embedDescription += `**\\- Is Joinable:** \`${
 			isJoinable ? "Yes" : "No"
 		}\`\n`;
-		embedDescription += `**\\- Staff Role:** ${staffRole.toString()}\n`;
-		embedDescription += `**\\- Player Role:** ${playerRole.toString()}\n`;
-		embedDescription += `**\\- Staff Channel:** ${staffChannel.toString()}\n`;
-		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel.toString()}`;
+		embedDescription += "**__Tryout roles and channels:__**\n";
+		embedDescription += `**\\- Staff Role:** ${staffRole}\n`;
+		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
+		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
+		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel}`;
 
 		try {
 			await db.tryouts.insert({

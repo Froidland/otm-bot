@@ -288,8 +288,8 @@ export const createTournament: Command = {
 			playerRole
 		);
 
-		let embedDescription = "**__Tournament identification:__**\n";
-		embedDescription += `**\\- ID:** \`${id}\`\n`;
+		let embedDescription = "**__Tournament info:__**\n";
+		embedDescription += `**\\- Unique ID:** \`${id}\`\n`;
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += `**\\- Owner:** \`${interaction.user.tag}\`\n`;
