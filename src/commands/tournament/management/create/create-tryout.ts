@@ -112,11 +112,15 @@ export const createTryout: Command = {
 		const endDateString = interaction.options.getString("end-date", true);
 		const isJoinable = interaction.options.getBoolean("is-joinable", true);
 
-		let playerRole = interaction.options.getRole("player-role");
-		let staffRole = interaction.options.getRole("staff-role");
+		let playerRole = interaction.options.getRole("player-role") as Role;
+		let staffRole = interaction.options.getRole("staff-role") as Role;
 
-		let staffChannel = interaction.options.getChannel("staff-channel");
-		let scheduleChannel = interaction.options.getChannel("schedule-channel");
+		let staffChannel = interaction.options.getChannel(
+			"staff-channel"
+		) as GuildTextBasedChannel;
+		let scheduleChannel = interaction.options.getChannel(
+			"schedule-channel"
+		) as GuildTextBasedChannel;
 
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
@@ -255,9 +259,19 @@ export const createTryout: Command = {
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
-						.setDescription("An error occurred while creating the tryout."),
+						.setDescription(
+							"An error occurred while creating the tryout. All changes will be reverted."
+						),
 				],
 			});
+
+			// Channels
+			await staffChannel.delete();
+			await scheduleChannel.delete();
+
+			// Roles
+			await playerRole.delete();
+			await staffRole.delete();
 		}
 	},
 };
