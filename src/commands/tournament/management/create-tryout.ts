@@ -10,6 +10,8 @@ import {
 import { Command } from "@/interfaces/command";
 import { DateTime } from "luxon";
 import { createId } from "@paralleldrive/cuid2";
+import db from "@/db";
+import { logger } from "@/utils";
 
 export const createTryout: Command = {
 	data: new SlashCommandBuilder()
@@ -21,16 +23,14 @@ export const createTryout: Command = {
 			option
 				.setName("name")
 				.setDescription(
-					'The name of the tryout stage. (Example: "5WC Chile Tryouts Week 1")'
+					'The name of the tryout. (Example: "5WC Chile Tryouts 2023")'
 				)
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
 			option
 				.setName("acronym")
-				.setDescription(
-					'The acronym of the tryout stage. (Example: "5WC CLT W1")'
-				)
+				.setDescription('The acronym of the tryout stage. (Example: "5WC CLT")')
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
@@ -51,10 +51,27 @@ export const createTryout: Command = {
 		)
 		.addRoleOption((option) =>
 			option
+				.setName("staff-role")
+				.setDescription(
+					"The role that staff members need to have to be able to manage the tryout stage."
+				)
+				.setRequired(false)
+		)
+		.addRoleOption((option) =>
+			option
 				.setName("player-role")
 				.setDescription(
 					"The role that players need to have to be able to participate in the tryout stage."
 				)
+				.setRequired(false)
+		)
+		.addChannelOption((option) =>
+			option
+				.setName("staff-channel")
+				.setDescription(
+					"The channel where the staff members can manage the tryout stage."
+				)
+				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(false)
 		)
 		.addChannelOption((option) =>
@@ -64,6 +81,15 @@ export const createTryout: Command = {
 					"The channel where the schedules of the tryout stage will be posted."
 				)
 				.addChannelTypes(ChannelType.GuildText)
+				.setRequired(false)
+		)
+		.addChannelOption((option) =>
+			option
+				.setName("parent-category")
+				.setDescription(
+					"The parent category where the staff channel and schedule channel will be created unless specified."
+				)
+				.addChannelTypes(ChannelType.GuildCategory)
 				.setRequired(false)
 		)
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
@@ -78,7 +104,13 @@ export const createTryout: Command = {
 		const endDateString = interaction.options.getString("end-date", true);
 
 		let playerRole = interaction.options.getRole("player-role");
+		let staffRole = interaction.options.getRole("staff-role");
+
+		let staffChannel = interaction.options.getChannel("staff-channel");
 		let scheduleChannel = interaction.options.getChannel("schedule-channel");
+
+		const parentCategory =
+			interaction.options.getChannel("parent-category") ?? undefined;
 
 		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
 			zone: "utc",
@@ -94,7 +126,8 @@ export const createTryout: Command = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"The start date or end date is not in the correct format. Please use the following format: `YYYY-MM-DD HH:MM`"
+							"The start date or end date is not in the correct format. Please use the following format: `YYYY-MM-DD HH:MM`.\n" +
+								"Make sure the date is valid and the time is in UTC."
 						),
 				],
 			});
@@ -121,13 +154,93 @@ export const createTryout: Command = {
 			})) as Role;
 		}
 
+		if (!staffRole) {
+			staffRole = (await interaction.guild?.roles.create({
+				name: `${acronym}: Staff`,
+			})) as Role;
+		}
+
 		if (!scheduleChannel) {
 			scheduleChannel = (await interaction.guild?.channels.create({
-				name: `${acronym.toUpperCase()}-schedules`,
+				name: `${acronym}-schedules`,
 				type: ChannelType.GuildText,
+				permissionOverwrites: [
+					{
+						id: interaction.guild?.roles.everyone.id,
+						deny: [PermissionFlagsBits.ViewChannel],
+					},
+					{
+						id: playerRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
+					{
+						id: staffRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
+				],
+				parent: parentCategory?.id,
 			})) as GuildTextBasedChannel;
 		}
-		
-		
+
+		if (!staffChannel) {
+			staffChannel = (await interaction.guild?.channels.create({
+				name: `${acronym}-staff`,
+				type: ChannelType.GuildText,
+				permissionOverwrites: [
+					{
+						id: interaction.guild?.roles.everyone.id,
+						deny: [PermissionFlagsBits.ViewChannel],
+					},
+					{
+						id: staffRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
+				],
+				parent: parentCategory?.id,
+			})) as GuildTextBasedChannel;
+		}
+
+		let embedDescription = `**\\- Name:** \`${name}\`\n`;
+		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
+		embedDescription += `**\\- Start Date:** \`${startDate.toRFC2822()}\`\n`;
+		embedDescription += `**\\- End Date:** \`${endDate.toRFC2822()}\`\n`;
+		embedDescription += `**\\- Staff Role:** ${staffRole.toString()}\n`;
+		embedDescription += `**\\- Player Role:** ${playerRole.toString()}\n`;
+		embedDescription += `**\\- Staff Channel:** ${staffChannel.toString()}\n`;
+		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel.toString()}\n`;
+
+		try {
+			const tryout = await db.tryouts.insert({
+				id,
+				name,
+				serverId: interaction.guildId!,
+				staffRoleId: staffRole.id,
+				playerRoleId: playerRole.id,
+				staffChannelId: staffChannel.id,
+				scheduleChannelId: scheduleChannel.id,
+				startDate: startDate.toJSDate(),
+				endDate: endDate.toJSDate(),
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Tryout Created")
+						.setDescription(embedDescription),
+				],
+			});
+		} catch (error) {
+			logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("An error occurred while creating the tryout."),
+				],
+			});
+		}
 	},
 };
