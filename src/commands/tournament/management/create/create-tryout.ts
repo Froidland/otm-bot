@@ -33,22 +33,6 @@ export const createTryout: Command = {
 				.setDescription('The acronym of the tryout stage. (Example: "5WC CLT")')
 				.setRequired(true)
 		)
-		.addStringOption((option) =>
-			option
-				.setName("start-date")
-				.setDescription(
-					'The start date of the tryout stage in UTC. Format: "YYYY-MM-DD HH:MM"'
-				)
-				.setRequired(true)
-		)
-		.addStringOption((option) =>
-			option
-				.setName("end-date")
-				.setDescription(
-					'The end date of the tryout stage in UTC. Format: "YYYY-MM-DD HH:MM"'
-				)
-				.setRequired(true)
-		)
 		.addBooleanOption((option) =>
 			option
 				.setName("is-joinable")
@@ -108,8 +92,6 @@ export const createTryout: Command = {
 
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
-		const startDateString = interaction.options.getString("start-date", true);
-		const endDateString = interaction.options.getString("end-date", true);
 		const isJoinable = interaction.options.getBoolean("is-joinable", true);
 
 		let playerRole = interaction.options.getRole("player-role") as Role;
@@ -124,42 +106,6 @@ export const createTryout: Command = {
 
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
-
-		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
-		const endDate = DateTime.fromFormat(endDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
-
-		if (!startDate.isValid || !endDate.isValid) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Error")
-						.setDescription(
-							"The start date or end date is not in the correct format. Please use the following format: `YYYY-MM-DD HH:MM`.\n" +
-								"Make sure the date is valid and the time is in UTC."
-						),
-				],
-			});
-
-			return;
-		}
-
-		if (startDate > endDate) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Error")
-						.setDescription("The start date cannot be after the end date."),
-				],
-			});
-
-			return;
-		}
 
 		if (!playerRole) {
 			playerRole = (await interaction.guild?.roles.create({
@@ -218,8 +164,6 @@ export const createTryout: Command = {
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += "**__Tryout settings:__**\n";
-		embedDescription += `**\\- Start Date:** \`${startDate.toRFC2822()}\`\n`;
-		embedDescription += `**\\- End Date:** \`${endDate.toRFC2822()}\`\n`;
 		embedDescription += `**\\- Is Joinable:** \`${
 			isJoinable ? "Yes" : "No"
 		}\`\n`;
@@ -238,8 +182,6 @@ export const createTryout: Command = {
 				playerRoleId: playerRole.id,
 				staffChannelId: staffChannel.id,
 				scheduleChannelId: scheduleChannel.id,
-				startDate: startDate.toJSDate(),
-				endDate: endDate.toJSDate(),
 				isJoinable,
 			});
 

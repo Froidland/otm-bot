@@ -20,12 +20,6 @@ export class Tryout {
 	@Column("varchar")
 	name: string;
 
-	@Column("timestamp")
-	startDate: Date;
-
-	@Column("timestamp")
-	endDate: Date;
-
 	@Column("varchar")
 	staffChannelId: string;
 
@@ -43,9 +37,6 @@ export class Tryout {
 
 	@Column("varchar")
 	isJoinable: boolean;
-
-	@OneToMany(() => TryoutLobby, (lobby) => lobby.id)
-	lobbies: TryoutLobby[];
 
 	@CreateDateColumn({
 		type: "timestamp",
