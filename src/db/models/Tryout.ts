@@ -6,7 +6,7 @@ import {
 	PrimaryColumn,
 	UpdateDateColumn,
 } from "typeorm";
-import { TryoutLobby } from "./TryoutLobby";
+import { TryoutStage } from "./TryoutStage";
 
 @Entity({
 	name: "tryouts",
@@ -37,6 +37,9 @@ export class Tryout {
 
 	@Column("varchar")
 	isJoinable: boolean;
+
+	@OneToMany(() => TryoutStage, (stage) => stage.id)
+	stages: TryoutStage[];
 
 	@CreateDateColumn({
 		type: "timestamp",

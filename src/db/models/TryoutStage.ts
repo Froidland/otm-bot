@@ -7,17 +7,18 @@ import {
 	PrimaryColumn,
 	UpdateDateColumn,
 } from "typeorm";
-import { User } from "./User";
+import { TryoutLobby } from "./TryoutLobby";
 import { Tryout } from "./Tryout";
 
 @Entity({
-	name: "tryout-lobbies",
+	name: "tryout-stages",
 })
-export class TryoutLobby {
-	@PrimaryColumn({
-		type: "varchar",
-	})
+export class TryoutStage {
+	@PrimaryColumn("varchar")
 	id: string;
+
+	@Column("varchar")
+	name: string;
 
 	@Column("varchar")
 	customId: string;
@@ -25,13 +26,13 @@ export class TryoutLobby {
 	@Column("timestamp")
 	startDate: Date;
 
-	@OneToMany(() => User, (user) => user.discordId)
-	players: User[];
+	@Column("timestamp")
+	endDate: Date;
 
-	@Column("int")
-	playerLimit: number;
+	@OneToMany(() => TryoutLobby, (lobby) => lobby.id)
+	lobbies: TryoutLobby[];
 
-	@ManyToOne(() => Tryout, (stage) => stage.id)
+	@ManyToOne(() => Tryout, (tryout) => tryout.id)
 	tryout: Tryout;
 
 	@CreateDateColumn({
