@@ -1,7 +1,7 @@
 export * from "./models";
 
 import AppDataSource from "./data-source";
-import { Tournament, Match, User, Team } from "./models";
+import { Tournament, Match, User, Team, Tryout, TryoutLobby } from "./models";
 
 // TODO: This looks like a mess. Makes thinks look better in other files but this file is a mess. Research how to make this better.
 const db = {
@@ -9,6 +9,8 @@ const db = {
 	tournaments: AppDataSource.getRepository(Tournament),
 	matches: AppDataSource.getRepository(Match),
 	teams: AppDataSource.getRepository(Team),
+	tryouts: AppDataSource.getRepository(Tryout),
+	tryoutLobbies: AppDataSource.getRepository(TryoutLobby),
 };
 
 export default db;

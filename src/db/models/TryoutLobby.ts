@@ -8,7 +8,7 @@ import {
 	UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
-import { TryoutStage } from "./TryoutStage";
+import { Tryout } from "./Tryout";
 
 @Entity({
 	name: "tryout-lobbies",
@@ -36,8 +36,8 @@ export class TryoutLobby {
 	})
 	createdAt: Date;
 
-	@ManyToOne(() => TryoutStage, (stage) => stage.id)
-	tryout: TryoutStage;
+	@ManyToOne(() => Tryout, (stage) => stage.id)
+	tryout: Tryout;
 
 	@UpdateDateColumn({
 		type: "timestamp",

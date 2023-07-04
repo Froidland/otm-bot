@@ -11,7 +11,7 @@ import { TryoutLobby } from "./TryoutLobby";
 @Entity({
 	name: "tryouts",
 })
-export class TryoutStage {
+export class Tryout {
 	@PrimaryColumn({
 		type: "varchar",
 	})
