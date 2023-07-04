@@ -9,7 +9,7 @@ import {
 	UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
-import { Lobby } from "./Lobby";
+import { Match } from "./Match";
 
 const timezones = [
 	"-12UTC",
@@ -66,9 +66,9 @@ export class Team {
 	@JoinTable()
 	members: User[];
 
-	@ManyToMany(() => Lobby, (lobby) => lobby.teams)
+	@ManyToMany(() => Match, (lobby) => lobby.teams)
 	@JoinTable()
-	joinedLobbies: Lobby[];
+	joinedLobbies: Match[];
 
 	@CreateDateColumn({
 		type: "timestamp",

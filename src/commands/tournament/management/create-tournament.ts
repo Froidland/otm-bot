@@ -1,6 +1,7 @@
 import {
 	CategoryChannel,
 	ChannelType,
+	ChatInputCommandInteraction,
 	CommandInteraction,
 	EmbedBuilder,
 	GuildBasedChannel,
@@ -85,7 +86,15 @@ export const createTournament: Command = {
 			option
 				.setName("start-date")
 				.setDescription(
-					"The date at which the tournament will start. (Format: YYYY-MM-DD)"
+					"The date at which the tournament will start. (Format: YYYY-MM-DD HH:MM)"
+				)
+				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("registration-end-date")
+				.setDescription(
+					"The date at which the registration for the tournament will end. (Format: YYYY-MM-DD HH:MM)"
 				)
 				.setRequired(true)
 		)
@@ -158,7 +167,7 @@ export const createTournament: Command = {
 		)
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.setDMPermission(false),
-	execute: async (interaction: CommandInteraction) => {
+	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 		const id = createId();
 
@@ -184,64 +193,83 @@ export const createTournament: Command = {
 			return;
 		}
 
-		const name = interaction.options.get("name", true).value as string;
+		const name = interaction.options.getString("name", true);
 
-		const acronym = (
-			interaction.options.get("acronym", true).value as string
-		).toUpperCase();
+		const acronym = interaction.options
+			.getString("acronym", true)
+			.toUpperCase();
 
-		const tournamentType = interaction.options.get("type", true)
-			.value as TournamentType;
+		const tournamentType = interaction.options.getString(
+			"type",
+			true
+		) as TournamentType;
 
-		const teamSize = interaction.options.get("team-size", true).value as number;
+		const teamSize = interaction.options.getNumber("team-size", true);
 
-		const winCondition = interaction.options.get("win-condition", true)
-			.value as WinCondition;
+		const lobbyTeamSize = interaction.options.getNumber(
+			"lobby-team-size",
+			true
+		);
 
-		const scoring = interaction.options.get("scoring", true)
-			.value as ScoringType;
+		const winCondition = interaction.options.getString(
+			"win-condition",
+			true
+		) as WinCondition;
 
-		const startDateOption = interaction.options.get("start-date", true)
-			.value as string;
+		const scoring = interaction.options.getString(
+			"scoring",
+			true
+		) as ScoringType;
 
-		// Regex to check if the date is in the correct format.
-		const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+		const startDateString = interaction.options.getString("start-date", true);
 
-		if (!dateRegex.test(startDateOption)) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Error")
-						.setDescription(
-							"The date you provided is invalid. Please use the format `YYYY-MM-DD`."
-						),
-				],
-			});
+		const registrationEndDateString = interaction.options.getString(
+			"registration-end-date",
+			true
+		);
 
-			return;
-		}
-
-		try {
-			Date.parse(startDateOption);
-		} catch (error) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Error")
-						.setDescription(
-							"The date you provided is invalid. Please use the format `YYYY-MM-DD`."
-						),
-				],
-			});
-
-			return;
-		}
-
-		const startDateUTC = DateTime.fromFormat(startDateOption, "yyyy-MM-dd", {
+		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
 			zone: "utc",
 		});
+
+		const registrationEndDate = DateTime.fromFormat(
+			registrationEndDateString,
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
+		);
+
+		// TODO: Maybe give feedback on each error instead of just one generic error message.
+		if (!startDate.isValid || !registrationEndDate.isValid) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"One of the dates you provided is invalid. Please use the format `YYYY-MM-DD HH:MM` for the dates."
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (startDate > registrationEndDate) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"The registration end date cannot be before the start date."
+						),
+				],
+			});
+
+			return;
+		}
 
 		const [staffRole, mappoolerRole, refereeRole, playerRole] =
 			await getTournamentRoles(interaction);
@@ -271,7 +299,8 @@ export const createTournament: Command = {
 		embedDescription += `**\\- Scoring:** \`${scoring}\`\n`;
 		embedDescription += `**\\- Win condition:** \`${winCondition}\`\n`;
 		embedDescription += `**\\- Team size:** \`${teamSize ?? 8}\`\n`;
-		embedDescription += `**\\- Start date:** \`${startDateUTC.toString()}\`\n`;
+		embedDescription += `**\\- Start date:** \`${startDate.toString()}\`\n`;
+		embedDescription += `**\\- Registration end date:** \`${registrationEndDate.toString()}\`\n`;
 		embedDescription += "-------------------------------------------\n";
 		embedDescription += "**__Tournament roles:__**\n";
 		embedDescription += `**\\- Staff:** <@&${staffRole.id}>\n`;
@@ -292,11 +321,13 @@ export const createTournament: Command = {
 				name,
 				acronym,
 				serverId: interaction.guild!.id,
-				startDate: startDateUTC.toJSDate(),
+				startDate: startDate.toJSDate(),
+				registrationEndDate: registrationEndDate.toJSDate(),
 				staffChannelId: staffChannel.id,
 				mappoolerChannelId: mappoolerChannel.id,
 				refereeChannelId: refereeChannel.id,
 				scheduleChannelId: scheduleChannel.id,
+				playerChannelId: playerChannel.id,
 				staffRoleId: staffRole.id,
 				mappoolerRoleId: mappoolerRole.id,
 				refereeRoleId: refereeRole.id,
@@ -304,8 +335,9 @@ export const createTournament: Command = {
 				creator: user,
 				winCondition,
 				scoring,
-				style: tournamentType,
+				type: tournamentType,
 				teamSize,
+				lobbyTeamSize,
 			});
 		} catch (error) {
 			logger.error(`Error while creating tournament: ${error}`);
@@ -352,25 +384,19 @@ export const createTournament: Command = {
  * @description Creates or gets the roles for the tournament with the correct permissions.
  * @returns An array containing the staff, referee and player roles, in that order.
  */
-async function getTournamentRoles(interaction: CommandInteraction) {
+async function getTournamentRoles(interaction: ChatInputCommandInteraction) {
 	const guild = interaction.guild!;
-	const acronym = interaction.options.get("acronym", true).value as string;
+	const acronym = interaction.options.getString("acronym", true);
 
-	let staffRole = interaction.options.get("staff-role")?.role as
-		| Role
-		| undefined;
+	let staffRole = interaction.options.getRole("staff-role") as Role | null;
 
-	let mappoolerRole = interaction.options.get("mappooler-role")?.role as
-		| Role
-		| undefined;
+	let mappoolerRole = interaction.options.getRole(
+		"mappooler-role"
+	) as Role | null;
 
-	let refereeRole = interaction.options.get("referee-role")?.role as
-		| Role
-		| undefined;
+	let refereeRole = interaction.options.getRole("referee-role") as Role | null;
 
-	let playerRole = interaction.options.get("player-role")?.role as
-		| Role
-		| undefined;
+	let playerRole = interaction.options.getRole("player-role") as Role | null;
 
 	if (!staffRole) {
 		staffRole = await guild.roles.create({
@@ -405,20 +431,23 @@ async function getTournamentRoles(interaction: CommandInteraction) {
  * @returns An array containing the staff, mappool, referee and player channels.
  */
 async function getTournamentChannels(
-	interaction: CommandInteraction,
+	interaction: ChatInputCommandInteraction,
 	staffRole: Role,
 	mappoolerRole: Role,
 	refereeRole: Role,
 	playerRole: Role
 ) {
 	const guild = interaction.guild!;
-	const parentCategory = interaction.options.get("parent-category")?.channel as
-		| CategoryChannel
-		| undefined;
-	const acronym = interaction.options.get("acronym", true).value as string;
-	let scheduleChannel = interaction.options.get("schedule-channel")?.channel as
-		| GuildBasedChannel
-		| undefined;
+
+	const acronym = interaction.options.getString("acronym", true) as string;
+
+	const parentCategory = interaction.options.getChannel(
+		"parent-category"
+	) as CategoryChannel | null;
+
+	let scheduleChannel = interaction.options.getChannel(
+		"schedule-channel"
+	) as GuildBasedChannel | null;
 
 	const staffChannel = await guild.channels.create({
 		name: `${acronym}-staff`,

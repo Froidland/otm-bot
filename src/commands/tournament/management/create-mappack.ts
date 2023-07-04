@@ -1,4 +1,5 @@
 import {
+	ChatInputCommandInteraction,
 	CommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
@@ -35,7 +36,7 @@ export const createMappack: Command = {
 				)
 				.setRequired(true)
 		),
-	execute: async (interaction: CommandInteraction) => {
+	execute: async (interaction: ChatInputCommandInteraction) => {
 		// TODO: Add some form of rate limiting to this command and also caching for the maps.
 		await interaction.deferReply();
 		const fileId = createId();
@@ -95,9 +96,9 @@ export const createMappack: Command = {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
+						.setColor("Red")
 						.setTitle("Error")
-						.setDescription("Something went wrong while downloading the maps.")
-						.setColor("Red"),
+						.setDescription("Something went wrong while downloading the maps."),
 				],
 			});
 

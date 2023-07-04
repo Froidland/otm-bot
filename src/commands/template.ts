@@ -1,9 +1,9 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Command } from "@/interfaces/command";
 
 export const template: Command = {
 	data: new SlashCommandBuilder()
 		.setName("template")
 		.setDescription("Template"),
-	execute: async (interaction: CommandInteraction) => {},
+	execute: async (interaction: ChatInputCommandInteraction) => {},
 };

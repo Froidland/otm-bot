@@ -4,14 +4,17 @@ import {
 	Entity,
 	ManyToMany,
 	ManyToOne,
+	OneToOne,
 	PrimaryColumn,
 	UpdateDateColumn,
 } from "typeorm";
 import { Tournament } from "./Tournament";
 import { Team } from "./Team";
 
-const lobbyStatuses = ["Pending", "Ongoing", "Completed"] as const;
-const lobbyStages = [
+const matchStatuses = ["Pending", "Ongoing", "Completed"] as const;
+const tournamentStages = [
+	"Tryouts", // This is a special case for Tryouts type of tournament.
+	"Qualifiers",
 	"Groups",
 	"RoundOf256",
 	"RoundOf128",
@@ -24,13 +27,13 @@ const lobbyStages = [
 	"GrandFinals",
 ] as const;
 
-export type LobbyStatus = (typeof lobbyStatuses)[number];
-export type LobbyStage = (typeof lobbyStages)[number];
+export type MatchStatus = (typeof matchStatuses)[number];
+export type TournamentStage = (typeof tournamentStages)[number];
 
 @Entity({
-	name: "lobbies",
+	name: "matches",
 })
-export class Lobby {
+export class Match {
 	@PrimaryColumn("varchar")
 	id: string;
 
@@ -45,17 +48,25 @@ export class Lobby {
 
 	@Column("enum", {
 		default: "Pending",
-		enum: lobbyStatuses,
+		enum: matchStatuses,
 	})
-	status: LobbyStatus;
+	status: MatchStatus;
 
 	@Column("enum", {
-		enum: lobbyStages,
+		enum: tournamentStages,
 	})
-	stage: LobbyStage;
+	stage: TournamentStage;
 
-	@Column("varchar")
+	@Column("varchar", {
+		nullable: true,
+	})
 	mpLink?: string;
+
+	@ManyToOne(() => Team, (team) => team.id)
+	team1: Team;
+
+	@ManyToOne(() => Team, (team) => team.id)
+	team2: Team;
 
 	@ManyToMany(() => Team, (team) => team.joinedLobbies)
 	teams: Team[];

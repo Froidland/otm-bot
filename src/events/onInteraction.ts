@@ -1,11 +1,11 @@
-import { Interaction } from "discord.js";
+import { ChatInputCommandInteraction, Interaction } from "discord.js";
 import { commandList } from "@/commands/_commandList";
 
 export const onInteraction = async (interaction: Interaction) => {
 	if (interaction.isCommand()) {
 		for (const command of commandList) {
 			if (interaction.commandName === command.data.name) {
-				await command.execute(interaction);
+				await command.execute(interaction as ChatInputCommandInteraction);
 				break;
 			}
 		}

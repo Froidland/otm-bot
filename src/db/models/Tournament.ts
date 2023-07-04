@@ -8,12 +8,13 @@ import {
 	UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
-import { Lobby } from "./Lobby";
+import { Match } from "./Match";
 
 const tournamentTypes = [
 	"BattleRoyale",
 	"OneVsOne",
 	"TeamBased",
+	"Tryouts",
 	"Custom",
 ] as const;
 const winConditions = ["Accuracy", "MissCount", "Score"] as const;
@@ -44,6 +45,9 @@ export class Tournament {
 	@Column("timestamp")
 	startDate: Date;
 
+	@Column("timestamp")
+	registrationEndDate: Date;
+
 	@Column("varchar")
 	staffChannelId: string;
 
@@ -55,6 +59,9 @@ export class Tournament {
 
 	@Column("varchar")
 	scheduleChannelId: string;
+
+	@Column("varchar")
+	playerChannelId: string;
 
 	@Column("varchar")
 	staffRoleId: string;
@@ -86,15 +93,18 @@ export class Tournament {
 	@Column("enum", {
 		enum: tournamentTypes,
 	})
-	style: TournamentType;
+	type: TournamentType;
 
 	@Column("int")
 	teamSize: number;
 
-	@OneToMany(() => Lobby, (lobby) => lobby.tournament, {
+	@Column("int")
+	lobbyTeamSize: number;
+
+	@OneToMany(() => Match, (lobby) => lobby.tournament, {
 		cascade: true,
 	})
-	lobbies: Lobby[];
+	lobbies: Match[];
 
 	@CreateDateColumn({
 		type: "timestamp",

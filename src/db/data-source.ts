@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
-import { Lobby, Team, Tournament, User } from "./models";
+import { Match, Team, Tournament, User } from "./models";
 dotenv.config();
 
 const AppDataSource = new DataSource({
@@ -10,7 +10,7 @@ const AppDataSource = new DataSource({
 	username: process.env.DATABASE_USER,
 	password: process.env.DATABASE_PASSWORD,
 	database: process.env.DATABASE_NAME ?? "panchobot",
-	entities: [User, Tournament, Lobby, Team],
+	entities: [User, Tournament, Match, Team],
 	// TODO: Remove synchronize and logging when TypeORM implementation is complete.
 	synchronize: true,
 	logging: true,
