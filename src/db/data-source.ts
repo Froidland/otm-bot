@@ -13,7 +13,7 @@ dotenv.config();
 
 const AppDataSource = new DataSource({
 	type: "mariadb",
-	host: process.env.DATABSE_HOST ?? "localhost",
+	host: process.env.DATABASE_HOST ?? "localhost",
 	port: +(process.env.DATABASE_PORT ?? 3306),
 	username: process.env.DATABASE_USER,
 	password: process.env.DATABASE_PASSWORD,
