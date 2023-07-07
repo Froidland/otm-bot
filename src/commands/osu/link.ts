@@ -18,6 +18,46 @@ export const link: Command = {
 		const state = createId();
 		const expiryMillis = DateTime.now().plus({ minutes: 3 }).toMillis();
 
+		// TODO: Depending on how annoying it is to set this up in the frontend, I might want to update the message there.
+		setTimeout(async () => {
+			const request = await db.oAuthRequests.findOne({
+				where: {
+					state,
+					messageId: message.id,
+				},
+			});
+
+			if (!request) {
+				return;
+			}
+
+			if (!request.authenticated) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Authentication timed out.")
+							.setDescription(
+								"Your authentication request has timed out. Please try again."
+							),
+					],
+				});
+
+				return;
+			}
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Authentication successful.")
+						.setDescription(
+							"Your osu! account has been successfully linked to your discord account."
+						),
+				],
+			});
+		}, 1000 * 60 * 3);
+
 		const searchParams = new URLSearchParams({
 			client_id: process.env.OSU_CLIENT_ID!,
 			redirect_uri: process.env.OSU_REDIRECT_URI!,
@@ -32,6 +72,7 @@ export const link: Command = {
 			discordId: interaction.user.id,
 			state,
 			expiryMillis,
+			messageId: message.id,
 		});
 
 		await interaction.editReply({

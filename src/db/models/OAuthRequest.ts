@@ -24,6 +24,14 @@ export class OAuthRequest {
 	@Column("bigint")
 	expiryMillis: number;
 
+	@Column("varchar")
+	messageId: string;
+
+	@Column("boolean", {
+		default: false,
+	})
+	authenticated: boolean;
+
 	@CreateDateColumn({
 		type: "timestamp",
 	})
