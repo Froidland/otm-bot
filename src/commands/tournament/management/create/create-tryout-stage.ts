@@ -8,7 +8,7 @@ import { DateTime } from "luxon";
 import db from "@/db";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
-import { LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual } from "typeorm";
+import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 import { NoAccountEmbed } from "@/embeds";
 
 export const createTryoutStage: Command = {
@@ -89,6 +89,8 @@ export const createTryoutStage: Command = {
 						),
 				],
 			});
+
+			return;
 		}
 
 		const tryout = await db.tryouts.findOne({
@@ -181,7 +183,7 @@ export const createTryoutStage: Command = {
 		}
 
 		let embedDescription = "**__Tryout stage info:__**\n";
-		embedDescription += `**ID:** \`${id}\`\n`;
+		embedDescription += `**Unique ID:** \`${id}\`\n`;
 		embedDescription += `**Name:** \`${name}\`\n`;
 		embedDescription += `**Custom ID:** \`${customId}\`\n`;
 		embedDescription += `**Start date:** \`${startDate.toRFC2822()}\`\n`;
