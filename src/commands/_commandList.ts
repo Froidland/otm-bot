@@ -9,6 +9,7 @@ import {
 	createTournament,
 	createTryout,
 	createTryoutStage,
+	createTryoutLobby,
 } from "./tournament/management/create";
 import { archiveCategory, stealEmoji } from "./utility";
 import { joinLobby, searchLobby } from "./tournament/players";
@@ -23,6 +24,7 @@ export const commandList: Command[] = [
 	createTournament,
 	createTryout,
 	createTryoutStage,
+	createTryoutLobby,
 	joinLobby,
 	searchLobby,
 	stealEmoji,
