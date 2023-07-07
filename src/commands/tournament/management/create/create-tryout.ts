@@ -176,7 +176,6 @@ export const createTryout: Command = {
 		}
 
 		let embedDescription = "**__Tryout info:__**\n";
-		embedDescription += `**\\- Unique ID:** \`${id}\`\n`;
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += "**__Tryout settings:__**\n";
@@ -206,7 +205,10 @@ export const createTryout: Command = {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Tryout Created")
-						.setDescription(embedDescription),
+						.setDescription(embedDescription)
+						.setFooter({
+							text: `Unique ID: ${id}`,
+						}),
 				],
 			});
 		} catch (error) {

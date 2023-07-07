@@ -130,7 +130,6 @@ export const createTryoutLobby: Command = {
 		}
 
 		let embedDescription = "**__Tryout Lobby info:__**\n";
-		embedDescription += `**Unique ID:** \`${id}\`\n`;
 		embedDescription += `**Lobby ID:** \`${lobbyId}\`\n`;
 		embedDescription += `**Start Date:** \`${startDate.toRFC2822()}\`\n`;
 		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
@@ -149,7 +148,10 @@ export const createTryoutLobby: Command = {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Tryout Lobby Created!")
-						.setDescription(embedDescription),
+						.setDescription(embedDescription)
+						.setFooter({
+							text: `Unique ID: ${id}`,
+						}),
 				],
 			});
 		} catch (error) {

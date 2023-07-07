@@ -285,7 +285,6 @@ export const createTournament: Command = {
 		);
 
 		let embedDescription = "**__Tournament info:__**\n";
-		embedDescription += `**\\- Unique ID:** \`${id}\`\n`;
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += `**\\- Owner:** \`${interaction.user.tag}\`\n`;
@@ -341,7 +340,10 @@ export const createTournament: Command = {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Tournament Created!")
-						.setDescription(embedDescription),
+						.setDescription(embedDescription)
+						.setFooter({
+							text: `Unique ID: ${id}`,
+						}),
 				],
 			});
 		} catch (error) {

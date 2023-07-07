@@ -183,7 +183,6 @@ export const createTryoutStage: Command = {
 		}
 
 		let embedDescription = "**__Tryout stage info:__**\n";
-		embedDescription += `**Unique ID:** \`${id}\`\n`;
 		embedDescription += `**Name:** \`${name}\`\n`;
 		embedDescription += `**Custom ID:** \`${customId}\`\n`;
 		embedDescription += `**Start date:** \`${startDate.toRFC2822()}\`\n`;
@@ -204,7 +203,10 @@ export const createTryoutStage: Command = {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Tryout Stage Created!")
-						.setDescription(embedDescription),
+						.setDescription(embedDescription)
+						.setFooter({
+							text: `Unique ID: ${id}`,
+						}),
 				],
 			});
 		} catch (error) {

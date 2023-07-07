@@ -213,7 +213,6 @@ export const createMatch: Command = {
 
 		let embedDescription = `**__Lobby identification:__**\n`;
 		embedDescription += `**\\- Tournament:** \`${tournament.name}\`\n`;
-		embedDescription += `**\\- Lobby ID:** \`${id}\`\n`;
 		embedDescription += `**\\- Custom ID:** \`${customId}\n\``;
 		embedDescription += `**\\- Schedule:** <t:${schedule.toSeconds()}>\n`;
 		embedDescription += `**\\- Stage:** \`${stage}\``;
@@ -233,7 +232,10 @@ export const createMatch: Command = {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Lobby Created")
-						.setDescription(embedDescription),
+						.setDescription(embedDescription)
+						.setFooter({
+							text: `Unique ID: ${id}`,
+						}),
 				],
 			});
 		} catch (error) {
