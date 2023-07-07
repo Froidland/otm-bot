@@ -54,7 +54,7 @@ export const createMappack: Command = {
 
 		// Download all the maps and save them to a temp folder.
 
-		const beatmapsetIds = batmapsetIdsOptionValue.split(" ").map((id) => +id);
+		const beatmapsetIds = batmapsetIdsOptionValue.split(" ");
 
 		for (const id of beatmapsetIds) {
 			streamPromises.push(
