@@ -3,57 +3,43 @@ import {
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
-import { v2 } from "osu-api-extended";
 import { Command } from "@/interfaces/command";
+import { createId } from "@paralleldrive/cuid2";
+import { OsuLinkEmbed } from "@/embeds";
 import db from "@/db";
+import { DateTime } from "luxon";
 
-// TODO: Implement OAuth2 flow to link osu! account to discord account.
 export const link: Command = {
 	data: new SlashCommandBuilder()
 		.setName("link")
-		.setDescription("Links your osu! profile with the specified username.")
-		.addStringOption((option) =>
-			option
-				.setName("username")
-				.setDescription(
-					"Username of the profile to link your discord account to."
-				)
-				.setRequired(true)
-		),
+		.setDescription("Links your osu! profile to your discord account."),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply({ ephemeral: true });
-		const username = interaction.options.getString("username", true);
+		const message = await interaction.deferReply({ ephemeral: true });
+		const state = createId();
+		const expiryMillis = DateTime.now().plus({ minutes: 3 }).toMillis();
 
-		const user = await v2.user.details(username, "osu");
+		const searchParams = new URLSearchParams({
+			client_id: process.env.OSU_CLIENT_ID!,
+			redirect_uri: process.env.OSU_REDIRECT_URI!,
+			response_type: "code",
+			scope: "identify",
+			state: state,
+		});
 
-		try {
-			await db.users.save({
-				discordId: interaction.user.id,
-				osuId: user.id,
-				username: user.username,
-			});
+		console.log(message.id);
 
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle("Account Linked!")
-						.setDescription(
-							`Linked your discord account to username \`${user.username}\`.`
-						),
-				],
-			});
-		} catch (error) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("DB Error!")
-						.setDescription(
-							`Unable to link username in the DB. Please contact the bot owner if this error persists.`
-						),
-				],
-			});
-		}
+		await db.oAuthRequests.insert({
+			discordId: interaction.user.id,
+			state,
+			expiryMillis,
+		});
+
+		await interaction.editReply({
+			embeds: [
+				OsuLinkEmbed(
+					`https://osu.ppy.sh/oauth/authorize?${searchParams.toString()}`
+				),
+			],
+		});
 	},
 };

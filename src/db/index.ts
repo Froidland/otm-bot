@@ -9,6 +9,7 @@ import {
 	Tryout,
 	TryoutLobby,
 	TryoutStage,
+	OAuthRequest,
 } from "./models";
 
 // TODO: This looks like a mess. Makes thinks look better in other files but this file is a mess. Research how to make this better.
@@ -20,6 +21,7 @@ const db = {
 	tryouts: AppDataSource.getRepository(Tryout),
 	tryoutStages: AppDataSource.getRepository(TryoutStage),
 	tryoutLobbies: AppDataSource.getRepository(TryoutLobby),
+	oAuthRequests: AppDataSource.getRepository(OAuthRequest),
 };
 
 export default db;

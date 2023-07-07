@@ -18,7 +18,9 @@ export class User {
 	@PrimaryColumn("varchar")
 	discordId: string;
 
-	@Column("int", {})
+	@Column("int", {
+		unique: true,
+	})
 	osuId: number;
 
 	@Column("varchar", {
@@ -30,6 +32,28 @@ export class User {
 		default: 0,
 	})
 	balance: number;
+
+	@Column("varchar", {
+		select: false,
+	})
+	tokenType: string;
+
+	@Column("timestamp", {
+		select: false,
+	})
+	tokenExpiry: Date;
+
+	@Column("varchar", {
+		select: false,
+		length: 1024,
+	})
+	accessToken: string;
+
+	@Column("varchar", {
+		select: false,
+		length: 1024,
+	})
+	refreshToken: string;
 
 	@OneToMany(() => Tournament, (tournament) => tournament.creator)
 	createdTournaments: Tournament[];

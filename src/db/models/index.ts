@@ -5,3 +5,4 @@ export * from "./Team";
 export * from "./Tryout";
 export * from "./TryoutLobby";
 export * from "./TryoutStage";
+export * from "./OAuthRequest";
