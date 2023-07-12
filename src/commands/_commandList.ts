@@ -4,7 +4,6 @@ import { balance } from "./currency/balance";
 import { ping } from "./general";
 import { link, profile } from "./osu";
 import { archiveCategory, createMappack, stealEmoji } from "./utility";
-import { joinLobby, searchLobby } from "./tournament/players";
 import tournament from "./tournament";
 import tryout from "./tryout";
 import tryoutLobby from "./tryout-lobby";
@@ -22,8 +21,6 @@ export const commandList: Command[] = [
 	tryoutLobby,
 	tryoutStage,
 	match,
-	joinLobby,
-	searchLobby,
 	stealEmoji,
 	coinflip,
 	balance,
