@@ -1,5 +1,6 @@
+import { isMemberAdmin } from "@/commands/utils";
 import db, { ScoringType, TournamentType, WinCondition } from "@/db";
-import { NoAccountEmbed } from "@/embeds";
+import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
@@ -162,6 +163,16 @@ export const create: SubCommand = {
 				)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		const hasAdminPermission = isMemberAdmin(interaction);
+
+		if (!hasAdminPermission) {
+			await interaction.editReply({
+				embeds: [NoAdminEmbed],
+			});
+
+			return;
+		}
+
 		const id = createId();
 
 		// Check if the user has linked their account.

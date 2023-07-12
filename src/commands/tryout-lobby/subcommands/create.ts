@@ -1,5 +1,6 @@
+import { isMemberAdmin } from "@/commands/utils";
 import db from "@/db";
-import { NoAccountEmbed } from "@/embeds";
+import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
@@ -43,6 +44,16 @@ const create: SubCommand = {
 					.setMaxValue(16) //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		const hasAdminPermission = isMemberAdmin(interaction);
+
+		if (!hasAdminPermission) {
+			await interaction.editReply({
+				embeds: [NoAdminEmbed],
+			});
+
+			return;
+		}
+
 		const id = createId();
 
 		const user = await db.users.findOne({

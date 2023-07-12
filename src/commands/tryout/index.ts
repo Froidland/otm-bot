@@ -12,7 +12,6 @@ const tryout: Command = {
 		.setName("tryout")
 		.setDescription("Tryout management commands.")
 		.addSubcommand(create.data)
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();

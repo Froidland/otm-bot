@@ -1,5 +1,6 @@
+import { isMemberAdmin } from "@/commands/utils";
 import db from "@/db";
-import { NoAccountEmbed } from "@/embeds";
+import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
@@ -44,6 +45,16 @@ const create: SubCommand = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		const hasAdminPermission = isMemberAdmin(interaction);
+
+		if (!hasAdminPermission) {
+			await interaction.editReply({
+				embeds: [NoAdminEmbed],
+			});
+
+			return;
+		}
+
 		const id = createId();
 
 		const name = interaction.options.getString("name", true);

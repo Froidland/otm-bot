@@ -12,7 +12,6 @@ const tournament: Command = {
 		.setName("tournament")
 		.setDescription("Tournament management commands.")
 		.addSubcommand(create.data)
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
