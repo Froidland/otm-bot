@@ -1,27 +1,24 @@
+import db, { ScoringType, TournamentType, WinCondition } from "@/db";
+import { NoAccountEmbed } from "@/embeds";
+import { SubCommand } from "@/interfaces/subCommand";
+import { logger } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import {
 	CategoryChannel,
 	ChannelType,
 	ChatInputCommandInteraction,
-	CommandInteraction,
 	EmbedBuilder,
 	GuildBasedChannel,
 	PermissionFlagsBits,
 	Role,
-	SlashCommandBuilder,
+	SlashCommandSubcommandBuilder,
 } from "discord.js";
-import { Command } from "@/interfaces/command";
-import { createId } from "@paralleldrive/cuid2";
-import db, { ScoringType, TournamentType, WinCondition } from "@/db";
-import { logger } from "@/utils";
 import { DateTime } from "luxon";
-import { NoAccountEmbed } from "@/embeds";
 
-export const createTournament: Command = {
-	data: new SlashCommandBuilder()
-		.setName("create-tournament")
-		.setDescription(
-			"Create a tournament with all the roles and channels necessary for it."
-		)
+export const create: SubCommand = {
+	data: new SlashCommandSubcommandBuilder()
+		.setName("create")
+		.setDescription("Create a tournament.")
 		.addStringOption((option) =>
 			option
 				.setName("name")
@@ -163,13 +160,8 @@ export const createTournament: Command = {
 				.setDescription(
 					"The category under which the created channels will be placed."
 				)
-				.addChannelTypes(ChannelType.GuildCategory)
-				.setRequired(false)
-		)
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.setDMPermission(false),
+		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const id = createId();
 
 		// Check if the user has linked their account.
@@ -294,8 +286,8 @@ export const createTournament: Command = {
 		embedDescription += `**\\- Scoring:** \`${scoring}\`\n`;
 		embedDescription += `**\\- Win condition:** \`${winCondition}\`\n`;
 		embedDescription += `**\\- Team size:** \`${teamSize ?? 8}\`\n`;
-		embedDescription += `**\\- Start date:** \`${startDate.toRFC2822()}\`\n`;
-		embedDescription += `**\\- Registration end date:** \`${registrationEndDate.toRFC2822()}\`\n`;
+		embedDescription += `**\\- Start date:** \`${startDate.toRFC2822()}\` (<t${startDate.toSeconds()}:R>)\n`;
+		embedDescription += `**\\- Registration end date:** \`${registrationEndDate.toRFC2822()}\` (<t:${registrationEndDate.toSeconds()}:R>)\n`;
 		embedDescription += "-------------------------------------------\n";
 		embedDescription += "**__Tournament roles:__**\n";
 		embedDescription += `**\\- Staff:** <@&${staffRole.id}>\n`;

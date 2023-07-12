@@ -7,9 +7,11 @@ import {
 	OneToOne,
 	OneToMany,
 	ManyToMany,
+	JoinTable,
 } from "typeorm";
 import { Tournament } from "./Tournament";
 import { Team } from "./Team";
+import { TryoutLobby } from "./TryoutLobby";
 
 @Entity({
 	name: "users",
@@ -63,6 +65,10 @@ export class User {
 
 	@ManyToMany(() => Team, (team) => team.members)
 	joinedTeams: Team[];
+
+	@ManyToMany(() => TryoutLobby, (lobby) => lobby.id)
+	@JoinTable()
+	joinedTryoutLobbies: TryoutLobby[];
 
 	@CreateDateColumn({
 		type: "timestamp",

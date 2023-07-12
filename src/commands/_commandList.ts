@@ -3,28 +3,25 @@ import { coinflip } from "./currency";
 import { balance } from "./currency/balance";
 import { ping } from "./general";
 import { link, profile } from "./osu";
-import {
-	createMatch,
-	createMappack,
-	createTournament,
-	createTryout,
-	createTryoutStage,
-	createTryoutLobby,
-} from "./tournament/management/create";
-import { archiveCategory, stealEmoji } from "./utility";
+import { archiveCategory, createMappack, stealEmoji } from "./utility";
 import { joinLobby, searchLobby } from "./tournament/players";
+import tournament from "./tournament";
+import tryout from "./tryout";
+import tryoutLobby from "./tryout-lobby";
+import tryoutStage from "./tryout-stage";
+import match from "./match";
 
 export const commandList: Command[] = [
 	ping,
 	profile,
 	link,
 	archiveCategory,
-	createMatch,
 	createMappack,
-	createTournament,
-	createTryout,
-	createTryoutStage,
-	createTryoutLobby,
+	tournament,
+	tryout,
+	tryoutLobby,
+	tryoutStage,
+	match,
 	joinLobby,
 	searchLobby,
 	stealEmoji,

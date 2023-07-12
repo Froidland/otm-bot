@@ -1,22 +1,20 @@
+import db from "@/db";
+import { NoAccountEmbed } from "@/embeds";
+import { SubCommand } from "@/interfaces/subCommand";
+import { logger } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
-	SlashCommandBuilder,
+	SlashCommandSubcommandBuilder,
 } from "discord.js";
-import { Command } from "@/interfaces/command";
 import { DateTime } from "luxon";
-import db from "@/db";
-import { logger } from "@/utils";
-import { createId } from "@paralleldrive/cuid2";
 import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
-import { NoAccountEmbed } from "@/embeds";
 
-export const createTryoutStage: Command = {
-	data: new SlashCommandBuilder()
-		.setName("create-tryout-stage")
-		.setDescription(
-			"Creates a tryout stage. Needs to be run in a tryout staff channel."
-		)
+const create: SubCommand = {
+	data: new SlashCommandSubcommandBuilder()
+		.setName("create")
+		.setDescription("Creates a tryout stage.")
 		.addStringOption((option) =>
 			option
 				.setName("name")
@@ -46,7 +44,6 @@ export const createTryoutStage: Command = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const id = createId();
 
 		const name = interaction.options.getString("name", true);
@@ -225,3 +222,5 @@ export const createTryoutStage: Command = {
 		}
 	},
 };
+
+export default create;

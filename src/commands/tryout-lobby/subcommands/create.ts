@@ -1,18 +1,18 @@
+import db from "@/db";
+import { NoAccountEmbed } from "@/embeds";
+import { SubCommand } from "@/interfaces/subCommand";
+import { logger } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
-	SlashCommandBuilder,
+	SlashCommandSubcommandBuilder,
 } from "discord.js";
-import { Command } from "@/interfaces/command";
 import { DateTime } from "luxon";
-import db from "@/db";
-import { NoAccountEmbed } from "@/embeds";
-import { createId } from "@paralleldrive/cuid2";
-import { logger } from "@/utils";
 
-export const createTryoutLobby: Command = {
-	data: new SlashCommandBuilder()
-		.setName("create-tryout-lobby")
+const create: SubCommand = {
+	data: new SlashCommandSubcommandBuilder()
+		.setName("create")
 		.setDescription("Creates a tryout lobby.")
 		.addStringOption((option) =>
 			option
@@ -23,7 +23,7 @@ export const createTryoutLobby: Command = {
 		.addStringOption((option) =>
 			option
 				.setName("lobby-id")
-				.setDescription("The ID of the lobby.")
+				.setDescription("The ID of the lobby. (Example: W1)")
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
@@ -43,7 +43,6 @@ export const createTryoutLobby: Command = {
 					.setMaxValue(16) //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const id = createId();
 
 		const user = await db.users.findOne({
@@ -131,7 +130,7 @@ export const createTryoutLobby: Command = {
 
 		let embedDescription = "**__Tryout Lobby info:__**\n";
 		embedDescription += `**Lobby ID:** \`${lobbyId}\`\n`;
-		embedDescription += `**Start Date:** \`${startDate.toRFC2822()}\`\n`;
+		embedDescription += `**Start Date:** \`${startDate.toRFC2822()}\` (<t:${startDate.toSeconds()}:R>)\n`;
 		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
 
 		try {
@@ -170,3 +169,5 @@ export const createTryoutLobby: Command = {
 		}
 	},
 };
+
+export default create;

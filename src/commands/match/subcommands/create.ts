@@ -1,23 +1,20 @@
+import db, { TournamentStage } from "@/db";
+import { NoAccountEmbed } from "@/embeds";
+import { SubCommand } from "@/interfaces/subCommand";
+import { logger } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import {
 	ChatInputCommandInteraction,
-	CommandInteraction,
 	EmbedBuilder,
 	GuildMemberRoleManager,
-	SlashCommandBuilder,
+	SlashCommandSubcommandBuilder,
 } from "discord.js";
-import { Command } from "@/interfaces/command";
-import db, { TournamentStage } from "@/db";
 import { DateTime } from "luxon";
-import { createId } from "@paralleldrive/cuid2";
-import { logger } from "@/utils";
-import { NoAccountEmbed } from "@/embeds";
 
-export const createMatch: Command = {
-	data: new SlashCommandBuilder()
-		.setName("create-match")
-		.setDescription(
-			"Creates a match for a tournament. (Staff Only, must be used inside the tournament's staff channel)"
-		)
+const create: SubCommand = {
+	data: new SlashCommandSubcommandBuilder()
+		.setName("create")
+		.setDescription("Creates a match.")
 		.addStringOption((option) =>
 			option
 				.setName("custom-id")
@@ -87,10 +84,8 @@ export const createMatch: Command = {
 					}
 				)
 				.setRequired(true)
-		)
-		.setDMPermission(false),
+		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const id = createId();
 
 		const customId = interaction.options.getString("custom-id", true);
@@ -253,3 +248,5 @@ export const createMatch: Command = {
 		}
 	},
 };
+
+export default create;

@@ -1,3 +1,8 @@
+import db from "@/db";
+import { NoAccountEmbed } from "@/embeds";
+import { SubCommand } from "@/interfaces/subCommand";
+import { logger } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import {
 	ChannelType,
 	ChatInputCommandInteraction,
@@ -5,21 +10,13 @@ import {
 	GuildTextBasedChannel,
 	PermissionFlagsBits,
 	Role,
-	SlashCommandBuilder,
+	SlashCommandSubcommandBuilder,
 } from "discord.js";
-import { Command } from "@/interfaces/command";
-import { DateTime } from "luxon";
-import { createId } from "@paralleldrive/cuid2";
-import db from "@/db";
-import { logger } from "@/utils";
-import { NoAccountEmbed } from "@/embeds";
 
-export const createTryout: Command = {
-	data: new SlashCommandBuilder()
-		.setName("create-tryout")
-		.setDescription(
-			"Creates a tryout stage. This is independent of any tournament."
-		)
+export const create: SubCommand = {
+	data: new SlashCommandSubcommandBuilder()
+		.setName("create")
+		.setDescription("Creates a tryout.")
 		.addStringOption((option) =>
 			option
 				.setName("name")
@@ -84,11 +81,8 @@ export const createTryout: Command = {
 				)
 				.addChannelTypes(ChannelType.GuildCategory)
 				.setRequired(false)
-		)
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.setDMPermission(false),
+		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const id = createId();
 
 		const name = interaction.options.getString("name", true);
