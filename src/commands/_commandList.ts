@@ -9,6 +9,7 @@ import tryout from "./tryout";
 import tryoutLobby from "./tryout-lobby";
 import tryoutStage from "./tryout-stage";
 import match from "./match";
+import team from "./team";
 
 export const commandList: Command[] = [
 	ping,
@@ -21,6 +22,7 @@ export const commandList: Command[] = [
 	tryoutLobby,
 	tryoutStage,
 	match,
+	team,
 	stealEmoji,
 	coinflip,
 	balance,
