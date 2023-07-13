@@ -60,8 +60,8 @@ export class User {
 	@OneToMany(() => Tournament, (tournament) => tournament.creator)
 	createdTournaments: Tournament[];
 
-	@OneToMany(() => Team, (team) => team.captain)
-	captainedTeams: Team[];
+	@OneToMany(() => Team, (team) => team.owner)
+	ownedTeams: Team[];
 
 	@ManyToMany(() => Team, (team) => team.members)
 	joinedTeams: Team[];

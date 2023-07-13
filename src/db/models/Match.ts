@@ -68,7 +68,7 @@ export class Match {
 	@ManyToOne(() => Team, (team) => team.id)
 	team2: Team;
 
-	@ManyToMany(() => Team, (team) => team.joinedLobbies)
+	@ManyToMany(() => Team, (team) => team.matches)
 	teams: Team[];
 
 	@CreateDateColumn({

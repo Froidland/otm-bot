@@ -11,7 +11,7 @@ import {
 import { User } from "./User";
 import { Match } from "./Match";
 
-const timezones = [
+export const timezones = [
 	"-12UTC",
 	"-11UTC",
 	"-10UTC",
@@ -55,12 +55,12 @@ export class Team {
 		type: "enum",
 		enum: timezones,
 	})
-	preferredTimezone: Timezone;
+	idealTimezone: Timezone;
 
-	@OneToMany(() => User, (user) => user.captainedTeams, {
+	@OneToMany(() => User, (user) => user.ownedTeams, {
 		cascade: true,
 	})
-	captain: User;
+	owner: User;
 
 	@ManyToMany(() => User, (user) => user.joinedTeams)
 	@JoinTable()
@@ -68,7 +68,7 @@ export class Team {
 
 	@ManyToMany(() => Match, (lobby) => lobby.teams)
 	@JoinTable()
-	joinedLobbies: Match[];
+	matches: Match[];
 
 	@CreateDateColumn({
 		type: "timestamp",
