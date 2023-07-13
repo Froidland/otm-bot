@@ -44,6 +44,7 @@ const create: SubCommand = {
 					.setMaxValue(16) //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		await interaction.deferReply();
 		const hasAdminPermission = isMemberAdmin(interaction);
 
 		if (!hasAdminPermission) {

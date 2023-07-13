@@ -34,6 +34,7 @@ const create: SubCommand = {
 				.setName("stage")
 				.setDescription("The stage of the match.")
 				.addChoices(
+					// TODO: Remove tryout and qualifiers from here, tryouts has their own command and qualifiers should have its own too.
 					{
 						name: "Tryouts",
 						value: "Tryouts",
@@ -86,6 +87,7 @@ const create: SubCommand = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		await interaction.deferReply();
 		const id = createId();
 
 		const customId = interaction.options.getString("custom-id", true);

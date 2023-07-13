@@ -14,7 +14,6 @@ const tournament: Command = {
 		.addSubcommand(create.data)
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const subCommandName = interaction.options.getSubcommand(true);
 
 		for (const subCommand of subCommands) {

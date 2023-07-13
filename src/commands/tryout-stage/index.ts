@@ -10,7 +10,6 @@ const tryoutStage: Command = {
 		.addSubcommand(create.data)
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply();
 		const subCommandName = interaction.options.getSubcommand();
 
 		for (const subCommand of subCommands) {

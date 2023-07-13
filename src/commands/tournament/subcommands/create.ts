@@ -163,6 +163,7 @@ export const create: SubCommand = {
 				)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		await interaction.deferReply();
 		const hasAdminPermission = isMemberAdmin(interaction);
 
 		if (!hasAdminPermission) {

@@ -10,9 +10,6 @@ const team: Command = {
 		.addSubcommand(create.data)
 		.setDMPermission(true),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
 		const subCommandName = interaction.options.getSubcommand();
 
 		for (const subCommand of subCommands) {

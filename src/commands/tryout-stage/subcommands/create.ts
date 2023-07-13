@@ -45,6 +45,7 @@ const create: SubCommand = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		await interaction.deferReply();
 		const hasAdminPermission = isMemberAdmin(interaction);
 
 		if (!hasAdminPermission) {

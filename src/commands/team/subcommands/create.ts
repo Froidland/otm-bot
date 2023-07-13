@@ -34,6 +34,10 @@ const create: SubCommand = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		await interaction.deferReply({
+			ephemeral: true,
+		});
+
 		const user = await db.users.findOne({
 			where: {
 				discordId: interaction.user.id,
