@@ -29,10 +29,8 @@ const AppDataSource = new DataSource({
 		TryoutStage,
 		OAuthRequest,
 	],
-	// TODO: Remove synchronize and logging when TypeORM implementation is complete.
-	synchronize: true,
-	logging: true,
-	// TODO: Research how to use migrations.
+	synchronize: process.env.NODE_ENV === "development",
+	logging: process.env.NODE_ENV === "development",
 	migrations: [],
 });
 

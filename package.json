@@ -5,7 +5,7 @@
 	"main": "/src/main.ts",
 	"scripts": {
 		"start": "ts-node src/main.ts",
-		"dev": "nodemon src/main.ts"
+		"dev": "cross-env NODE_ENV=development nodemon src/main.ts"
 	},
 	"keywords": [
 		"discord",
@@ -41,6 +41,7 @@
 		"@types/adm-zip": "^0.5.0",
 		"@types/luxon": "^3.3.0",
 		"@types/node": "^20.4.2",
+		"cross-env": "^7.0.3",
 		"nodemon": "^3.0.1",
 		"ts-node": "^10.9.1",
 		"tsconfig-paths": "^4.2.0",
