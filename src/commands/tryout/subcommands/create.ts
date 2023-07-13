@@ -107,10 +107,10 @@ export const create: SubCommand = {
 
 		let staffChannel = interaction.options.getChannel(
 			"staff-channel"
-		) as GuildTextBasedChannel;
+		) as GuildTextBasedChannel | null;
 		let scheduleChannel = interaction.options.getChannel(
 			"schedule-channel"
-		) as GuildTextBasedChannel;
+		) as GuildTextBasedChannel | null;
 
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
