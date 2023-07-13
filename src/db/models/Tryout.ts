@@ -27,6 +27,12 @@ export class Tryout {
 	scheduleChannelId: string;
 
 	@Column("varchar")
+	playerChannelId: string;
+
+	@Column("varchar")
+	registrationRoleId: string;
+
+	@Column("varchar")
 	staffRoleId: string;
 
 	@Column("varchar")

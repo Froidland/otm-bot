@@ -10,11 +10,12 @@ import {
 	EmbedBuilder,
 	GuildTextBasedChannel,
 	PermissionFlagsBits,
-	PermissionsBitField,
 	Role,
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 
+// TODO: Should probably make this command send an embed with a button that allows you to join the tryout. Need to investigate how to do this.
+// TODO: Add the ability to set restrictions to the tryout, like only players with a certain role can join, or players from a specific country.
 export const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("create")
@@ -43,9 +44,17 @@ export const create: SubCommand = {
 		)
 		.addRoleOption((option) =>
 			option
+				.setName("registration-role")
+				.setDescription(
+					"The role that players need to have to be able to join the tryout. Can be set to everyone."
+				)
+				.setRequired(true)
+		)
+		.addRoleOption((option) =>
+			option
 				.setName("staff-role")
 				.setDescription(
-					"The role that staff members need to have to be able to manage the tryout stage."
+					"The role that staff members need to have to be able to manage the tryout. (Default: New Role)"
 				)
 				.setRequired(false)
 		)
@@ -53,7 +62,7 @@ export const create: SubCommand = {
 			option
 				.setName("player-role")
 				.setDescription(
-					"The role that players need to have to be able to participate in the tryout stage."
+					"The role that players need to have to be able to execute the schedule commands. (Default: New Role)"
 				)
 				.setRequired(false)
 		)
@@ -61,7 +70,7 @@ export const create: SubCommand = {
 			option
 				.setName("staff-channel")
 				.setDescription(
-					"The channel where the staff members can manage the tryout stage."
+					"The channel where the staff members can manage the tryout. (Default: New Channel)"
 				)
 				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(false)
@@ -70,7 +79,16 @@ export const create: SubCommand = {
 			option
 				.setName("schedule-channel")
 				.setDescription(
-					"The channel where the schedules of the tryout stage will be posted."
+					"The channel where the schedule commands will be executed. (Default: New Channel)"
+				)
+				.addChannelTypes(ChannelType.GuildText)
+				.setRequired(false)
+		)
+		.addChannelOption((option) =>
+			option
+				.setName("player-channel")
+				.setDescription(
+					"The channel where the users can talk and register for the tryout. (Default: New Channel)"
 				)
 				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(false)
@@ -79,7 +97,7 @@ export const create: SubCommand = {
 			option
 				.setName("parent-category")
 				.setDescription(
-					"The parent category where the staff channel and schedule channel will be created unless specified."
+					"The parent category where the tryout channels will be created. (Default: None)"
 				)
 				.addChannelTypes(ChannelType.GuildCategory)
 				.setRequired(false)
@@ -87,6 +105,11 @@ export const create: SubCommand = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 		const hasAdminPermission = isMemberAdmin(interaction);
+		let playerChannelCreated = false;
+		let staffChannelCreated = false;
+		let scheduleChannelCreated = false;
+		let playerRoleCreated = false;
+		let staffRoleCreated = false;
 
 		if (!hasAdminPermission) {
 			await interaction.editReply({
@@ -101,6 +124,10 @@ export const create: SubCommand = {
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
 		const isJoinable = interaction.options.getBoolean("is-joinable", true);
+		const registrationRole = interaction.options.getRole(
+			"registration-role",
+			true
+		) as Role;
 
 		let playerRole = interaction.options.getRole("player-role") as Role | null;
 		let staffRole = interaction.options.getRole("staff-role") as Role | null;
@@ -110,6 +137,9 @@ export const create: SubCommand = {
 		) as GuildTextBasedChannel | null;
 		let scheduleChannel = interaction.options.getChannel(
 			"schedule-channel"
+		) as GuildTextBasedChannel | null;
+		let playerChannel = interaction.options.getChannel(
+			"player-channel"
 		) as GuildTextBasedChannel | null;
 
 		const parentCategory =
@@ -134,12 +164,16 @@ export const create: SubCommand = {
 			playerRole = (await interaction.guild?.roles.create({
 				name: `${acronym}: Player`,
 			})) as Role;
+
+			playerRoleCreated = true;
 		}
 
 		if (!staffRole) {
 			staffRole = (await interaction.guild?.roles.create({
 				name: `${acronym}: Staff`,
 			})) as Role;
+
+			staffRoleCreated = true;
 		}
 
 		if (!scheduleChannel) {
@@ -162,6 +196,8 @@ export const create: SubCommand = {
 				],
 				parent: parentCategory?.id,
 			})) as GuildTextBasedChannel;
+
+			scheduleChannelCreated = true;
 		}
 
 		if (!staffChannel) {
@@ -180,6 +216,28 @@ export const create: SubCommand = {
 				],
 				parent: parentCategory?.id,
 			})) as GuildTextBasedChannel;
+
+			staffChannelCreated = true;
+		}
+
+		if (!playerChannel) {
+			playerChannel = (await interaction.guild?.channels.create({
+				name: `${acronym}-players`,
+				type: ChannelType.GuildText,
+				permissionOverwrites: [
+					{
+						id: interaction.guild?.roles.everyone.id,
+						deny: [PermissionFlagsBits.ViewChannel],
+					},
+					{
+						id: playerRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
+				],
+				parent: parentCategory?.id,
+			})) as GuildTextBasedChannel;
+
+			playerChannelCreated = true;
 		}
 
 		let embedDescription = "**__Tryout info:__**\n";
@@ -190,18 +248,22 @@ export const create: SubCommand = {
 			isJoinable ? "Yes" : "No"
 		}\`\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
+		embedDescription += `**\\- Registration Role:** ${registrationRole}\n`;
 		embedDescription += `**\\- Staff Role:** ${staffRole}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
-		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel}`;
+		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel}\n`;
+		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
 			await db.tryouts.insert({
 				id,
 				name,
 				serverId: interaction.guildId!,
+				registrationRoleId: registrationRole.id,
 				staffRoleId: staffRole.id,
 				playerRoleId: playerRole.id,
+				playerChannelId: playerChannel.id,
 				staffChannelId: staffChannel.id,
 				scheduleChannelId: scheduleChannel.id,
 				isJoinable,
@@ -233,12 +295,13 @@ export const create: SubCommand = {
 			});
 
 			// Channels
-			await staffChannel.delete();
-			await scheduleChannel.delete();
+			if (playerChannelCreated) await playerChannel.delete();
+			if (staffChannelCreated) await staffChannel.delete();
+			if (scheduleChannelCreated) await scheduleChannel.delete();
 
 			// Roles
-			await playerRole.delete();
-			await staffRole.delete();
+			if (playerRoleCreated) await playerRole.delete();
+			if (staffRoleCreated) await staffRole.delete();
 		}
 	},
 };
