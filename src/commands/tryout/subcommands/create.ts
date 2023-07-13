@@ -102,8 +102,8 @@ export const create: SubCommand = {
 		const acronym = interaction.options.getString("acronym", true);
 		const isJoinable = interaction.options.getBoolean("is-joinable", true);
 
-		let playerRole = interaction.options.getRole("player-role") as Role;
-		let staffRole = interaction.options.getRole("staff-role") as Role;
+		let playerRole = interaction.options.getRole("player-role") as Role | null;
+		let staffRole = interaction.options.getRole("staff-role") as Role | null;
 
 		let staffChannel = interaction.options.getChannel(
 			"staff-channel"
