@@ -32,15 +32,12 @@ export type ScoringType = (typeof scoringTypes)[number];
 
 const db = getPrismaClient();
 
-if (process.env.NODE_ENV === "development") {
-}
-
 export default db;
 
 function getPrismaClient() {
 	if (process.env.NODE_ENV === "development") {
 		logger.debug("Using prisma client with logging enabled.");
-		
+
 		const client = new PrismaClient({
 			log: [
 				{
