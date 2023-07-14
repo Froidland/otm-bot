@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js";
 
 export const NoAccountEmbed = new EmbedBuilder()
 	.setColor("Red")
-	.setTitle("Invalid Date!")
+	.setTitle("No account!")
 	.setDescription(
-		"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
+		"You don't have an account. Please use the `/link` command to link your osu! account."
 	).data;
