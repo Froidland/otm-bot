@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { logger } from "@/utils";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const tournamentTypes = [
 	"BattleRoyale",
@@ -29,6 +30,48 @@ export type TournamentType = (typeof tournamentTypes)[number];
 export type WinCondition = (typeof winConditions)[number];
 export type ScoringType = (typeof scoringTypes)[number];
 
-const db = new PrismaClient();
+const db = getPrismaClient();
+
+if (process.env.NODE_ENV === "development") {
+}
 
 export default db;
+
+function getPrismaClient() {
+	if (process.env.NODE_ENV === "development") {
+		logger.debug("Using prisma client with logging enabled.");
+		
+		const client = new PrismaClient({
+			log: [
+				{
+					level: "query",
+					emit: "event",
+				},
+				{
+					level: "info",
+					emit: "event",
+				},
+				{
+					level: "warn",
+					emit: "event",
+				},
+			],
+		});
+
+		client.$on("info", (e) => {
+			logger.debug(e.message);
+		});
+
+		client.$on("warn", (e) => {
+			logger.warn(e.message);
+		});
+
+		client.$on("query", (e) => {
+			logger.debug(e.duration + "ms " + e.query);
+		});
+
+		return client;
+	}
+
+	return new PrismaClient();
+}
