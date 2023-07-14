@@ -145,7 +145,6 @@ export const create: SubCommand = {
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
 
-		// Check if the user has linked their account.
 		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
