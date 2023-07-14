@@ -8,8 +8,9 @@ datasource db {
 }
 
 model User {
-  discordId String @id
-  osuId     Int
+  id        Int    @id @default(autoincrement())
+  osuId     Int    @unique
+  discordId String @unique
   username  String
   balance   Int    @default(0)
 
@@ -26,7 +27,8 @@ model User {
   teams         PlayersOnTeams[]
 
   // Referee relations
-  claimedMatches Match[]
+  claimedMatches       Match[]
+  claimedTryoutLobbies TryoutLobby[]
 
   // should probably save data returned from osu api here
 
@@ -44,8 +46,8 @@ model OAuthCredentials {
   scope        String
   tokenType    String
 
-  user   User   @relation(fields: [userId], references: [discordId])
-  userId String @unique
+  user   User @relation(fields: [userId], references: [id])
+  userId Int  @unique
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -95,8 +97,8 @@ model Tournament {
   matches Match[]
   teams   TeamsOnTournaments[]
 
-  owner   User   @relation(fields: [ownerId], references: [discordId])
-  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id])
+  ownerId Int
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -112,8 +114,8 @@ model Match {
   status   MatchStatus     @default(Pending)
   stage    TournamentStage
 
-  referee   User?   @relation(fields: [refereeId], references: [discordId])
-  refereeId String?
+  referee   User? @relation(fields: [refereeId], references: [id])
+  refereeId Int?
 
   // scores maybe?
 
@@ -133,8 +135,8 @@ model Team {
   name          String
   idealTimezone String
 
-  owner   User   @relation(fields: [ownerId], references: [discordId])
-  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id])
+  ownerId Int
 
   players PlayersOnTeams[]
 
@@ -186,8 +188,8 @@ model Tryout {
   isJoinable        Boolean
 
   stages  TryoutStage[]
-  owner   User          @relation(fields: [ownerId], references: [discordId])
-  ownerId String
+  owner   User          @relation(fields: [ownerId], references: [id])
+  ownerId Int
 
   players PlayersOnTryouts[]
 
@@ -224,6 +226,9 @@ model TryoutLobby {
   stage   TryoutStage @relation(fields: [stageId], references: [id])
   stageId String
 
+  referee   User? @relation(fields: [refereeId], references: [id])
+  refereeId Int?
+
   players PlayersOnTryoutLobbies[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
@@ -234,10 +239,10 @@ model TryoutLobby {
 
 model PlayersOnTryoutLobbies {
   tryoutLobbyId String
-  userId        String
+  userId        Int
 
   tryoutLobby TryoutLobby @relation(fields: [tryoutLobbyId], references: [id])
-  player      User        @relation(fields: [userId], references: [discordId])
+  player      User        @relation(fields: [userId], references: [id])
 
   @@id([tryoutLobbyId, userId])
   @@map("players_to_tryout_lobbies")
@@ -245,10 +250,10 @@ model PlayersOnTryoutLobbies {
 
 model PlayersOnTryouts {
   tryoutId String
-  userId   String
+  userId   Int
 
   tryout Tryout @relation(fields: [tryoutId], references: [id])
-  player User   @relation(fields: [userId], references: [discordId])
+  player User   @relation(fields: [userId], references: [id])
 
   @@id([tryoutId, userId])
   @@map("players_to_tryouts")
@@ -256,10 +261,10 @@ model PlayersOnTryouts {
 
 model PlayersOnTeams {
   teamId String
-  userId String
+  userId Int
 
   team   Team @relation(fields: [teamId], references: [id])
-  player User @relation(fields: [userId], references: [discordId])
+  player User @relation(fields: [userId], references: [id])
 
   @@id([teamId, userId])
   @@map("players_to_teams")
