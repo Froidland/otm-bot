@@ -13,12 +13,15 @@ model User {
   username  String
   balance   BigInt
 
-  credentials      OAuthCredentials?
+  credentials OAuthCredentials?
+
   ownedTournaments Tournament[]
   ownedTryouts     Tryout[]
   ownedTeams       Team[]
-  tryoutLobbies    PlayersToTryoutLobbies[]
 
+  tryouts       PlayersOnTryouts[]
+  tryoutLobbies PlayersOnTryoutLobbies[]
+  teams         PlayersOnTeams[]
   // should probably save data returned from osu api here
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
@@ -80,6 +83,8 @@ model Tournament {
   owner   User   @relation(fields: [ownerId], references: [discordId])
   ownerId String
 
+  teams TeamsOnTournaments[]
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 
@@ -114,12 +119,28 @@ model Team {
   owner   User   @relation(fields: [ownerId], references: [discordId])
   ownerId String
 
-  matches MatchesOnTeams[]
+  players PlayersOnTeams[]
+
+  tournaments TeamsOnTournaments[]
+  matches     MatchesOnTeams[]
+
+  onePlayerTeam Boolean @default(false)
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 
   @@map("teams")
+}
+
+model TeamsOnTournaments {
+  tournamentId String
+  teamId       String
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  team       Team       @relation(fields: [teamId], references: [id])
+
+  @@id([tournamentId, teamId])
+  @@map("teams_on_tournaments")
 }
 
 model MatchesOnTeams {
@@ -151,6 +172,8 @@ model Tryout {
   stages  TryoutStage[]
   owner   User          @relation(fields: [ownerId], references: [discordId])
   ownerId String
+
+  players PlayersOnTryouts[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -185,7 +208,7 @@ model TryoutLobby {
   stage   TryoutStage @relation(fields: [stageId], references: [id])
   stageId String
 
-  players PlayersToTryoutLobbies[]
+  players PlayersOnTryoutLobbies[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -193,7 +216,7 @@ model TryoutLobby {
   @@map("tryout_lobbies")
 }
 
-model PlayersToTryoutLobbies {
+model PlayersOnTryoutLobbies {
   tryoutLobbyId String
   userId        String
 
@@ -202,6 +225,28 @@ model PlayersToTryoutLobbies {
 
   @@id([tryoutLobbyId, userId])
   @@map("players_to_tryout_lobbies")
+}
+
+model PlayersOnTryouts {
+  tryoutId String
+  userId   String
+
+  tryout Tryout @relation(fields: [tryoutId], references: [id])
+  player User   @relation(fields: [userId], references: [discordId])
+
+  @@id([tryoutId, userId])
+  @@map("players_to_tryouts")
+}
+
+model PlayersOnTeams {
+  teamId String
+  userId String
+
+  team   Team @relation(fields: [teamId], references: [id])
+  player User @relation(fields: [userId], references: [discordId])
+
+  @@id([teamId, userId])
+  @@map("players_to_teams")
 }
 
 enum MatchStatus {
