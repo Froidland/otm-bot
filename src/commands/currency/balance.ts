@@ -15,7 +15,7 @@ export const balance: Command = {
 		await interaction.deferReply();
 
 		// Check if the user has linked their account.
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},

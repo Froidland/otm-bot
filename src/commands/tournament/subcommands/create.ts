@@ -176,8 +176,7 @@ export const create: SubCommand = {
 
 		const id = createId();
 
-		// Check if the user has linked their account.
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -237,9 +236,11 @@ export const create: SubCommand = {
 				zone: "utc",
 			}
 		);
+		console.log(startDate.toRFC2822(), registrationEndDate.toRFC2822())
 
 		// TODO: Maybe give feedback on each error instead of just one generic error message.
 		if (!startDate.isValid || !registrationEndDate.isValid) {
+
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -298,7 +299,7 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Scoring:** \`${scoring}\`\n`;
 		embedDescription += `**\\- Win condition:** \`${winCondition}\`\n`;
 		embedDescription += `**\\- Team size:** \`${teamSize ?? 8}\`\n`;
-		embedDescription += `**\\- Start date:** \`${startDate.toRFC2822()}\` (<t${startDate.toSeconds()}:R>)\n`;
+		embedDescription += `**\\- Start date:** \`${startDate.toRFC2822()}\` (<t:${startDate.toSeconds()}:R>)\n`;
 		embedDescription += `**\\- Registration end date:** \`${registrationEndDate.toRFC2822()}\` (<t:${registrationEndDate.toSeconds()}:R>)\n`;
 		embedDescription += "-------------------------------------------\n";
 		embedDescription += "**__Tournament roles:__**\n";
@@ -315,28 +316,34 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player:** <#${playerChannel.id}>\n`;
 
 		try {
-			await db.tournaments.insert({
-				id,
-				name,
-				acronym,
-				serverId: interaction.guild!.id,
-				startDate: startDate.toJSDate(),
-				registrationEndDate: registrationEndDate.toJSDate(),
-				staffChannelId: staffChannel.id,
-				mappoolerChannelId: mappoolerChannel.id,
-				refereeChannelId: refereeChannel.id,
-				scheduleChannelId: scheduleChannel.id,
-				playerChannelId: playerChannel.id,
-				staffRoleId: staffRole.id,
-				mappoolerRoleId: mappoolerRole.id,
-				refereeRoleId: refereeRole.id,
-				playerRoleId: playerRole.id,
-				creator: user,
-				winCondition,
-				scoring,
-				type: tournamentType,
-				teamSize,
-				lobbyTeamSize,
+			await db.tournament.create({
+				data: {
+					id,
+					name,
+					acronym,
+					serverId: interaction.guild!.id,
+					startDate: startDate.toJSDate(),
+					registrationEndDate: registrationEndDate.toJSDate(),
+					staffChannelId: staffChannel.id,
+					mappolerChannelId: mappoolerChannel.id,
+					refereeChannelId: refereeChannel.id,
+					scheduleChannelId: scheduleChannel.id,
+					playerChannelId: playerChannel.id,
+					staffRoleId: staffRole.id,
+					mappolerRoleId: mappoolerRole.id,
+					refereeRoleId: refereeRole.id,
+					playerRoleId: playerRole.id,
+					owner: {
+						connect: {
+							discordId: interaction.user.id,
+						},
+					},
+					winCondition,
+					scoring,
+					type: tournamentType,
+					teamSize,
+					lobbyTeamSize,
+				},
 			});
 
 			await interaction.editReply({

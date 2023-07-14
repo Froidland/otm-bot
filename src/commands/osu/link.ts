@@ -16,11 +16,11 @@ export const link: Command = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		const message = await interaction.deferReply({ ephemeral: true });
 		const state = createId();
-		const expiryMillis = DateTime.now().plus({ minutes: 3 }).toMillis();
+		const expirationDate = DateTime.now().plus({ minutes: 3 });
 
 		// TODO: Depending on how annoying it is to set this up in the frontend, I might want to update the message there.
 		setTimeout(async () => {
-			const request = await db.oAuthRequests.findOne({
+			const request = await db.oAuthState.findFirst({
 				where: {
 					state,
 					messageId: message.id,
@@ -31,7 +31,7 @@ export const link: Command = {
 				return;
 			}
 
-			if (!request.authenticated) {
+			if (!request.fulfilled) {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
@@ -66,13 +66,13 @@ export const link: Command = {
 			state: state,
 		});
 
-		console.log(message.id);
-
-		await db.oAuthRequests.insert({
-			discordId: interaction.user.id,
-			state,
-			expiryMillis,
-			messageId: message.id,
+		await db.oAuthState.create({
+			data: {
+				discordId: interaction.user.id,
+				state,
+				expiresAt: expirationDate.toJSDate(),
+				messageId: message.id,
+			},
 		});
 
 		await interaction.editReply({

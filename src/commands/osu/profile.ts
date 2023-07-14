@@ -55,7 +55,7 @@ export const profile: Command = {
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
 		if (!username) {
 			// Check if the user has linked their account.
-			const user = await db.users.findOne({
+			const user = await db.user.findFirst({
 				where: {
 					discordId: interaction.user.id,
 				},

@@ -101,8 +101,7 @@ const create: SubCommand = {
 			zone: "utc",
 		});
 
-		// Check if the user has linked their account.
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -144,7 +143,7 @@ const create: SubCommand = {
 			return;
 		}
 
-		const tournament = await db.tournaments.findOne({
+		const tournament = await db.tournament.findFirst({
 			where: {
 				staffChannelId: interaction.channelId,
 			},
@@ -182,15 +181,19 @@ const create: SubCommand = {
 			return;
 		}
 
-		const existingLobby = await db.matches.findOne({
-			where: [
-				{
-					tournament: {
-						id: tournament.id,
+		const existingLobby = await db.match.findFirst({
+			where: {
+				AND: [
+					{
+						tournament: {
+							id: tournament.id,
+						},
 					},
-					customId,
-				},
-			],
+					{
+						customId,
+					},
+				],
+			},
 		});
 
 		if (existingLobby) {
@@ -215,13 +218,19 @@ const create: SubCommand = {
 		embedDescription += `**\\- Stage:** \`${stage}\``;
 
 		try {
-			await db.matches.insert({
-				id,
-				customId,
-				schedule: schedule.toJSDate(),
-				status: "Pending",
-				stage,
-				tournament,
+			await db.match.create({
+				data: {
+					id,
+					customId,
+					schedule: schedule.toJSDate(),
+					status: "Pending",
+					stage,
+					tournament: {
+						connect: {
+							id: tournament.id,
+						},
+					},
+				},
 			});
 
 			await interaction.editReply({

@@ -23,6 +23,7 @@
 		"@aws-sdk/client-s3": "^3.369.0",
 		"@aws-sdk/s3-request-presigner": "^3.369.0",
 		"@paralleldrive/cuid2": "^2.2.1",
+		"@prisma/client": "5.0.0",
 		"adm-zip": "^0.5.10",
 		"axios": "^1.4.0",
 		"discord.js": "^14.11.0",
@@ -31,8 +32,6 @@
 		"mysql2": "^3.5.1",
 		"osu-api-extended": "^2.7.64",
 		"prettier": "^2.8.8",
-		"reflect-metadata": "^0.1.13",
-		"typeorm": "^0.3.17",
 		"typescript": "^5.1.6",
 		"winston": "^3.10.0",
 		"winston-daily-rotate-file": "^4.7.1"

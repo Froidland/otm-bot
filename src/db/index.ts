@@ -1,27 +1,34 @@
-export * from "./models";
+import { PrismaClient } from "@prisma/client";
 
-import AppDataSource from "./data-source";
-import {
-	Tournament,
-	Match,
-	User,
-	Team,
-	Tryout,
-	TryoutLobby,
-	TryoutStage,
-	OAuthRequest,
-} from "./models";
+const tournamentTypes = [
+	"BattleRoyale",
+	"OneVsOne",
+	"TeamBased",
+	"Tryouts",
+	"Custom",
+] as const;
+const winConditions = ["Accuracy", "MissCount", "Score"] as const;
+const scoringTypes = ["ScoreV1", "ScoreV2"] as const;
+const matchStatuses = ["Pending", "Ongoing", "Completed"] as const;
+const tournamentStages = [
+	"Groups",
+	"RoundOf256",
+	"RoundOf128",
+	"RoundOf64",
+	"RoundOf32",
+	"RoundOf16",
+	"Quarterfinals",
+	"Semifinals",
+	"Finals",
+	"GrandFinals",
+] as const;
 
-// TODO: This looks like a mess. Makes thinks look better in other files but this file is a mess. Research how to make this better.
-const db = {
-	users: AppDataSource.getRepository(User),
-	tournaments: AppDataSource.getRepository(Tournament),
-	matches: AppDataSource.getRepository(Match),
-	teams: AppDataSource.getRepository(Team),
-	tryouts: AppDataSource.getRepository(Tryout),
-	tryoutStages: AppDataSource.getRepository(TryoutStage),
-	tryoutLobbies: AppDataSource.getRepository(TryoutLobby),
-	oAuthRequests: AppDataSource.getRepository(OAuthRequest),
-};
+export type MatchStatus = (typeof matchStatuses)[number];
+export type TournamentStage = (typeof tournamentStages)[number];
+export type TournamentType = (typeof tournamentTypes)[number];
+export type WinCondition = (typeof winConditions)[number];
+export type ScoringType = (typeof scoringTypes)[number];
+
+const db = new PrismaClient();
 
 export default db;

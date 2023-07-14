@@ -1,4 +1,4 @@
-import db, { Timezone, timezones } from "@/db";
+import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
@@ -8,13 +8,6 @@ import {
 	EmbedBuilder,
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
-
-const timezoneChoices = timezones.map((timezone) => {
-	return {
-		name: timezone,
-		value: timezone,
-	};
-});
 
 const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
@@ -30,7 +23,6 @@ const create: SubCommand = {
 			option
 				.setName("timezone")
 				.setDescription("The team's ideal timezone.")
-				.addChoices(...timezoneChoices)
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
@@ -38,7 +30,7 @@ const create: SubCommand = {
 			ephemeral: true,
 		});
 
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -55,10 +47,7 @@ const create: SubCommand = {
 		const id = createId();
 
 		const name = interaction.options.getString("name", true);
-		const timezone = interaction.options.getString(
-			"timezone",
-			true
-		) as Timezone;
+		const timezone = interaction.options.getString("timezone", true);
 
 		let embedDescription = "**__Team info:__**";
 		embedDescription += `\n**Name:** ${name}`;
@@ -66,10 +55,17 @@ const create: SubCommand = {
 		embedDescription += `\n**Owner:** ${interaction.user}`;
 
 		try {
-			await db.teams.insert({
-				id,
-				name,
-				owner: user,
+			await db.team.create({
+				data: {
+					id,
+					name,
+					idealTimezone: timezone,
+					owner: {
+						connect: {
+							discordId: interaction.user.id,
+						},
+					},
+				},
 			});
 
 			await interaction.editReply({

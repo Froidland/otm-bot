@@ -11,17 +11,23 @@ model User {
   discordId String @id
   osuId     Int
   username  String
-  balance   BigInt
+  balance   Int    @default(0)
 
   credentials OAuthCredentials?
 
+  // Owner relations
   ownedTournaments Tournament[]
   ownedTryouts     Tryout[]
   ownedTeams       Team[]
 
+  // Player relations
   tryouts       PlayersOnTryouts[]
   tryoutLobbies PlayersOnTryoutLobbies[]
   teams         PlayersOnTeams[]
+
+  // Referee relations
+  claimedMatches Match[]
+
   // should probably save data returned from osu api here
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
@@ -32,8 +38,8 @@ model User {
 
 model OAuthCredentials {
   id           Int      @id @default(autoincrement())
-  accessToken  String
-  refreshToken String
+  accessToken  String   @db.VarChar(1024)
+  refreshToken String   @db.VarChar(1024)
   expiresAt    DateTime
   scope        String
   tokenType    String
@@ -51,7 +57,10 @@ model OAuthState {
   id        Int     @id @default(autoincrement())
   state     String  @unique
   discordId String
+  messageId String
   fulfilled Boolean @default(false)
+
+  expiresAt DateTime @db.Timestamp(6)
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -60,12 +69,12 @@ model OAuthState {
 }
 
 model Tournament {
-  id                  String         @id
+  id                  String   @id
   name                String
   acronym             String
   serverId            String
-  startDate           DateTime       @db.Timestamp(6)
-  registrationEndDate DateTime       @db.Timestamp(6)
+  startDate           DateTime @db.Timestamp(6)
+  registrationEndDate DateTime @db.Timestamp(6)
   staffChannelId      String
   mappolerChannelId   String
   refereeChannelId    String
@@ -75,15 +84,19 @@ model Tournament {
   mappolerRoleId      String
   refereeRoleId       String
   playerRoleId        String
-  matches             Match[]
-  winCondition        WinCondition
-  scoring             ScoringType
-  type                TournamentType
+  teamSize            Int
+  lobbyTeamSize       Int
+  // maybe add an isJoinable field?
+
+  winCondition WinCondition
+  scoring      ScoringType
+  type         TournamentType
+
+  matches Match[]
+  teams   TeamsOnTournaments[]
 
   owner   User   @relation(fields: [ownerId], references: [discordId])
   ownerId String
-
-  teams TeamsOnTournaments[]
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -98,6 +111,10 @@ model Match {
   mpLink   String?
   status   MatchStatus     @default(Pending)
   stage    TournamentStage
+
+  referee   User?   @relation(fields: [refereeId], references: [discordId])
+  refereeId String?
+
   // scores maybe?
 
   tournament   Tournament @relation(fields: [tournamentId], references: [id])
@@ -157,17 +174,16 @@ model MatchesOnTeams {
 }
 
 model Tryout {
-  id                    String  @id
-  name                  String
-  staffChannelId        String
-  scheduleChannelId     String
-  playerChannelId       String
-  registrationChannelId String
-  staffRoleId           String
-  playerRoleId          String
-  registrationRoleId    String
-  serverId              String
-  isJoinable            Boolean
+  id                String  @id
+  name              String
+  staffChannelId    String
+  scheduleChannelId String
+  playerChannelId   String
+  publicChannelId   String
+  staffRoleId       String
+  playerRoleId      String
+  serverId          String
+  isJoinable        Boolean
 
   stages  TryoutStage[]
   owner   User          @relation(fields: [ownerId], references: [discordId])
@@ -200,10 +216,10 @@ model TryoutStage {
 }
 
 model TryoutLobby {
-  id          String @id
-  name        String
+  id          String   @id
   customId    String
   playerLimit Int
+  startDate   DateTime @db.Timestamp(6)
 
   stage   TryoutStage @relation(fields: [stageId], references: [id])
   stageId String

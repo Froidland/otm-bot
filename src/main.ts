@@ -1,6 +1,4 @@
-import "reflect-metadata";
 import { Client, Events, GatewayIntentBits } from "discord.js";
-import AppDataSource from "./db/data-source";
 import * as dotenv from "dotenv";
 import { auth } from "osu-api-extended";
 import { logger } from "./utils/";
@@ -44,7 +42,6 @@ dotenv.config();
 	});
 
 	try {
-		await AppDataSource.initialize();
 		// TODO: Consider using a different osu! api wrapper, could be osu.js or maybe implement my own.
 		await auth.login(
 			+process.env.OSU_CLIENT_ID!,

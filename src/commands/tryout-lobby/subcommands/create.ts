@@ -23,8 +23,8 @@ const create: SubCommand = {
 		)
 		.addStringOption((option) =>
 			option
-				.setName("lobby-id")
-				.setDescription("The ID of the lobby. (Example: W1)")
+				.setName("custom-id")
+				.setDescription("The custom ID of the lobby. (Example: A1)")
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
@@ -57,7 +57,7 @@ const create: SubCommand = {
 
 		const id = createId();
 
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -72,7 +72,7 @@ const create: SubCommand = {
 		}
 
 		const stageId = interaction.options.getString("stage-id", true);
-		const lobbyId = interaction.options.getString("lobby-id", true);
+		const customId = interaction.options.getString("custom-id", true);
 		const startDateString = interaction.options.getString("start-date", true);
 		const playerLimit = interaction.options.getNumber("player-limit", true);
 
@@ -95,7 +95,7 @@ const create: SubCommand = {
 			return;
 		}
 
-		const stage = await db.tryoutStages.findOne({
+		const stage = await db.tryoutStage.findFirst({
 			where: {
 				customId: stageId,
 				tryout: {
@@ -119,9 +119,12 @@ const create: SubCommand = {
 			return;
 		}
 
-		const duplicateLobby = await db.tryoutLobbies.findOne({
+		const duplicateLobby = await db.tryoutLobby.findFirst({
 			where: {
-				lobbyId,
+				customId,
+				stage: {
+					customId: stageId,
+				}
 			},
 		});
 
@@ -141,17 +144,30 @@ const create: SubCommand = {
 		}
 
 		let embedDescription = "**__Tryout Lobby info:__**\n";
-		embedDescription += `**Lobby ID:** \`${lobbyId}\`\n`;
+		embedDescription += `**Lobby ID:** \`${customId}\`\n`;
 		embedDescription += `**Start Date:** \`${startDate.toRFC2822()}\` (<t:${startDate.toSeconds()}:R>)\n`;
 		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
 
 		try {
-			await db.tryoutLobbies.insert({
+			/* await db.tryoutLobbies.insert({
 				id,
 				playerLimit,
-				lobbyId,
+				lobbyId: customId,
 				startDate: startDate.toJSDate(),
 				stage,
+			}); */
+			await db.tryoutLobby.create({
+				data: {
+					id,
+					playerLimit,
+					customId,
+					startDate: startDate.toJSDate(),
+					stage: {
+						connect: {
+							id: stage.id,
+						},
+					},
+				},
 			});
 
 			await interaction.editReply({

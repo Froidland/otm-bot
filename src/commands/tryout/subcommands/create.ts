@@ -42,12 +42,13 @@ export const create: SubCommand = {
 				)
 				.setRequired(true)
 		)
-		.addRoleOption((option) =>
+		.addChannelOption((option) =>
 			option
-				.setName("registration-role")
+				.setName("public-channel")
 				.setDescription(
-					"The role that players need to have to be able to join the tryout. Can be set to everyone."
+					"The channel where players can talk and register for the tryout."
 				)
+				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(true)
 		)
 		.addRoleOption((option) =>
@@ -124,10 +125,9 @@ export const create: SubCommand = {
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
 		const isJoinable = interaction.options.getBoolean("is-joinable", true);
-		const registrationRole = interaction.options.getRole(
-			"registration-role",
-			true
-		) as Role;
+		const publicChannel = interaction.options.getChannel(
+			"public-channel"
+		) as GuildTextBasedChannel;
 
 		let playerRole = interaction.options.getRole("player-role") as Role | null;
 		let staffRole = interaction.options.getRole("staff-role") as Role | null;
@@ -146,7 +146,7 @@ export const create: SubCommand = {
 			interaction.options.getChannel("parent-category") ?? undefined;
 
 		// Check if the user has linked their account.
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -248,25 +248,32 @@ export const create: SubCommand = {
 			isJoinable ? "Yes" : "No"
 		}\`\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
-		embedDescription += `**\\- Registration Role:** ${registrationRole}\n`;
 		embedDescription += `**\\- Staff Role:** ${staffRole}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
+		embedDescription += `**\\- Public Channel:** ${publicChannel}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
 		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel}\n`;
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
-			await db.tryouts.insert({
-				id,
-				name,
-				serverId: interaction.guildId!,
-				registrationRoleId: registrationRole.id,
-				staffRoleId: staffRole.id,
-				playerRoleId: playerRole.id,
-				playerChannelId: playerChannel.id,
-				staffChannelId: staffChannel.id,
-				scheduleChannelId: scheduleChannel.id,
-				isJoinable,
+			await db.tryout.create({
+				data: {
+					id,
+					name,
+					serverId: interaction.guildId!,
+					publicChannelId: publicChannel.id,
+					staffRoleId: staffRole.id,
+					playerRoleId: playerRole.id,
+					playerChannelId: playerChannel.id,
+					staffChannelId: staffChannel.id,
+					scheduleChannelId: scheduleChannel.id,
+					isJoinable,
+					owner: {
+						connect: {
+							discordId: interaction.user.id,
+						},
+					},
+				},
 			});
 
 			await interaction.editReply({

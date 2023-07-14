@@ -31,9 +31,9 @@ export const coinflip: Command = {
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
-		
+
 		// Check if the user has linked their account.
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -64,8 +64,13 @@ export const coinflip: Command = {
 					? Math.ceil(user.balance * 1.1 + 100)
 					: Math.ceil(user.balance * 0.75);
 
-			await db.users.update(user.discordId, {
-				balance: newMoneyValue,
+			await db.user.update({
+				where: {
+					discordId: user.discordId,
+				},
+				data: {
+					balance: newMoneyValue,
+				},
 			});
 
 			await interaction.editReply(

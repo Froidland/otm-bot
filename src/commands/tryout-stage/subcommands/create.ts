@@ -10,7 +10,6 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { DateTime } from "luxon";
-import { LessThanOrEqual, MoreThanOrEqual } from "typeorm";
 
 const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
@@ -72,8 +71,7 @@ const create: SubCommand = {
 			zone: "utc",
 		});
 
-		// Check if the user has linked their account.
-		const user = await db.users.findOne({
+		const user = await db.user.findFirst({
 			where: {
 				discordId: interaction.user.id,
 			},
@@ -102,7 +100,7 @@ const create: SubCommand = {
 			return;
 		}
 
-		const tryout = await db.tryouts.findOne({
+		const tryout = await db.tryout.findFirst({
 			where: {
 				staffChannelId: interaction.channelId,
 			},
@@ -123,7 +121,7 @@ const create: SubCommand = {
 			return;
 		}
 
-		const existingTryoutStage = await db.tryoutStages.findOne({
+		const existingTryoutStage = await db.tryoutStage.findFirst({
 			where: {
 				tryout: {
 					id: tryout.id,
@@ -147,50 +145,6 @@ const create: SubCommand = {
 			return;
 		}
 
-		const collidingTryoutStage = await db.tryoutStages.findOne({
-			where: [
-				{
-					tryout: {
-						id: tryout.id,
-					},
-					startDate: startDate.toJSDate(),
-				},
-				{
-					tryout: {
-						id: tryout.id,
-					},
-					endDate: endDate.toJSDate(),
-				},
-				{
-					tryout: {
-						id: tryout.id,
-					},
-					endDate: MoreThanOrEqual(startDate.toJSDate()),
-				},
-				{
-					tryout: {
-						id: tryout.id,
-					},
-					startDate: LessThanOrEqual(endDate.toJSDate()),
-				},
-			],
-		});
-
-		if (collidingTryoutStage) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid Date!")
-						.setDescription(
-							`One of the dates provided collides with the existing tryout stage \`${collidingTryoutStage.name}\``
-						),
-				],
-			});
-
-			return;
-		}
-
 		let embedDescription = "**__Tryout stage info:__**\n";
 		embedDescription += `**Name:** \`${name}\`\n`;
 		embedDescription += `**Custom ID:** \`${customId}\`\n`;
@@ -198,13 +152,17 @@ const create: SubCommand = {
 		embedDescription += `**End date:** \`${endDate.toRFC2822()}\`\n`;
 
 		try {
-			await db.tryoutStages.insert({
-				id,
-				customId,
-				name,
-				startDate: startDate.toJSDate(),
-				endDate: endDate.toJSDate(),
-				tryout,
+			await db.tryoutStage.create({
+				data: {
+					id,
+					customId,
+					name,
+					tryout: {
+						connect: {
+							id: tryout.id,
+						},
+					},
+				},
 			});
 
 			await interaction.editReply({
