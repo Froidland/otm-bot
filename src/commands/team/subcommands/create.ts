@@ -72,7 +72,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Team Created!")
+						.setTitle("Team created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
@@ -86,7 +86,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("DB error!")
 						.setDescription(
 							"An error occurred while creating your team. Changes have not been saved."
 						),

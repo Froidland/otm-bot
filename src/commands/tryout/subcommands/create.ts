@@ -112,6 +112,20 @@ export const create: SubCommand = {
 		let playerRoleCreated = false;
 		let staffRoleCreated = false;
 
+		const user = await db.user.findFirst({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
 		if (!hasAdminPermission) {
 			await interaction.editReply({
 				embeds: [NoAdminEmbed],
@@ -144,20 +158,6 @@ export const create: SubCommand = {
 
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
-
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
-
-		if (!user) {
-			await interaction.editReply({
-				embeds: [NoAccountEmbed],
-			});
-
-			return;
-		}
 
 		if (!playerRole) {
 			playerRole = (await interaction.guild?.roles.create({
@@ -279,7 +279,7 @@ export const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Tryout Created")
+						.setTitle("Tryout created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
@@ -293,7 +293,7 @@ export const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("DB Error!")
+						.setTitle("DB error!")
 						.setDescription(
 							"An error occurred while creating the tryout. All changes will be reverted. Please contact the bot owner if this error persists."
 						),

@@ -87,6 +87,7 @@ const create: SubCommand = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
+		// TODO: Revisit this command cause it's probably not working as intended.
 		await interaction.deferReply();
 		const id = createId();
 
@@ -120,7 +121,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Date!")
+						.setTitle("Invalid date!")
 						.setDescription(
 							"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
 						),
@@ -135,7 +136,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Date!")
+						.setTitle("Invalid date!")
 						.setDescription("You cannot create a lobby in the past."),
 				],
 			});
@@ -154,7 +155,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Channel!")
+						.setTitle("Invalid channel!")
 						.setDescription(
 							"This channel is not a staff channel for a tournament."
 						),
@@ -173,7 +174,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Permissions!")
+						.setTitle("Invalid permissions!")
 						.setDescription("You are not a staff member for this tournament."),
 				],
 			});
@@ -201,7 +202,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Custom ID!")
+						.setTitle("Invalid custom ID!")
 						.setDescription(
 							"A lobby with that custom ID already exists for this tournament."
 						),
@@ -237,7 +238,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Lobby Created")
+						.setTitle("Lobby created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
@@ -250,8 +251,8 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
-						.setDescription("An error occurred while creating the lobby."),
+						.setTitle("DB error!")
+						.setDescription("An error occurred while creating the match. Changes have not been saved."),
 				],
 			});
 

@@ -85,7 +85,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Date!")
+						.setTitle("Invalid date!")
 						.setDescription(
 							"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
 						),
@@ -109,7 +109,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Stage!")
+						.setTitle("Invalid stage!")
 						.setDescription(
 							"Please make sure you are in a tryout staff channel and that the stage exists."
 						),
@@ -133,7 +133,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Duplicate Lobby ID!")
+						.setTitle("Duplicate lobby ID!")
 						.setDescription(
 							"The lobby ID you provided is already in use. Please use a different one."
 						),
@@ -174,7 +174,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Tryout Lobby Created!")
+						.setTitle("Tryout lobby created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
@@ -188,7 +188,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("DB Error!")
+						.setTitle("DB error!")
 						.setDescription(
 							"There was an error while creating the tryout lobby. All changes will be reverted. Please contact the bot owner if this error persists."
 						),

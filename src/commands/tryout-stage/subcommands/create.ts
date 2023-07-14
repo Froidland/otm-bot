@@ -90,7 +90,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Date!")
+						.setTitle("Invalid date!")
 						.setDescription(
 							"The date format you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
 						),
@@ -111,7 +111,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Channel!")
+						.setTitle("Invalid channel!")
 						.setDescription(
 							"This command needs to be run in a tryout staff channel."
 						),
@@ -135,7 +135,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Custom ID!")
+						.setTitle("Invalid custom ID!")
 						.setDescription(
 							"A tryout stage with the provided custom ID already exists."
 						),
@@ -169,7 +169,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Tryout Stage Created!")
+						.setTitle("Tryout stage created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
@@ -183,7 +183,7 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("DB Error!")
+						.setTitle("DB error!")
 						.setDescription(
 							"An error occurred while creating the tryout stage. All changes will be reverted. Please contact the bot owner if this error persists."
 						),

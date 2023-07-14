@@ -245,7 +245,7 @@ export const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Date!")
+						.setTitle("Invalid date!")
 						.setDescription(
 							"One of the dates you provided is invalid. Please use the format `YYYY-MM-DD HH:MM` for the dates."
 						),
@@ -260,7 +260,7 @@ export const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid Date!")
+						.setTitle("Invalid date!")
 						.setDescription(
 							"The registration end date cannot be before the start date."
 						),
@@ -350,7 +350,7 @@ export const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Tournament Created!")
+						.setTitle("Tournament created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
@@ -364,7 +364,7 @@ export const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("DB Error!")
+						.setTitle("DB error!")
 						.setDescription(
 							"There was an error while creating the tournament. All changes will be reverted. Please contact the bot owner if this error persists."
 						),
