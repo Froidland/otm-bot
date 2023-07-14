@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  discordId String @id
+  osuId     Int
+  username  String
+  balance   BigInt
+
+  credentials      OAuthCredentials?
+  ownedTournaments Tournament[]
+  ownedTryouts     Tryout[]
+  ownedTeams       Team[]
+  tryoutLobbies    PlayersToTryoutLobbies[]
+
+  // should probably save data returned from osu api here
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("users")
+}
+
+model OAuthCredentials {
+  id           Int      @id @default(autoincrement())
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scope        String
+  tokenType    String
+
+  user   User   @relation(fields: [userId], references: [discordId])
+  userId String @unique
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("oauth_credentials")
+}
+
+model OAuthState {
+  id        Int     @id @default(autoincrement())
+  state     String  @unique
+  discordId String
+  fulfilled Boolean @default(false)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("oauth_state")
+}
+
+model Tournament {
+  id                  String         @id
+  name                String
+  acronym             String
+  serverId            String
+  startDate           DateTime       @db.Timestamp(6)
+  registrationEndDate DateTime       @db.Timestamp(6)
+  staffChannelId      String
+  mappolerChannelId   String
+  refereeChannelId    String
+  scheduleChannelId   String
+  playerChannelId     String
+  staffRoleId         String
+  mappolerRoleId      String
+  refereeRoleId       String
+  playerRoleId        String
+  matches             Match[]
+  winCondition        WinCondition
+  scoring             ScoringType
+  type                TournamentType
+
+  owner   User   @relation(fields: [ownerId], references: [discordId])
+  ownerId String
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("tournaments")
+}
+
+model Match {
+  id       String          @id
+  customId String
+  schedule DateTime        @db.Timestamp(6)
+  mpLink   String?
+  status   MatchStatus     @default(Pending)
+  stage    TournamentStage
+  // scores maybe?
+
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournamentId String
+
+  teams MatchesOnTeams[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("matches")
+}
+
+model Team {
+  id            String @id
+  name          String
+  idealTimezone String
+
+  owner   User   @relation(fields: [ownerId], references: [discordId])
+  ownerId String
+
+  matches MatchesOnTeams[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("teams")
+}
+
+model MatchesOnTeams {
+  matchId String
+  teamId  String
+
+  match Match @relation(fields: [matchId], references: [id])
+  team  Team  @relation(fields: [teamId], references: [id])
+
+  assignedAt DateTime @default(now())
+
+  @@id([matchId, teamId])
+  @@map("matches_on_teams")
+}
+
+model Tryout {
+  id                    String  @id
+  name                  String
+  staffChannelId        String
+  scheduleChannelId     String
+  playerChannelId       String
+  registrationChannelId String
+  staffRoleId           String
+  playerRoleId          String
+  registrationRoleId    String
+  serverId              String
+  isJoinable            Boolean
+
+  stages  TryoutStage[]
+  owner   User          @relation(fields: [ownerId], references: [discordId])
+  ownerId String
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("tryouts")
+}
+
+model TryoutStage {
+  id       String @id
+  name     String
+  customId String
+
+  tryout   Tryout @relation(fields: [tryoutId], references: [id])
+  tryoutId String
+
+  lobbies TryoutLobby[]
+
+  // mappool maybe?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("tryout_stages")
+}
+
+model TryoutLobby {
+  id          String @id
+  name        String
+  customId    String
+  playerLimit Int
+
+  stage   TryoutStage @relation(fields: [stageId], references: [id])
+  stageId String
+
+  players PlayersToTryoutLobbies[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("tryout_lobbies")
+}
+
+model PlayersToTryoutLobbies {
+  tryoutLobbyId String
+  userId        String
+
+  tryoutLobby TryoutLobby @relation(fields: [tryoutLobbyId], references: [id])
+  player      User        @relation(fields: [userId], references: [discordId])
+
+  @@id([tryoutLobbyId, userId])
+  @@map("players_to_tryout_lobbies")
+}
+
+enum MatchStatus {
+  Pending
+  Ongoing
+  Completed
+
+  @@map("match_status")
+}
+
+enum TournamentStage {
+  Groups
+  RoundOf256
+  RoundOf128
+  RoundOf64
+  RoundOf32
+  RoundOf16
+  Quarterfinals
+  Semifinals
+  Finals
+  GrandFinals
+
+  @@map("tournament_stage")
+}
+
+enum WinCondition {
+  Accuracy
+  MissCount
+  Score
+
+  @@map("win_condition")
+}
+
+enum ScoringType {
+  ScoreV1
+  ScoreV2
+
+  @@map("scoring_type")
+}
+
+enum TournamentType {
+  BattleRoyale
+  OneVsOne
+  TeamBased
+  Tryouts
+  Custom
+
+  @@map("tournament_type")
+}
