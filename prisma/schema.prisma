@@ -57,7 +57,7 @@ model OAuthCredentials {
 
 model OAuthState {
   id        Int     @id @default(autoincrement())
-  state     String  @unique
+  state     String
   discordId String
   messageId String
   fulfilled Boolean @default(false)
@@ -311,9 +311,6 @@ enum ScoringType {
 enum TournamentType {
   BattleRoyale
   OneVsOne
-  TeamBased
-  Tryouts
-  Custom
 
   @@map("tournament_type")
 }

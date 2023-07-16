@@ -71,14 +71,6 @@ export const create: SubCommand = {
 						name: "One vs One",
 						value: "OneVsOne",
 					},
-					{
-						name: "Battle Royale",
-						value: "BattleRoyale",
-					},
-					{
-						name: "Custom",
-						value: "Custom",
-					}
 				)
 		)
 		.addStringOption((option) =>

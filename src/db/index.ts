@@ -1,13 +1,7 @@
 import { logger } from "@/utils";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-const tournamentTypes = [
-	"BattleRoyale",
-	"OneVsOne",
-	"TeamBased",
-	"Tryouts",
-	"Custom",
-] as const;
+const tournamentTypes = ["OneVsOne", "TeamBased"] as const;
 const winConditions = ["Accuracy", "MissCount", "Score"] as const;
 const scoringTypes = ["ScoreV1", "ScoreV2"] as const;
 const matchStatuses = ["Pending", "Ongoing", "Completed"] as const;
@@ -29,10 +23,6 @@ export type TournamentStage = (typeof tournamentStages)[number];
 export type TournamentType = (typeof tournamentTypes)[number];
 export type WinCondition = (typeof winConditions)[number];
 export type ScoringType = (typeof scoringTypes)[number];
-
-const db = getPrismaClient();
-
-export default db;
 
 function getPrismaClient() {
 	if (process.env.NODE_ENV === "development") {
@@ -72,3 +62,7 @@ function getPrismaClient() {
 
 	return new PrismaClient();
 }
+
+const db = getPrismaClient();
+
+export default db;

@@ -34,15 +34,6 @@ const create: SubCommand = {
 				.setName("stage")
 				.setDescription("The stage of the match.")
 				.addChoices(
-					// TODO: Remove tryout and qualifiers from here, tryouts has their own command and qualifiers should have its own too.
-					{
-						name: "Tryouts",
-						value: "Tryouts",
-					},
-					{
-						name: "Qualifiers",
-						value: "Qualifiers",
-					},
 					{
 						name: "Group Stage",
 						value: "Groups",
@@ -252,7 +243,9 @@ const create: SubCommand = {
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("DB error!")
-						.setDescription("An error occurred while creating the match. Changes have not been saved."),
+						.setDescription(
+							"An error occurred while creating the match. Changes have not been saved."
+						),
 				],
 			});
 
