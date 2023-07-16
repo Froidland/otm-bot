@@ -70,7 +70,7 @@ export const create: SubCommand = {
 					{
 						name: "One vs One",
 						value: "OneVsOne",
-					},
+					}
 				)
 		)
 		.addStringOption((option) =>
@@ -228,11 +228,9 @@ export const create: SubCommand = {
 				zone: "utc",
 			}
 		);
-		console.log(startDate.toRFC2822(), registrationEndDate.toRFC2822())
 
 		// TODO: Maybe give feedback on each error instead of just one generic error message.
 		if (!startDate.isValid || !registrationEndDate.isValid) {
-
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
