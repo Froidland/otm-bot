@@ -1,11 +1,11 @@
 import { logger } from "@/utils";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
-const tournamentTypes = ["OneVsOne", "TeamBased"] as const;
-const winConditions = ["Accuracy", "MissCount", "Score"] as const;
-const scoringTypes = ["ScoreV1", "ScoreV2"] as const;
-const matchStatuses = ["Pending", "Ongoing", "Completed"] as const;
-const tournamentStages = [
+export const tournamentTypes = ["OneVsOne", "TeamBased"] as const;
+export const winConditions = ["Accuracy", "MissCount", "Score"] as const;
+export const scoringTypes = ["ScoreV1", "ScoreV2"] as const;
+export const matchStatuses = ["Pending", "Ongoing", "Completed"] as const;
+export const tournamentStages = [
 	"Groups",
 	"RoundOf256",
 	"RoundOf128",
