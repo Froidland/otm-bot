@@ -89,7 +89,7 @@ model Tournament {
   teamSize            Int
   lobbyTeamSize       Int
   // maybe add an isJoinable field?
-	// TODO: Add restrictions. (e.g. rank, country, etc.)
+  // TODO: Add restrictions. (e.g. rank, country, etc.)
 
   winCondition WinCondition
   scoring      ScoringType
@@ -300,7 +300,7 @@ enum ScoringType {
 }
 
 enum TournamentType {
-  BattleRoyale
+  TeamBased
   OneVsOne
 
   @@map("tournament_type")
