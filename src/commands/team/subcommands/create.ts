@@ -66,6 +66,41 @@ const create: SubCommand = {
 			return;
 		}
 
+		const existingTeam = await db.team.findFirst({
+			where: {
+				tournamentId: tournament.id,
+				OR: [
+					{
+						ownerId: user.id,
+					},
+					{
+						players: {
+							some: {
+								player: {
+									id: user.id,
+								},
+							},
+						},
+					},
+				],
+			},
+		});
+
+		if (existingTeam) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("You already have a team!")
+						.setDescription(
+							"You can only be in one team per tournament."
+						),
+				],
+			});
+
+			return;
+		}
+
 		const id = createId();
 
 		const name = interaction.options.getString("name", true);
