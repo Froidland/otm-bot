@@ -130,6 +130,26 @@ const invite: SubCommand = {
 			return;
 		}
 
+		const teamPlayers = await db.user.findMany({
+			where: {
+				teams: {
+					some: {
+						teamId: team.id,
+					},
+				},
+			},
+		});
+
+		let dmEmbedDescription = `You have been invited to join ${interaction.user}'s team (\`${team.name}\`) for the \`${tournament.name}\` tournament.\n`;
+		dmEmbedDescription += "**The team members are:**\n";
+		dmEmbedDescription += `${interaction.user} - [${user.username}](https://osu.ppy.sh/users/${user.osuId})\n`;
+
+		if (teamPlayers.length > 0) {
+			for (const teamPlayer of teamPlayers) {
+				dmEmbedDescription += `<@${teamPlayer.discordId}> [${teamPlayer.username}](https://osu.ppy.sh/users/${teamPlayer.osuId})\n`;
+			}
+		}
+
 		try {
 			await db.teamInvite.create({
 				data: {
@@ -144,7 +164,7 @@ const invite: SubCommand = {
 						.setColor("Green")
 						.setTitle("Player invited!")
 						.setDescription(
-							`You have successfully invited ${interaction.user} to your team.`
+							`You have successfully invited ${player} to your team.`
 						),
 				],
 			});
@@ -155,9 +175,7 @@ const invite: SubCommand = {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("You have been invited to a team!")
-						.setDescription(
-							`${interaction.user} has invited you to their team for the ${tournament.name} tournament.`
-						),
+						.setDescription(dmEmbedDescription),
 				],
 			});
 
