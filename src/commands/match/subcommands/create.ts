@@ -1,24 +1,33 @@
+import { isMemberTournamentStaff } from "@/commands/utils";
 import db, { TournamentStage } from "@/db";
-import { NoAccountEmbed } from "@/embeds";
+import {
+	InvalidDateTime,
+	InvalidTournamentChannel,
+	NoAccountEmbed,
+} from "@/embeds";
+import { NoStaffRole } from "@/embeds/errors/no-staff-role";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
-	GuildMemberRoleManager,
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { DateTime } from "luxon";
 
+// TODO: Currently working on this.
+
 const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("create")
-		.setDescription("Creates a match.")
+		.setDescription("Creates a match between two teams.")
 		.addStringOption((option) =>
 			option
 				.setName("custom-id")
-				.setDescription('The custom ID of the match. Example: "A12"')
+				.setDescription(
+					'The custom ID of the match. Example: "A12" (Has to be unique for the tournament)'
+				)
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
@@ -27,6 +36,18 @@ const create: SubCommand = {
 				.setDescription(
 					'The schedule of the match in UTC. Format: "YYYY-MM-DD HH:MM"'
 				)
+				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("red-team")
+				.setDescription("The unique ID of the first team in the match.")
+				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("blue-team")
+				.setDescription("The unique ID of the second team in the match.")
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
@@ -78,20 +99,8 @@ const create: SubCommand = {
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		// TODO: Revisit this command cause it's probably not working as intended.
 		await interaction.deferReply();
 		const id = createId();
-
-		const customId = interaction.options.getString("custom-id", true);
-		const scheduleString = interaction.options.getString("schedule", true);
-		const stage = interaction.options.getString(
-			"stage",
-			true
-		) as TournamentStage;
-
-		const schedule = DateTime.fromFormat(scheduleString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
 
 		const user = await db.user.findFirst({
 			where: {
@@ -107,14 +116,17 @@ const create: SubCommand = {
 			return;
 		}
 
-		if (!schedule.isValid) {
+		const redTeamId = interaction.options.getString("red-team", true);
+		const blueTeamId = interaction.options.getString("blue-team", true);
+
+		if (redTeamId === blueTeamId) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid date!")
+						.setTitle("Invalid team IDs.")
 						.setDescription(
-							"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
+							"The team IDs you provided are the same. Please provide different team IDs."
 						),
 				],
 			});
@@ -122,18 +134,7 @@ const create: SubCommand = {
 			return;
 		}
 
-		if (schedule < DateTime.utc()) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid date!")
-						.setDescription("You cannot create a lobby in the past."),
-				],
-			});
-
-			return;
-		}
+		const customId = interaction.options.getString("custom-id", true);
 
 		const tournament = await db.tournament.findFirst({
 			where: {
@@ -143,59 +144,35 @@ const create: SubCommand = {
 
 		if (!tournament) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid channel!")
-						.setDescription(
-							"This channel is not a staff channel for a tournament."
-						),
-				],
+				embeds: [InvalidTournamentChannel],
 			});
 
 			return;
 		}
 
-		const isUserStaff = (
-			interaction.member?.roles as GuildMemberRoleManager
-		).cache.some((role) => role.id === tournament.staffRoleId);
-
-		if (!isUserStaff) {
+		if (!isMemberTournamentStaff(interaction, tournament)) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid permissions!")
-						.setDescription("You are not a staff member for this tournament."),
-				],
+				embeds: [NoStaffRole],
 			});
-
-			return;
 		}
 
-		const existingLobby = await db.match.findFirst({
+		const redTeam = await db.team.findFirst({
 			where: {
-				AND: [
-					{
-						tournament: {
-							id: tournament.id,
-						},
-					},
-					{
-						customId,
-					},
-				],
+				id: redTeamId,
+				tournament: {
+					staffChannelId: interaction.channelId,
+				},
 			},
 		});
 
-		if (existingLobby) {
+		if (!redTeam) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Invalid custom ID!")
+						.setTitle("Invalid team ID.")
 						.setDescription(
-							"A lobby with that custom ID already exists for this tournament."
+							"The team ID you provided for the red team is invalid or the team is not participating in this tournament."
 						),
 				],
 			});
@@ -203,11 +180,56 @@ const create: SubCommand = {
 			return;
 		}
 
-		let embedDescription = `**__Lobby identification:__**\n`;
-		embedDescription += `**\\- Tournament:** \`${tournament.name}\`\n`;
-		embedDescription += `**\\- Custom ID:** \`${customId}\n\``;
-		embedDescription += `**\\- Schedule:** <t:${schedule.toSeconds()}>\n`;
-		embedDescription += `**\\- Stage:** \`${stage}\``;
+		const blueTeam = await db.team.findFirst({
+			where: {
+				id: blueTeamId,
+				tournament: {
+					staffChannelId: interaction.channelId,
+				},
+			},
+		});
+
+		if (!blueTeam) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid team ID.")
+						.setDescription(
+							"The team ID you provided for the blue team is invalid or the team is not participating in this tournament."
+						),
+				],
+			});
+
+			return;
+		}
+
+		const stage = interaction.options.getString(
+			"stage",
+			true
+		) as TournamentStage;
+
+		const schedule = DateTime.fromFormat(
+			interaction.options.getString("schedule", true),
+			"yyyy-MM-dd HH:mm",
+			{ zone: "utc" }
+		);
+
+		if (!schedule.isValid) {
+			await interaction.editReply({
+				embeds: [InvalidDateTime],
+			});
+
+			return;
+		}
+
+		let embedDescription = `**__Match info__**\n`;
+		embedDescription += `**Custom ID:** ${customId}\n`;
+		embedDescription += `**Tournament:** ${tournament.name}\n`;
+		embedDescription += `**Stage:** ${stage}\n`;
+		embedDescription += `**Schedule:** ${schedule.toRFC2822()}\n`;
+		embedDescription += `**Red team:** ${redTeam.name}\n`;
+		embedDescription += `**Blue team:** ${blueTeam.name}\n`;
 
 		try {
 			await db.match.create({
@@ -215,13 +237,22 @@ const create: SubCommand = {
 					id,
 					customId,
 					schedule: schedule.toJSDate(),
-					status: "Pending",
-					stage,
 					tournament: {
 						connect: {
 							id: tournament.id,
 						},
 					},
+					redTeam: {
+						connect: {
+							id: redTeam.id,
+						},
+					},
+					blueTeam: {
+						connect: {
+							id: blueTeam.id,
+						},
+					},
+					stage,
 				},
 			});
 
@@ -229,27 +260,28 @@ const create: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Lobby created!")
+						.setTitle("Match created!")
 						.setDescription(embedDescription)
 						.setFooter({
 							text: `Unique ID: ${id}`,
 						}),
 				],
 			});
+
+			logger.info(`Match ${id} created by ${interaction.user.id}.`);
 		} catch (error) {
 			logger.error(error);
+
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"An error occurred while creating the match. Changes have not been saved."
+							"There was an error while creating the match. Please try again later."
 						),
 				],
 			});
-
-			return;
 		}
 	},
 };

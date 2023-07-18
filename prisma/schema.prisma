@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// TODO: Might want to store a history of the changes made to the users table.
 model User {
   id        Int    @id @default(autoincrement())
   osuId     Int    @unique
@@ -123,7 +124,12 @@ model Match {
   tournament   Tournament @relation(fields: [tournamentId], references: [id])
   tournamentId String
 
-  teams MatchesOnTeams[]
+  // teams MatchesOnTeams[]
+  redTeam   Team   @relation("redTeam", fields: [redTeamId], references: [id])
+  redTeamId String
+
+  blueTeam   Team   @relation("blueTeam", fields: [blueTeamId], references: [id])
+  blueTeamId String
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -141,9 +147,12 @@ model Team {
 
   players PlayersOnTeams[]
 
-  tournament   Tournament       @relation(fields: [tournamentId], references: [id])
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
   tournamentId String
-  matches      MatchesOnTeams[]
+
+  // TODO: This looks scuffed as fuck, gotta figure out another way to do this relation.
+  matchesAsRedTeam  Match[] @relation("redTeam")
+  matchesAsBlueTeam Match[] @relation("blueTeam")
 
   onePlayerTeam Boolean @default(false)
 
@@ -151,19 +160,6 @@ model Team {
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 
   @@map("teams")
-}
-
-model MatchesOnTeams {
-  matchId String
-  teamId  String
-
-  match Match @relation(fields: [matchId], references: [id])
-  team  Team  @relation(fields: [teamId], references: [id])
-
-  assignedAt DateTime @default(now())
-
-  @@id([matchId, teamId])
-  @@map("matches_on_teams")
 }
 
 model Tryout {
@@ -269,6 +265,7 @@ enum MatchStatus {
   @@map("match_status")
 }
 
+// TODO: Maybe allow the creation of custom stages?
 enum TournamentStage {
   Groups
   RoundOf256
