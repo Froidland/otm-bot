@@ -156,6 +156,30 @@ const create: SubCommand = {
 			});
 		}
 
+		const existingMatch = await db.match.findFirst({
+			where: {
+				tournament: {
+					id: tournament.id,
+				},
+				customId,
+			},
+		});
+
+		if (existingMatch) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid custom ID.")
+						.setDescription(
+							"The custom ID you provided is already in use. Please provide a different custom ID."
+						),
+				],
+			});
+
+			return;
+		}
+
 		const redTeam = await db.team.findFirst({
 			where: {
 				id: redTeamId,
