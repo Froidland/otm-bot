@@ -89,13 +89,14 @@ model Tournament {
   teamSize            Int
   lobbyTeamSize       Int
   // maybe add an isJoinable field?
+	// TODO: Add restrictions. (e.g. rank, country, etc.)
 
   winCondition WinCondition
   scoring      ScoringType
   type         TournamentType
 
   matches Match[]
-  teams   TeamsOnTournaments[]
+  teams   Team[]
 
   owner   User @relation(fields: [ownerId], references: [id])
   ownerId Int
@@ -140,8 +141,9 @@ model Team {
 
   players PlayersOnTeams[]
 
-  tournaments TeamsOnTournaments[]
-  matches     MatchesOnTeams[]
+  tournament   Tournament       @relation(fields: [tournamentId], references: [id])
+  tournamentId String
+  matches      MatchesOnTeams[]
 
   onePlayerTeam Boolean @default(false)
 
@@ -149,17 +151,6 @@ model Team {
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 
   @@map("teams")
-}
-
-model TeamsOnTournaments {
-  tournamentId String
-  teamId       String
-
-  tournament Tournament @relation(fields: [tournamentId], references: [id])
-  team       Team       @relation(fields: [teamId], references: [id])
-
-  @@id([tournamentId, teamId])
-  @@map("teams_on_tournaments")
 }
 
 model MatchesOnTeams {

@@ -9,6 +9,7 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 
+// TODO: Make teams per tournament and not global.
 const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("create")
@@ -44,6 +45,27 @@ const create: SubCommand = {
 			return;
 		}
 
+		const tournament = await db.tournament.findFirst({
+			where: {
+				playerChannelId: interaction.channelId,
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a player channel."
+						),
+				],
+			});
+
+			return;
+		}
+
 		const id = createId();
 
 		const name = interaction.options.getString("name", true);
@@ -65,6 +87,11 @@ const create: SubCommand = {
 							discordId: interaction.user.id,
 						},
 					},
+					tournament: {
+						connect: {
+							id: tournament.id,
+						},
+					},
 				},
 			});
 
@@ -79,6 +106,8 @@ const create: SubCommand = {
 						}),
 				],
 			});
+
+			logger.info(`Team ${id} created by ${interaction.user.id}`);
 		} catch (error) {
 			logger.error(error);
 
