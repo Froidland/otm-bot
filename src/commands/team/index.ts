@@ -2,12 +2,14 @@ import { Command } from "@/interfaces/command";
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import subCommands from "./subcommands";
 import create from "./subcommands/create";
+import invite from "./subcommands/invite";
 
 const team: Command = {
 	data: new SlashCommandBuilder()
 		.setName("team")
 		.setDescription("Team management commands.")
 		.addSubcommand(create.data)
+		.addSubcommand(invite.data)
 		.setDMPermission(true),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		const subCommandName = interaction.options.getSubcommand();

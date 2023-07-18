@@ -1,4 +1,9 @@
-import { ChatInputCommandInteraction, PermissionsBitField } from "discord.js";
+import { Tournament } from "@prisma/client";
+import {
+	ChatInputCommandInteraction,
+	GuildMemberRoleManager,
+	PermissionsBitField,
+} from "discord.js";
 
 export async function isMemberAdmin(interaction: ChatInputCommandInteraction) {
 	if (!interaction.member) {
@@ -7,5 +12,14 @@ export async function isMemberAdmin(interaction: ChatInputCommandInteraction) {
 
 	return (interaction.member.permissions as Readonly<PermissionsBitField>).has(
 		"Administrator"
+	);
+}
+
+export async function isMemberTournamentStaff(
+	interaction: ChatInputCommandInteraction,
+	tournament: Tournament
+) {
+	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+		tournament.staffRoleId
 	);
 }

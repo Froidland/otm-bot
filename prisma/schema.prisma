@@ -26,6 +26,7 @@ model User {
   tryouts       PlayersOnTryouts[]
   tryoutLobbies PlayersOnTryoutLobbies[]
   teams         PlayersOnTeams[]
+  teamInvites   TeamInvite[]
 
   // Referee relations
   claimedMatches       Match[]
@@ -150,6 +151,8 @@ model Team {
   tournament   Tournament @relation(fields: [tournamentId], references: [id])
   tournamentId String
 
+  invitations TeamInvite[]
+
   // TODO: This looks scuffed as fuck, gotta figure out another way to do this relation.
   matchesAsRedTeam  Match[] @relation("redTeam")
   matchesAsBlueTeam Match[] @relation("blueTeam")
@@ -160,6 +163,18 @@ model Team {
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 
   @@map("teams")
+}
+
+model TeamInvite {
+  id BigInt @id @default(autoincrement())
+
+  team   Team   @relation(fields: [teamId], references: [id])
+  teamId String
+
+  player   User @relation(fields: [playerId], references: [id])
+  playerId Int
+
+	@@map("team_invites")
 }
 
 model Tryout {
@@ -265,7 +280,7 @@ enum MatchStatus {
   @@map("match_status")
 }
 
-// TODO: Maybe allow the creation of custom stages?
+// TODO: Maybe allow the creation of custom stages?, that way you can have a custom mappool for each stage.
 enum TournamentStage {
   Groups
   RoundOf256
