@@ -1,6 +1,6 @@
 import { isMemberAdmin } from "@/commands/utils";
 import db from "@/db";
-import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
+import { InvalidDateTime, NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
@@ -82,14 +82,7 @@ const create: SubCommand = {
 
 		if (!startDate.isValid) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid date!")
-						.setDescription(
-							"The schedule you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`"
-						),
-				],
+				embeds: [InvalidDateTime],
 			});
 
 			return;
@@ -124,7 +117,7 @@ const create: SubCommand = {
 				customId,
 				stage: {
 					customId: stageId,
-				}
+				},
 			},
 		});
 

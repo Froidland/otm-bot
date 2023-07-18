@@ -1,6 +1,6 @@
 import { isMemberAdmin } from "@/commands/utils";
 import db, { ScoringType, TournamentType, WinCondition } from "@/db";
-import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
+import { InvalidDateTime, NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
@@ -232,14 +232,7 @@ export const create: SubCommand = {
 		// TODO: Maybe give feedback on each error instead of just one generic error message.
 		if (!startDate.isValid || !registrationEndDate.isValid) {
 			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid date!")
-						.setDescription(
-							"One of the dates you provided is invalid. Please use the format `YYYY-MM-DD HH:MM` for the dates."
-						),
-				],
+				embeds: [InvalidDateTime],
 			});
 
 			return;
