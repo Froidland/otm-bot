@@ -224,12 +224,12 @@ const create: SubCommand = {
 		}
 
 		let embedDescription = `**__Match info__**\n`;
-		embedDescription += `**Custom ID:** ${customId}\n`;
-		embedDescription += `**Tournament:** ${tournament.name}\n`;
-		embedDescription += `**Stage:** ${stage}\n`;
-		embedDescription += `**Schedule:** ${schedule.toRFC2822()}\n`;
-		embedDescription += `**Red team:** ${redTeam.name}\n`;
-		embedDescription += `**Blue team:** ${blueTeam.name}\n`;
+		embedDescription += `**Custom ID:** \`${customId}\`\n`;
+		embedDescription += `**Tournament:** \`${tournament.name}\`\n`;
+		embedDescription += `**Stage:** \`${stage}\`\n`;
+		embedDescription += `**Schedule:** \`${schedule.toRFC2822()}\`\n`;
+		embedDescription += `**Red team:** \`${redTeam.name}\`\n`;
+		embedDescription += `**Blue team:** \`${blueTeam.name}\`\n`;
 
 		try {
 			await db.match.create({
