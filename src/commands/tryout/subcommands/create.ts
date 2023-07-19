@@ -1,10 +1,14 @@
-import { getUser, isMemberAdmin } from "@/commands/utils";
+import { getUser, isMemberAdmin } from "@/utils/discordUtils";
+import { tryoutRegistration } from "@/crafted-messages";
 import db from "@/db";
 import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
 	ChannelType,
 	ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -14,7 +18,6 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 
-// TODO: Should probably make this command send an embed with a button that allows you to join the tryout. Need to investigate how to do this.
 // TODO: Add the ability to set restrictions to the tryout, like only players with a certain role can join, or players from a specific country.
 export const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
@@ -34,19 +37,12 @@ export const create: SubCommand = {
 				.setDescription('The acronym of the tryout stage. (Example: "5WC CLT")')
 				.setRequired(true)
 		)
-		.addBooleanOption((option) =>
-			option
-				.setName("is-joinable")
-				.setDescription(
-					"Whether players can join the tryout stage. If false, only staff members can add players."
-				)
-				.setRequired(true)
-		)
+		// TODO: Make this optional. If it's not provided, the bot will create a new channel.
 		.addChannelOption((option) =>
 			option
-				.setName("public-channel")
+				.setName("embed-channel")
 				.setDescription(
-					"The channel where players can talk and register for the tryout."
+					"The channel where the tryout embed will be sent. This should probably be public for view-only."
 				)
 				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(true)
@@ -134,9 +130,9 @@ export const create: SubCommand = {
 
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
-		const isJoinable = interaction.options.getBoolean("is-joinable", true);
-		const publicChannel = interaction.options.getChannel(
-			"public-channel"
+		const embedChannel = interaction.options.getChannel(
+			"embed-channel",
+			true
 		) as GuildTextBasedChannel;
 
 		let playerRole = interaction.options.getRole("player-role") as Role | null;
@@ -239,13 +235,10 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += "**__Tryout settings:__**\n";
-		embedDescription += `**\\- Is Joinable:** \`${
-			isJoinable ? "Yes" : "No"
-		}\`\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
 		embedDescription += `**\\- Staff Role:** ${staffRole}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
-		embedDescription += `**\\- Public Channel:** ${publicChannel}\n`;
+		embedDescription += `**\\- Embed Channel:** ${embedChannel}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
 		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel}\n`;
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
@@ -256,13 +249,12 @@ export const create: SubCommand = {
 					id,
 					name,
 					serverId: interaction.guildId!,
-					publicChannelId: publicChannel.id,
+					embedChannelId: embedChannel.id,
 					staffRoleId: staffRole.id,
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
 					staffChannelId: staffChannel.id,
 					scheduleChannelId: scheduleChannel.id,
-					isJoinable,
 					owner: {
 						connect: {
 							discordId: interaction.user.id,
@@ -270,6 +262,8 @@ export const create: SubCommand = {
 					},
 				},
 			});
+
+			await embedChannel.send(tryoutRegistration);
 
 			await interaction.editReply({
 				embeds: [

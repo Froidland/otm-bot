@@ -183,11 +183,10 @@ model Tryout {
   staffChannelId    String
   scheduleChannelId String
   playerChannelId   String
-  publicChannelId   String
+  embedChannelId   String
   staffRoleId       String
   playerRoleId      String
   serverId          String
-  isJoinable        Boolean
 
   stages  TryoutStage[]
   owner   User          @relation(fields: [ownerId], references: [id])
