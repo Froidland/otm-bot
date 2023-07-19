@@ -1,3 +1,4 @@
+import { getUser } from "@/commands/utils";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
@@ -31,11 +32,7 @@ const create: SubCommand = {
 			ephemeral: true,
 		});
 
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
+		const user = await getUser(interaction);
 
 		if (!user) {
 			await interaction.editReply({
@@ -92,9 +89,7 @@ const create: SubCommand = {
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("You already have a team!")
-						.setDescription(
-							"You can only be in one team per tournament."
-						),
+						.setDescription("You can only be in one team per tournament."),
 				],
 			});
 

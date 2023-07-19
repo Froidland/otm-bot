@@ -1,3 +1,4 @@
+import { getUser } from "@/commands/utils";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
@@ -19,11 +20,7 @@ const join: SubCommand = {
 			ephemeral: true,
 		});
 
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
+		const user = await getUser(interaction);
 
 		if (!user) {
 			await interaction.editReply({
@@ -38,6 +35,5 @@ const join: SubCommand = {
 				
 			}
 		}) */
-
 	},
 };

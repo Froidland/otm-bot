@@ -1,4 +1,4 @@
-import { isMemberTournamentStaff } from "@/commands/utils";
+import { getUser, isMemberTournamentStaff } from "@/commands/utils";
 import db, { TournamentStage } from "@/db";
 import {
 	InvalidDateTime,
@@ -102,11 +102,7 @@ const create: SubCommand = {
 		await interaction.deferReply();
 		const id = createId();
 
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
+		const user = await getUser(interaction);
 
 		if (!user) {
 			await interaction.editReply({

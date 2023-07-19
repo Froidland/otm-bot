@@ -1,4 +1,4 @@
-import { isMemberAdmin } from "@/commands/utils";
+import { getUser, isMemberAdmin } from "@/commands/utils";
 import db, { ScoringType, TournamentType, WinCondition } from "@/db";
 import { InvalidDateTime, NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
@@ -168,11 +168,7 @@ export const create: SubCommand = {
 
 		const id = createId();
 
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
+		const user = await getUser(interaction);
 
 		if (!user) {
 			await interaction.editReply({

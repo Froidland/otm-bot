@@ -6,6 +6,7 @@ import {
 import { Command } from "@/interfaces/command";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
+import { getUser } from "../utils";
 
 export const balance: Command = {
 	data: new SlashCommandBuilder()
@@ -14,11 +15,7 @@ export const balance: Command = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
+		const user = await getUser(interaction);
 
 		if (!user) {
 			await interaction.editReply({

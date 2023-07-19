@@ -7,6 +7,7 @@ import {
 import { Command } from "@/interfaces/command";
 import { logger } from "@/utils";
 import db from "@/db";
+import { getUser } from "../utils";
 
 export const coinflip: Command = {
 	data: new SlashCommandBuilder()
@@ -32,11 +33,7 @@ export const coinflip: Command = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 
-		const user = await db.user.findFirst({
-			where: {
-				discordId: interaction.user.id,
-			},
-		});
+		const user = await getUser(interaction);
 
 		if (!user) {
 			await interaction.editReply({
