@@ -1,4 +1,4 @@
-import { getUser, isUserTournamentStaff } from "@/commands/utils";
+import { getUser, isUserTournamentStaff } from "@/utils/discordUtils";
 import db, { TournamentStage } from "@/db";
 import {
 	InvalidDateTime,

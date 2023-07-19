@@ -6,7 +6,7 @@ import {
 import { Command } from "@/interfaces/command";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
-import { getUser } from "../utils";
+import { getUser } from "../../utils/discordUtils";
 
 export const balance: Command = {
 	data: new SlashCommandBuilder()

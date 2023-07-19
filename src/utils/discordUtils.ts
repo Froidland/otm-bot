@@ -3,6 +3,7 @@ import { Tournament } from "@prisma/client";
 import {
 	ChatInputCommandInteraction,
 	GuildMemberRoleManager,
+	Interaction,
 	PermissionsBitField,
 } from "discord.js";
 
@@ -34,7 +35,7 @@ export async function isUserTournamentReferee(
 	);
 }
 
-export async function getUser(interaction: ChatInputCommandInteraction) {
+export async function getUser(interaction: Interaction) {
 	return await db.user.findFirst({
 		where: {
 			discordId: interaction.user.id,

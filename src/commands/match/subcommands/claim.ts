@@ -1,4 +1,4 @@
-import { getUser, isUserTournamentReferee } from "@/commands/utils";
+import { getUser, isUserTournamentReferee } from "@/utils/discordUtils";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";

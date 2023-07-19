@@ -1,4 +1,4 @@
-import { getUser, isMemberAdmin } from "@/commands/utils";
+import { getUser, isMemberAdmin } from "@/utils/discordUtils";
 import db, { ScoringType, TournamentType, WinCondition } from "@/db";
 import { InvalidDateTime, NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";

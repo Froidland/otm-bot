@@ -7,7 +7,7 @@ import {
 import { Command } from "@/interfaces/command";
 import { logger } from "@/utils";
 import db from "@/db";
-import { getUser } from "../utils";
+import { getUser } from "../../utils/discordUtils";
 
 export const coinflip: Command = {
 	data: new SlashCommandBuilder()
