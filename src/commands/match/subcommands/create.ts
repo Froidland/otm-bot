@@ -1,4 +1,4 @@
-import { getUser, isMemberTournamentStaff } from "@/commands/utils";
+import { getUser, isUserTournamentStaff } from "@/commands/utils";
 import db, { TournamentStage } from "@/db";
 import {
 	InvalidDateTime,
@@ -146,7 +146,7 @@ const create: SubCommand = {
 			return;
 		}
 
-		if (!isMemberTournamentStaff(interaction, tournament)) {
+		if (!isUserTournamentStaff(interaction, tournament)) {
 			await interaction.editReply({
 				embeds: [NoStaffRole],
 			});

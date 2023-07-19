@@ -16,12 +16,21 @@ export async function isMemberAdmin(interaction: ChatInputCommandInteraction) {
 	);
 }
 
-export async function isMemberTournamentStaff(
+export async function isUserTournamentStaff(
 	interaction: ChatInputCommandInteraction,
 	tournament: Tournament
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
 		tournament.staffRoleId
+	);
+}
+
+export async function isUserTournamentReferee(
+	interaction: ChatInputCommandInteraction,
+	tournament: Tournament
+) {
+	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+		tournament.refereeRoleId
 	);
 }
 
