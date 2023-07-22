@@ -2,9 +2,11 @@ import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { ButtonHandler } from "@/interfaces/buttonHandler";
 import { getUser } from "@/utils/discordUtils";
-import { ButtonInteraction } from "discord.js";
+import { ButtonInteraction, EmbedBuilder } from "discord.js";
 
 // TODO: Embeds.
+// TODO: Take away player's role.
+// TODO: Check if player has registered for a lobby. Maybe unregister them and then remove their role?.
 export const leaveTryout: ButtonHandler = {
 	customId: "leave-tryout",
 	execute: async (interaction: ButtonInteraction) => {
@@ -37,7 +39,12 @@ export const leaveTryout: ButtonHandler = {
 
 		if (!tryout) {
 			await interaction.editReply({
-				content: "This tryout no longer exists.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tryout no longer exists."),
+				],
 			});
 
 			return;
@@ -45,7 +52,12 @@ export const leaveTryout: ButtonHandler = {
 
 		if (tryout.players.length === 0) {
 			await interaction.editReply({
-				content: "You are not in this tryout.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You are not in this tryout."),
+				],
 			});
 
 			return;
@@ -69,11 +81,21 @@ export const leaveTryout: ButtonHandler = {
 			});
 
 			await interaction.editReply({
-				content: "You have left the tryout.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription("You have left the tryout."),
+				],
 			});
 		} catch (error) {
 			await interaction.editReply({
-				content: "Something went wrong. Please try again later.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("Something went wrong. Please try again later."),
+				],
 			});
 
 			return;

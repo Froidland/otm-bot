@@ -1,10 +1,12 @@
 import { getUser } from "@/utils/discordUtils";
 import db from "@/db";
 import { ButtonHandler } from "@/interfaces/buttonHandler";
-import { ButtonInteraction } from "discord.js";
+import { ButtonInteraction, EmbedBuilder } from "discord.js";
 import { NoAccountEmbed } from "@/embeds";
 import { logger } from "@/utils";
 
+// TODO: Embeds.
+// TODO: Give player a role.
 export const joinTryout: ButtonHandler = {
 	customId: "join-tryout",
 	execute: async (interaction: ButtonInteraction) => {
@@ -37,7 +39,12 @@ export const joinTryout: ButtonHandler = {
 
 		if (!tryout) {
 			await interaction.editReply({
-				content: "This tryout no longer exists.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tryout no longer exists."),
+				],
 			});
 
 			return;
@@ -45,9 +52,13 @@ export const joinTryout: ButtonHandler = {
 
 		if (tryout.players.length > 0) {
 			await interaction.editReply({
-				content: "You are already in this tryout.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You are already in this tryout."),
+				],
 			});
-
 			return;
 		}
 
@@ -66,14 +77,25 @@ export const joinTryout: ButtonHandler = {
 			});
 
 			await interaction.editReply({
-				content: "You have successfully joined the tryout.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription("You have successfully joined the tryout."),
+				],
 			});
 		} catch (error) {
 			logger.error(error);
 
 			await interaction.editReply({
-				content:
-					"An error occurred while joining the tryout. Please try again later.",
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while joining the tryout. Please try again later."
+						),
+				],
 			});
 		}
 	},
