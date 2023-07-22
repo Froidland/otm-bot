@@ -37,13 +37,10 @@ export const create: SubCommand = {
 				.setDescription('The acronym of the tryout stage. (Example: "5WC CLT")')
 				.setRequired(true)
 		)
-		// TODO: Make this optional. If it's not provided, the bot will create a new channel.
 		.addChannelOption((option) =>
 			option
 				.setName("embed-channel")
-				.setDescription(
-					"The channel where the tryout embed will be sent. This should probably be public for view-only."
-				)
+				.setDescription("The channel where the tryout embed will be sent.")
 				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(true)
 		)
@@ -244,12 +241,14 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
+			const embedMessage = await embedChannel.send(tryoutRegistration);
+
 			await db.tryout.create({
 				data: {
 					id,
 					name,
 					serverId: interaction.guildId!,
-					embedChannelId: embedChannel.id,
+					embedMessageId: embedMessage.id,
 					staffRoleId: staffRole.id,
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
@@ -262,8 +261,6 @@ export const create: SubCommand = {
 					},
 				},
 			});
-
-			await embedChannel.send(tryoutRegistration);
 
 			await interaction.editReply({
 				embeds: [

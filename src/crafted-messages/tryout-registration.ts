@@ -25,6 +25,7 @@ const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 export const tryoutRegistration: MessageCreateOptions = {
 	embeds: [
 		new EmbedBuilder()
+			.setColor("Blue")
 			.setTitle("Tryout registration")
 			.setDescription("Click the buttons below to join or leave the tryout."),
 	],

@@ -26,7 +26,7 @@ export const leaveTryout: ButtonHandler = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				embedChannelId: interaction.channelId,
+				embedMessageId: interaction.message.id,
 			},
 			include: {
 				players: {
