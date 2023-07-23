@@ -2,10 +2,12 @@ import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { ButtonHandler } from "@/interfaces/buttonHandler";
 import { getUser } from "@/utils/discordUtils";
-import { ButtonInteraction, EmbedBuilder } from "discord.js";
+import {
+	ButtonInteraction,
+	EmbedBuilder,
+	GuildMemberRoleManager,
+} from "discord.js";
 
-// TODO: Embeds.
-// TODO: Take away player's role.
 // TODO: Check if player has registered for a lobby. Maybe unregister them and then remove their role?.
 export const leaveTryout: ButtonHandler = {
 	customId: "leave-tryout",
@@ -80,10 +82,22 @@ export const leaveTryout: ButtonHandler = {
 				},
 			});
 
+			const playerRole = await interaction.guild?.roles.fetch(
+				tryout.playerRoleId
+			);
+
+			if (!playerRole) {
+				throw new Error("Player role not found.");
+			}
+
+			await (interaction.member?.roles as GuildMemberRoleManager).remove(
+				playerRole
+			);
+
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setColor("Green")
+						.setColor("Yellow")
 						.setTitle("Success")
 						.setDescription("You have left the tryout."),
 				],

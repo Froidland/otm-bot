@@ -1,12 +1,14 @@
 import { getUser } from "@/utils/discordUtils";
 import db from "@/db";
 import { ButtonHandler } from "@/interfaces/buttonHandler";
-import { ButtonInteraction, EmbedBuilder } from "discord.js";
+import {
+	ButtonInteraction,
+	EmbedBuilder,
+	GuildMemberRoleManager,
+} from "discord.js";
 import { NoAccountEmbed } from "@/embeds";
 import { logger } from "@/utils";
 
-// TODO: Embeds.
-// TODO: Give player a role.
 export const joinTryout: ButtonHandler = {
 	customId: "join-tryout",
 	execute: async (interaction: ButtonInteraction) => {
@@ -75,6 +77,18 @@ export const joinTryout: ButtonHandler = {
 					},
 				},
 			});
+
+			const playerRole = await interaction.guild?.roles.fetch(
+				tryout.playerRoleId
+			);
+
+			if (!playerRole) {
+				throw new Error("Player role not found.");
+			}
+
+			await (interaction.member?.roles as GuildMemberRoleManager).add(
+				playerRole
+			);
 
 			await interaction.editReply({
 				embeds: [
