@@ -120,7 +120,7 @@ CREATE TABLE `tryouts` (
     `staffChannelId` VARCHAR(191) NOT NULL,
     `scheduleChannelId` VARCHAR(191) NOT NULL,
     `playerChannelId` VARCHAR(191) NOT NULL,
-    `embedChannelId` VARCHAR(191) NOT NULL,
+    `embedMessageId` VARCHAR(191) NOT NULL,
     `staffRoleId` VARCHAR(191) NOT NULL,
     `playerRoleId` VARCHAR(191) NOT NULL,
     `serverId` VARCHAR(191) NOT NULL,
