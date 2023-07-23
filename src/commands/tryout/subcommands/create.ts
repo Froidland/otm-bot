@@ -241,7 +241,7 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
-			const embedMessage = await embedChannel.send(tryoutRegistration);
+			const embedMessage = await embedChannel.send(tryoutRegistration(name));
 
 			await db.tryout.create({
 				data: {

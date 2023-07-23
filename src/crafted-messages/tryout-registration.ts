@@ -22,12 +22,16 @@ const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 	leaveButton
 );
 
-export const tryoutRegistration: MessageCreateOptions = {
-	embeds: [
-		new EmbedBuilder()
-			.setColor("Blue")
-			.setTitle("Tryout registration")
-			.setDescription("Click the buttons below to join or leave the tryout."),
-	],
-	components: [actionRow],
+export const tryoutRegistration = (
+	tryoutName: string
+): MessageCreateOptions => {
+	return {
+		embeds: [
+			new EmbedBuilder()
+				.setColor("Blue")
+				.setTitle(`${tryoutName}`)
+				.setDescription("Click the buttons below to join or leave the tryout."),
+		],
+		components: [actionRow],
+	};
 };
