@@ -1,5 +1,5 @@
 import { getUser, isMemberAdmin } from "@/utils/discordUtils";
-import { tryoutRegistration } from "@/crafted-messages";
+import { tryoutRegistration } from "@/interactive-messages";
 import db from "@/db";
 import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
