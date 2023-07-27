@@ -36,6 +36,19 @@ export const leaveTryout: ButtonHandler = {
 						userId: user.id,
 					},
 				},
+				stages: {
+					where: {
+						lobbies: {
+							some: {
+								players: {
+									some: {
+										userId: user.id,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		});
 
@@ -59,6 +72,21 @@ export const leaveTryout: ButtonHandler = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription("You are not in this tryout."),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.stages.length > 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You cannot leave this tryout because you have already joined a lobby."
+						),
 				],
 			});
 

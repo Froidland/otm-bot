@@ -30,7 +30,7 @@ export const tryoutRegistration = (
 			new EmbedBuilder()
 				.setColor("Blue")
 				.setTitle(`${tryoutName}`)
-				.setDescription("Click the buttons below to join or leave the tryout."),
+				.setDescription("Click the buttons below to join or leave the tryout. Once you join a lobby for any stage, you will no longer be able to leave."),
 		],
 		components: [actionRow],
 	};
