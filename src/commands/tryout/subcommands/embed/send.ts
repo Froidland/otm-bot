@@ -7,7 +7,7 @@ import {
 
 export const send: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
-		.setName("send-embed")
+		.setName("send")
 		.setDescription(
 			"Resends the tryout embed to the specified channel, deleting the old one."
 		)
