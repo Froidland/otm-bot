@@ -5,7 +5,8 @@ import { create } from "./create";
 const stageGroup: SubCommandGroup = {
 	data: new SlashCommandSubcommandGroupBuilder()
 		.setName("stage")
-		.setDescription("Commands for managing tryout stages."),
+		.setDescription("Commands for managing tryout stages.")
+		.addSubcommand(create.data),
 	subCommands: [create],
 };
 
