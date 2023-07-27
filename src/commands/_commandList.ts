@@ -6,8 +6,6 @@ import { link, profile } from "./osu";
 import { archiveCategory, createMappack, stealEmoji } from "./utility";
 import tournament from "./tournament";
 import tryout from "./tryout";
-import tryoutLobby from "./tryout-lobby";
-import tryoutStage from "./tryout-stage";
 import match from "./match";
 import team from "./team";
 
@@ -19,8 +17,6 @@ export const commandList: Command[] = [
 	createMappack,
 	tournament,
 	tryout,
-	tryoutLobby,
-	tryoutStage,
 	match,
 	team,
 	stealEmoji,
