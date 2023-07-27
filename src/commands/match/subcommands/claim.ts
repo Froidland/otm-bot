@@ -1,4 +1,4 @@
-import { getUser, isUserTournamentReferee } from "@/utils/discordUtils";
+import { isUserTournamentReferee } from "@/utils/discordUtils";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
@@ -22,7 +22,11 @@ const claim: SubCommand = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 
-		const user = await getUser(interaction);
+		const user = await db.user.findFirst({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply({

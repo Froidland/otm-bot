@@ -1,4 +1,3 @@
-import { getUser } from "@/utils/discordUtils";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
@@ -25,7 +24,11 @@ const invite: SubCommand = {
 
 		const player = interaction.options.getUser("player", true);
 
-		const user = await getUser(interaction);
+		const user = await db.user.findFirst({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply({

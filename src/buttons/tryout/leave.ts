@@ -1,7 +1,6 @@
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { ButtonHandler } from "@/interfaces/buttonHandler";
-import { getUser } from "@/utils/discordUtils";
 import {
 	ButtonInteraction,
 	EmbedBuilder,
@@ -16,7 +15,11 @@ export const leaveTryout: ButtonHandler = {
 			ephemeral: true,
 		});
 
-		const user = await getUser(interaction);
+		const user = await db.user.findFirst({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply({

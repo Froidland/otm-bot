@@ -1,4 +1,4 @@
-import { getUser, isMemberAdmin } from "@/utils/discordUtils";
+import { isMemberAdmin } from "@/utils/discordUtils";
 import { tryoutRegistration } from "@/interactive-messages";
 import db from "@/db";
 import { NoAccountEmbed, NoAdminEmbed } from "@/embeds";
@@ -111,7 +111,11 @@ export const create: SubCommand = {
 		let managementRoleCreated = false;
 		let refereeRoleCreated = false;
 
-		const user = await getUser(interaction);
+		const user = await db.user.findFirst({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply({

@@ -18,5 +18,7 @@ export const send: SubCommand = {
 				.setRequired(true)
 				.addChannelTypes(ChannelType.GuildText)
 		),
-	execute: async (interaction: ChatInputCommandInteraction) => {},
+	execute: async (interaction: ChatInputCommandInteraction) => {
+		
+	},
 };

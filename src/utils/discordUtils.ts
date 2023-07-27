@@ -1,9 +1,7 @@
-import db from "@/db";
 import { Tournament } from "@prisma/client";
 import {
 	ChatInputCommandInteraction,
 	GuildMemberRoleManager,
-	Interaction,
 	PermissionsBitField,
 } from "discord.js";
 
@@ -33,12 +31,4 @@ export async function isUserTournamentReferee(
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
 		tournament.refereeRoleId
 	);
-}
-
-export async function getUser(interaction: Interaction) {
-	return await db.user.findFirst({
-		where: {
-			discordId: interaction.user.id,
-		},
-	});
 }

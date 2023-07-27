@@ -1,4 +1,4 @@
-import { getUser, isMemberAdmin } from "@/utils/discordUtils";
+import { isMemberAdmin } from "@/utils/discordUtils";
 import db from "@/db";
 import { InvalidDateTime, NoAccountEmbed, NoAdminEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces/subCommand";
@@ -71,7 +71,11 @@ const create: SubCommand = {
 			zone: "utc",
 		});
 
-		const user = await getUser(interaction);
+		const user = await db.user.findFirst({
+			where: {
+				discordId: interaction.user.id,
+			},
+		});
 
 		if (!user) {
 			await interaction.editReply({
