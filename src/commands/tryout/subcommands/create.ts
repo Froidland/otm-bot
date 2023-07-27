@@ -6,9 +6,6 @@ import { SubCommand } from "@/interfaces/subCommand";
 import { logger } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
 	ChannelType,
 	ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -231,7 +228,6 @@ export const create: SubCommand = {
 		let embedDescription = "**__Tryout info:__**\n";
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
-		embedDescription += "**__Tryout settings:__**\n";
 		embedDescription += "**__Tryout roles and channels:__**\n";
 		embedDescription += `**\\- Staff Role:** ${staffRole}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
@@ -241,14 +237,14 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
-			const embedMessage = await embedChannel.send(tryoutRegistration(name));
+			const registrationMessage = await embedChannel.send(tryoutRegistration(name));
 
 			await db.tryout.create({
 				data: {
 					id,
 					name,
 					serverId: interaction.guildId!,
-					embedMessageId: embedMessage.id,
+					embedMessageId: registrationMessage.id,
 					staffRoleId: staffRole.id,
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
