@@ -51,6 +51,14 @@ export const create: SubCommand = {
 		)
 		.addRoleOption((option) =>
 			option
+				.setName("referee-role")
+				.setDescription(
+					"The role that referees need to have to be able to claim lobbies. (Default: New Role)"
+				)
+				.setRequired(false)
+		)
+		.addRoleOption((option) =>
+			option
 				.setName("player-role")
 				.setDescription(
 					"The role that players need to have to be able to execute the schedule commands. (Default: New Role)"
@@ -100,7 +108,8 @@ export const create: SubCommand = {
 		let staffChannelCreated = false;
 		let scheduleChannelCreated = false;
 		let playerRoleCreated = false;
-		let staffRoleCreated = false;
+		let managementRoleCreated = false;
+		let refereeRoleCreated = false;
 
 		const user = await getUser(interaction);
 
@@ -133,6 +142,9 @@ export const create: SubCommand = {
 		let managementRole = interaction.options.getRole(
 			"management-role"
 		) as Role | null;
+		let refereeRole = interaction.options.getRole(
+			"referee-role"
+		) as Role | null;
 
 		let staffChannel = interaction.options.getChannel(
 			"staff-channel"
@@ -160,12 +172,20 @@ export const create: SubCommand = {
 				name: `${acronym}: Management`,
 			})) as Role;
 
-			staffRoleCreated = true;
+			managementRoleCreated = true;
+		}
+
+		if (!refereeRole) {
+			refereeRole = (await interaction.guild?.roles.create({
+				name: `${acronym}: Referee`,
+			})) as Role;
+
+			refereeRoleCreated = true;
 		}
 
 		if (!scheduleChannel) {
 			scheduleChannel = (await interaction.guild?.channels.create({
-				name: `${acronym}-schedules`,
+				name: `${acronym}-scheduling`,
 				type: ChannelType.GuildText,
 				permissionOverwrites: [
 					{
@@ -178,6 +198,10 @@ export const create: SubCommand = {
 					},
 					{
 						id: managementRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
+					{
+						id: refereeRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 				],
@@ -200,6 +224,10 @@ export const create: SubCommand = {
 						id: managementRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
+					{
+						id: refereeRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
 				],
 				parent: parentCategory?.id,
 			})) as GuildTextBasedChannel;
@@ -220,6 +248,14 @@ export const create: SubCommand = {
 						id: playerRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
+					{
+						id: managementRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
+					{
+						id: refereeRole.id,
+						allow: [PermissionFlagsBits.ViewChannel],
+					},
 				],
 				parent: parentCategory?.id,
 			})) as GuildTextBasedChannel;
@@ -230,8 +266,10 @@ export const create: SubCommand = {
 		let embedDescription = "**__Tryout info:__**\n";
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
+		embedDescription += `**\\- Owner:** ${user}\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
 		embedDescription += `**\\- Management Role:** ${managementRole}\n`;
+		embedDescription += `**\\- Referee Role:** ${refereeRole}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
 		embedDescription += `**\\- Embed Channel:** ${embedChannel}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
@@ -294,7 +332,8 @@ export const create: SubCommand = {
 
 			// Roles
 			if (playerRoleCreated) await playerRole.delete();
-			if (staffRoleCreated) await managementRole.delete();
+			if (managementRoleCreated) await managementRole.delete();
+			if (refereeRoleCreated) await refereeRole.delete();
 		}
 	},
 };
