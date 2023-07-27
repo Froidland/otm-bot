@@ -11,7 +11,7 @@ import {
 } from "discord.js";
 import { DateTime } from "luxon";
 
-const create: SubCommand = {
+export const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("create")
 		.setDescription("Creates a tryout stage.")
@@ -185,5 +185,3 @@ const create: SubCommand = {
 		}
 	},
 };
-
-export default create;

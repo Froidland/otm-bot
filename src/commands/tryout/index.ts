@@ -1,13 +1,13 @@
 import {
 	ChatInputCommandInteraction,
-	PermissionFlagsBits,
 	SlashCommandBuilder,
 } from "discord.js";
 import { create } from "./subcommands/create";
 import { Command } from "@/interfaces/command";
 import { subCommandGroups, subCommands } from "./subcommands";
-import { send } from "./subcommands/embed/send";
 import embedGroup from "./subcommands/embed";
+import lobbyGroup from "./subcommands/lobby";
+import stageGroup from "./subcommands/stage";
 
 // TODO: Research subcommand groups and implement them for the tryout-lobby and tryout-stage commands.
 const tryout: Command = {
@@ -16,6 +16,8 @@ const tryout: Command = {
 		.setDescription("Tryout management commands.")
 		.addSubcommand(create.data)
 		.addSubcommandGroup(embedGroup.data)
+		.addSubcommandGroup(lobbyGroup.data)
+		.addSubcommandGroup(stageGroup.data)
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		const subCommandName = interaction.options.getSubcommand(true);
