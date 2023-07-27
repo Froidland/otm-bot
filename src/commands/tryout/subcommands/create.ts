@@ -87,7 +87,7 @@ export const create: SubCommand = {
 			option
 				.setName("player-channel")
 				.setDescription(
-					"The channel where the users can talk and register for the tryout. (Default: New Channel)"
+					"The channel where the players can talk. (Default: New Channel)"
 				)
 				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(false)
