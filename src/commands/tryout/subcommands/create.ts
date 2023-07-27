@@ -43,7 +43,7 @@ export const create: SubCommand = {
 		)
 		.addRoleOption((option) =>
 			option
-				.setName("staff-role")
+				.setName("management-role")
 				.setDescription(
 					"The role that staff members need to have to be able to manage the tryout. (Default: New Role)"
 				)
@@ -130,7 +130,9 @@ export const create: SubCommand = {
 		) as GuildTextBasedChannel;
 
 		let playerRole = interaction.options.getRole("player-role") as Role | null;
-		let staffRole = interaction.options.getRole("staff-role") as Role | null;
+		let managementRole = interaction.options.getRole(
+			"management-role"
+		) as Role | null;
 
 		let staffChannel = interaction.options.getChannel(
 			"staff-channel"
@@ -153,9 +155,9 @@ export const create: SubCommand = {
 			playerRoleCreated = true;
 		}
 
-		if (!staffRole) {
-			staffRole = (await interaction.guild?.roles.create({
-				name: `${acronym}: Staff`,
+		if (!managementRole) {
+			managementRole = (await interaction.guild?.roles.create({
+				name: `${acronym}: Management`,
 			})) as Role;
 
 			staffRoleCreated = true;
@@ -175,7 +177,7 @@ export const create: SubCommand = {
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 					{
-						id: staffRole.id,
+						id: managementRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 				],
@@ -195,7 +197,7 @@ export const create: SubCommand = {
 						deny: [PermissionFlagsBits.ViewChannel],
 					},
 					{
-						id: staffRole.id,
+						id: managementRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 				],
@@ -229,7 +231,7 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
-		embedDescription += `**\\- Staff Role:** ${staffRole}\n`;
+		embedDescription += `**\\- Management Role:** ${managementRole}\n`;
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
 		embedDescription += `**\\- Embed Channel:** ${embedChannel}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
@@ -237,7 +239,9 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
-			const registrationMessage = await embedChannel.send(tryoutRegistration(name));
+			const registrationMessage = await embedChannel.send(
+				tryoutRegistration(name)
+			);
 
 			await db.tryout.create({
 				data: {
@@ -245,7 +249,7 @@ export const create: SubCommand = {
 					name,
 					serverId: interaction.guildId!,
 					embedMessageId: registrationMessage.id,
-					staffRoleId: staffRole.id,
+					managementRoleId: managementRole.id,
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
 					staffChannelId: staffChannel.id,
@@ -290,7 +294,7 @@ export const create: SubCommand = {
 
 			// Roles
 			if (playerRoleCreated) await playerRole.delete();
-			if (staffRoleCreated) await staffRole.delete();
+			if (staffRoleCreated) await managementRole.delete();
 		}
 	},
 };
