@@ -1,6 +1,7 @@
 import { SubCommand } from "@/interfaces/subCommand";
 import { create } from "./create";
+import { SubCommandGroup } from "@/interfaces";
+import embedGroup from "./embed";
 
-const subCommands: SubCommand[] = [create];
-
-export default subCommands;
+export const subCommands: SubCommand[] = [create];
+export const subCommandGroups: SubCommandGroup[] = [embedGroup];
