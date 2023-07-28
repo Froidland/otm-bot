@@ -1,4 +1,4 @@
-import { Tournament } from "@prisma/client";
+import { Tournament, Tryout } from "@prisma/client";
 import {
 	ChatInputCommandInteraction,
 	GuildMemberRoleManager,
@@ -30,5 +30,14 @@ export async function isUserTournamentReferee(
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
 		tournament.refereeRoleId
+	);
+}
+
+export async function isUserTryoutReferee(
+	interaction: ChatInputCommandInteraction,
+	tryout: Tryout
+) {
+	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+		tryout.refereeRoleId
 	);
 }
