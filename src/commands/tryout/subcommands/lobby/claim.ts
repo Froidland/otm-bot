@@ -91,6 +91,19 @@ export const claim: SubCommand = {
 
 		const lobby = tryout.stages[0].lobbies[0];
 
+		if (lobby.refereeId) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This lobby has already been claimed."),
+				],
+			});
+
+			return;
+		}
+
 		try {
 			await db.tryoutLobby.update({
 				where: {
