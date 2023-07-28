@@ -250,6 +250,7 @@ export const create: SubCommand = {
 					serverId: interaction.guildId!,
 					embedMessageId: registrationMessage.id,
 					managementRoleId: managementRole.id,
+					refereeRoleId: refereeRole.id,
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
 					staffChannelId: staffChannel.id,

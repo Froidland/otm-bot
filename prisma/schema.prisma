@@ -184,6 +184,7 @@ model Tryout {
   playerChannelId  String
   embedMessageId   String
   managementRoleId String
+  refereeRoleId    String
   playerRoleId     String
   serverId         String
 
