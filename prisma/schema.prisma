@@ -141,7 +141,7 @@ model Match {
 model Team {
   id            String @id
   name          String
-  idealTimezone String
+  timezone String @map("idealTimezone")
 
   owner   User @relation(fields: [ownerId], references: [id])
   ownerId Int

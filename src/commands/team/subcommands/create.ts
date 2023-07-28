@@ -9,7 +9,6 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 
-// TODO: Make teams per tournament and not global.
 const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("create")
@@ -23,7 +22,7 @@ const create: SubCommand = {
 		.addStringOption((option) =>
 			option
 				.setName("timezone")
-				.setDescription("The team's ideal timezone.")
+				.setDescription("The team's timezone.")
 				.setRequired(true)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
@@ -106,7 +105,7 @@ const create: SubCommand = {
 
 		let embedDescription = "**__Team info:__**";
 		embedDescription += `\n**Name:** ${name}`;
-		embedDescription += `\n**Ideal Timezone:** ${timezone}`;
+		embedDescription += `\n**Timezone:** ${timezone}`;
 		embedDescription += `\n**Owner:** ${interaction.user}`;
 
 		try {
@@ -114,7 +113,7 @@ const create: SubCommand = {
 				data: {
 					id,
 					name,
-					idealTimezone: timezone,
+					timezone,
 					owner: {
 						connect: {
 							discordId: interaction.user.id,
