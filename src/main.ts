@@ -1,11 +1,12 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
-import * as dotenv from "dotenv";
+import "dotenv/config";
 import { auth } from "osu-api-extended";
 import { logger } from "./utils/";
-import { onInteraction, onMessageCreate, onReady } from "./events";
-dotenv.config();
+import { onInteraction, onReady } from "./events";
 
 // TODO: Implement runtime checks for the environment variables. (Maybe use zod for this)
+//? Take a look at https://github.com/lostfictions/znv
+// TODO: Rate limiting.
 
 (async () => {
 	const client = new Client({
@@ -35,10 +36,6 @@ dotenv.config();
 		if (error.name == "ConnectTimeoutError") {
 			process.exit(1);
 		}
-	});
-
-	client.on(Events.MessageCreate, async (message) => {
-		await onMessageCreate(message);
 	});
 
 	try {
