@@ -139,8 +139,8 @@ model Match {
 }
 
 model Team {
-  id            String @id
-  name          String
+  id       String @id
+  name     String
   timezone String @map("idealTimezone")
 
   owner   User @relation(fields: [ownerId], references: [id])
@@ -174,19 +174,18 @@ model TeamInvite {
   player   User @relation(fields: [playerId], references: [id])
   playerId Int
 
-	@@map("team_invites")
+  @@map("team_invites")
 }
 
 model Tryout {
-  id                String  @id
-  name              String
-  staffChannelId    String
-  scheduleChannelId String
-  playerChannelId   String
+  id               String @id
+  name             String
+  staffChannelId   String
+  playerChannelId  String
   embedMessageId   String
-  managementRoleId       String
-  playerRoleId      String
-  serverId          String
+  managementRoleId String
+  playerRoleId     String
+  serverId         String
 
   stages  TryoutStage[]
   owner   User          @relation(fields: [ownerId], references: [id])

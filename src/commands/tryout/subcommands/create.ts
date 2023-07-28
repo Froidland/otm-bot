@@ -76,15 +76,6 @@ export const create: SubCommand = {
 		)
 		.addChannelOption((option) =>
 			option
-				.setName("schedule-channel")
-				.setDescription(
-					"The channel where the schedule commands will be executed. (Default: New Channel)"
-				)
-				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
-		)
-		.addChannelOption((option) =>
-			option
 				.setName("player-channel")
 				.setDescription(
 					"The channel where the players can talk. (Default: New Channel)"
@@ -106,7 +97,6 @@ export const create: SubCommand = {
 		const hasAdminPermission = isMemberAdmin(interaction);
 		let playerChannelCreated = false;
 		let staffChannelCreated = false;
-		let scheduleChannelCreated = false;
 		let playerRoleCreated = false;
 		let managementRoleCreated = false;
 		let refereeRoleCreated = false;
@@ -153,9 +143,6 @@ export const create: SubCommand = {
 		let staffChannel = interaction.options.getChannel(
 			"staff-channel"
 		) as GuildTextBasedChannel | null;
-		let scheduleChannel = interaction.options.getChannel(
-			"schedule-channel"
-		) as GuildTextBasedChannel | null;
 		let playerChannel = interaction.options.getChannel(
 			"player-channel"
 		) as GuildTextBasedChannel | null;
@@ -185,34 +172,6 @@ export const create: SubCommand = {
 			})) as Role;
 
 			refereeRoleCreated = true;
-		}
-
-		if (!scheduleChannel) {
-			scheduleChannel = (await interaction.guild?.channels.create({
-				name: `${acronym}-scheduling`,
-				type: ChannelType.GuildText,
-				permissionOverwrites: [
-					{
-						id: interaction.guild?.roles.everyone.id,
-						deny: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: playerRole.id,
-						allow: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: managementRole.id,
-						allow: [PermissionFlagsBits.ViewChannel],
-					},
-					{
-						id: refereeRole.id,
-						allow: [PermissionFlagsBits.ViewChannel],
-					},
-				],
-				parent: parentCategory?.id,
-			})) as GuildTextBasedChannel;
-
-			scheduleChannelCreated = true;
 		}
 
 		if (!staffChannel) {
@@ -277,7 +236,6 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
 		embedDescription += `**\\- Embed Channel:** ${embedChannel}\n`;
 		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
-		embedDescription += `**\\- Schedule Channel:** ${scheduleChannel}\n`;
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
@@ -295,7 +253,6 @@ export const create: SubCommand = {
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
 					staffChannelId: staffChannel.id,
-					scheduleChannelId: scheduleChannel.id,
 					owner: {
 						connect: {
 							discordId: interaction.user.id,
@@ -332,7 +289,6 @@ export const create: SubCommand = {
 			// Channels
 			if (playerChannelCreated) await playerChannel.delete();
 			if (staffChannelCreated) await staffChannel.delete();
-			if (scheduleChannelCreated) await scheduleChannel.delete();
 
 			// Roles
 			if (playerRoleCreated) await playerRole.delete();
