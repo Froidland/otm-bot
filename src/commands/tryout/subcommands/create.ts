@@ -239,7 +239,7 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
-			const registrationMessage = await embedChannel.send(
+			const registrationEmbed = await embedChannel.send(
 				tryoutRegistration(name)
 			);
 
@@ -248,7 +248,8 @@ export const create: SubCommand = {
 					id,
 					name,
 					serverId: interaction.guildId!,
-					embedMessageId: registrationMessage.id,
+					embedChannelId: embedChannel.id,
+					embedMessageId: registrationEmbed.id,
 					managementRoleId: managementRole.id,
 					refereeRoleId: refereeRole.id,
 					playerRoleId: playerRole.id,

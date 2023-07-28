@@ -182,6 +182,7 @@ model Tryout {
   name             String
   staffChannelId   String
   playerChannelId  String
+  embedChannelId   String
   embedMessageId   String
   managementRoleId String
   refereeRoleId    String
