@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, Interaction } from "discord.js";
 import { commandList } from "@/commands/_commandList";
-import { buttonList } from "@/buttons/_buttonList";
+import { buttonList } from "@/handlers";
 
 export const onInteraction = async (interaction: Interaction) => {
 	if (interaction.isCommand()) {
