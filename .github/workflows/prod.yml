@@ -1,4 +1,4 @@
-name: Node.js CI/CD Pipeline
+name: Production Continuous Deployment
 
 on:
   push:
@@ -6,32 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: .
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3.5.2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3.6.0
-        with:
-          node-version: 18.x
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 8.5.1
-          run_install: true
-
-      - name: Build
-        run: pnpm run build
-
   build-docker-image:
-    needs: [ build ]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,11 +25,11 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker push ${{secrets.DOCKER_USERNAME}}/panchobot
+          docker push ${{secrets.DOCKER_USERNAME}}/panchobot:prod
 
 
   deploy:
-    needs: [ build, build-docker-image ]
+    needs: [ build-docker-image ]
     environment:
       name: 'Production'
     runs-on: ubuntu-latest
@@ -68,9 +43,9 @@ jobs:
           key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
           script: |
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-            docker stop PanchoBot
-            docker rm PanchoBot
+            docker stop panchobot-prod
+            docker rm panchobot-prod
             docker pull ${{ secrets.DOCKER_USERNAME }}/panchobot:prod
-            docker run --restart=always -d --network=host --name PanchoBot --env-file ${{ secrets.SECRET_PATH }} ${{ secrets.DOCKER_USERNAME }}/panchobot:prod
+            docker run --restart=always -d --network=host --name panchobot-prod --env-file ${{ secrets.SECRET_PATH }} ${{ secrets.DOCKER_USERNAME }}/panchobot:prod
 
     
