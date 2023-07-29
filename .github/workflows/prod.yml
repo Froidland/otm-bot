@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@v3.5.2
 
       - name: Build docker image
-        run: docker build -t ${{secrets.DOCKER_USERNAME}}/panchobot .
+        run: docker build -t ${{secrets.DOCKER_USERNAME}}/panchobot:prod .
 
       - name: Log into Docker and upload image
         env: 
@@ -70,7 +70,7 @@ jobs:
             echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             docker stop PanchoBot
             docker rm PanchoBot
-            docker pull ${{ secrets.DOCKER_USERNAME }}/panchobot:latest
-            docker run --restart=always -d --network=host --name PanchoBot --env-file ${{ secrets.SECRET_PATH }} ${{ secrets.DOCKER_USERNAME }}/panchobot:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/panchobot:prod
+            docker run --restart=always -d --network=host --name PanchoBot --env-file ${{ secrets.SECRET_PATH }} ${{ secrets.DOCKER_USERNAME }}/panchobot:prod
 
     
