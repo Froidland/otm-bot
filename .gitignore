@@ -1,5 +1,4 @@
-/node_modules
+node_modules
 *.env
-/logs
-/app.js
-/.vscode
+logs
+.vscode
