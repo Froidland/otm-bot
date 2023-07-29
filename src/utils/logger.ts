@@ -1,6 +1,6 @@
 import DailyRotateFile from "winston-daily-rotate-file";
 import * as winston from "winston";
-import { WinstonTransport as AxiomTransport } from "@axiomhq/axiom-node";
+import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import "dotenv/config";
 const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 const logDatePattern = process.env.LOG_DATE_PATTERN ?? "DD-MM-YYYY";
