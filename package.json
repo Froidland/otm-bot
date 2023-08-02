@@ -5,6 +5,7 @@
 	"main": "/src/main.ts",
 	"scripts": {
 		"start": "ts-node src/main.ts",
+		"start:prod": "npx prisma migrate deploy && ts-node src/main.ts",
 		"dev": "cross-env NODE_ENV=development nodemon src/main.ts"
 	},
 	"keywords": [
