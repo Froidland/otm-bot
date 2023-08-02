@@ -74,7 +74,7 @@ export const archiveCategory: Command = {
 			| Role
 			| undefined;
 
-		let targetChannelPermissions: OverwriteResolvable[] = [
+		const targetChannelPermissions: OverwriteResolvable[] = [
 			{
 				id: interaction.guild!.roles.everyone.id,
 				deny: [PermissionFlagsBits.ViewChannel],
