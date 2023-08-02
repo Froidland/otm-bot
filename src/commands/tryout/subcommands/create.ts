@@ -231,14 +231,18 @@ export const create: SubCommand = {
 		let embedDescription = "**__Tryout info:__**\n";
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
-		embedDescription += `**\\- Owner:** ${user}\n`;
+		embedDescription += `**\\- Owner:** <@${user.discordId}>\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
-		embedDescription += `**\\- Management Role:** ${managementRole}\n`;
-		embedDescription += `**\\- Referee Role:** ${refereeRole}\n`;
-		embedDescription += `**\\- Player Role:** ${playerRole}\n`;
-		embedDescription += `**\\- Embed Channel:** ${embedChannel}\n`;
-		embedDescription += `**\\- Staff Channel:** ${staffChannel}\n`;
-		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
+		embedDescription += `**\\- Management Role:** <@&${managementRole.id}>\n`;
+		embedDescription += `**\\- Referee Role:** <@&${refereeRole.id}>\n`;
+		embedDescription += `**\\- Player Role:** <@&${playerRole.id}>\n`;
+
+		if (embedChannel) {
+			embedDescription += `**\\- Embed Channel:** <#${embedChannel.id}>\n`;
+		}
+
+		embedDescription += `**\\- Staff Channel:** <#${staffChannel.id}>\n`;
+		embedDescription += `**\\- Player Channel:** <#${playerChannel.id}>`;
 
 		try {
 			let embedMessage: Message | null = null;
