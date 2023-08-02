@@ -57,6 +57,7 @@ export const createMappack: Command = {
 
 		for (const id of beatmapsetIds) {
 			streamPromises.push(
+				// eslint-disable-next-line no-async-promise-executor -- This is fine, the promise resolves when the stream ends.
 				new Promise<void>(async (resolve, reject) => {
 					const response = await axios.get(
 						`https://api.chimu.moe/v1/download/${id}`,
@@ -81,7 +82,7 @@ export const createMappack: Command = {
 						resolve();
 					});
 
-					stream.on("error", (error: any) => {
+					stream.on("error", (error) => {
 						logger.error(error);
 						reject(error);
 					});
