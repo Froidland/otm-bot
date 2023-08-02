@@ -4,7 +4,6 @@ import {
 	ButtonStyle,
 	EmbedBuilder,
 	MessageCreateOptions,
-	MessagePayload,
 } from "discord.js";
 
 const joinButton = new ButtonBuilder()
