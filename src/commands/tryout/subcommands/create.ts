@@ -297,13 +297,13 @@ export const create: SubCommand = {
 			});
 
 			// Channels
-			if (playerChannelCreated) await playerChannel.delete();
-			if (staffChannelCreated) await staffChannel.delete();
+			if (playerChannelCreated) playerChannel.delete();
+			if (staffChannelCreated) staffChannel.delete();
 
 			// Roles
-			if (playerRoleCreated) await playerRole.delete();
-			if (managementRoleCreated) await managementRole.delete();
-			if (refereeRoleCreated) await refereeRole.delete();
+			if (playerRoleCreated) playerRole.delete();
+			if (managementRoleCreated) managementRole.delete();
+			if (refereeRoleCreated) refereeRole.delete();
 		}
 	},
 };
