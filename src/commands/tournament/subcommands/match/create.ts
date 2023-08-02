@@ -18,7 +18,7 @@ import { DateTime } from "luxon";
 
 // TODO: Currently working on this.
 
-const create: SubCommand = {
+export const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("create")
 		.setDescription("Creates a match between two teams.")
@@ -309,5 +309,3 @@ const create: SubCommand = {
 		}
 	},
 };
-
-export default create;

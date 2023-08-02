@@ -9,7 +9,7 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 
-const claim: SubCommand = {
+export const claim: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("claim")
 		.setDescription("Claim a match. This will make you the match referee.")
