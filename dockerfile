@@ -12,6 +12,6 @@ RUN pnpm install
 
 COPY . .
 
-RUN pnpx prisma generate
+RUN npx prisma generate
 
-CMD ["pnpm", "run", "start"]
+CMD ["npm", "run", "start:prod"]
