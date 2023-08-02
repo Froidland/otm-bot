@@ -106,7 +106,7 @@ export const archiveCategory: Command = {
 		let targetChannelCount = 0;
 
 		// Get all text channels in the source category and count the number of channels in the target category.
-		for (const [_, channel] of interaction.guild!.channels.cache) {
+		for (const [, channel] of interaction.guild!.channels.cache) {
 			if (
 				channel.type === ChannelType.GuildText &&
 				channel.parentId === source.id
