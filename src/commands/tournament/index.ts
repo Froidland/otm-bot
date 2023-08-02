@@ -2,12 +2,14 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { Command } from "@/interfaces/command";
 import { subCommandGroups, subCommands } from "./subcommands";
 import { create } from "./subcommands/create";
+import matchGroup from "./subcommands/match";
 
 const tournament: Command = {
 	data: new SlashCommandBuilder()
 		.setName("tournament")
 		.setDescription("Tournament management commands.")
 		.addSubcommand(create.data)
+		.addSubcommandGroup(matchGroup.data)
 		.setDMPermission(false),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		const groupName = interaction.options.getSubcommandGroup(false);
