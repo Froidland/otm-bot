@@ -6,7 +6,9 @@
 	"scripts": {
 		"start": "ts-node src/main.ts",
 		"start:prod": "npx prisma migrate deploy && ts-node src/main.ts",
-		"dev": "cross-env NODE_ENV=development nodemon src/main.ts"
+		"dev": "cross-env NODE_ENV=development nodemon src/main.ts",
+		"lint": "eslint .  --ext .ts",
+		"lint:fix": "eslint .  --ext .ts --fix"
 	},
 	"keywords": [
 		"discord",
@@ -42,7 +44,13 @@
 		"@types/adm-zip": "^0.5.0",
 		"@types/luxon": "^3.3.1",
 		"@types/node": "^20.4.5",
+		"@typescript-eslint/eslint-plugin": "^6.2.1",
+		"@typescript-eslint/parser": "^6.2.1",
 		"cross-env": "^7.0.3",
+		"eslint": "^8.0.1",
+		"eslint-plugin-import": "^2.25.2",
+		"eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+		"eslint-plugin-promise": "^6.0.0",
 		"nodemon": "^3.0.1",
 		"prisma": "^5.1.0",
 		"ts-node": "^10.9.1",
@@ -51,5 +59,20 @@
 	"prettier": {
 		"useTabs": true,
 		"tabWidth": 2
+	},
+	"eslintConfig": {
+		"parser": "@typescript-eslint/parser",
+		"plugins": [
+			"@typescript-eslint"
+		],
+		"extends": [
+			"eslint:recommended",
+			"plugin:@typescript-eslint/eslint-recommended",
+			"plugin:@typescript-eslint/recommended"
+		],
+		"ignorePatterns": [
+			"dist",
+			"node_modules"
+		]
 	}
 }
