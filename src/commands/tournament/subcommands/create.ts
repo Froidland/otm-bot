@@ -93,7 +93,7 @@ export const create: SubCommand = {
 			option
 				.setName("team-size")
 				.setDescription(
-					"The size of the teams for the tournament. (Defaults to 8, max. 64)"
+					"The size of the teams for the tournament. (max. 64)"
 				)
 				.setMaxValue(64)
 				.setRequired(true)
@@ -281,7 +281,7 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Type:** \`${tournamentType}\`\n`;
 		embedDescription += `**\\- Scoring:** \`${scoring}\`\n`;
 		embedDescription += `**\\- Win condition:** \`${winCondition}\`\n`;
-		embedDescription += `**\\- Team size:** \`${teamSize ?? 8}\`\n`;
+		embedDescription += `**\\- Team size:** \`${teamSize}\`\n`;
 		embedDescription += `**\\- Start date:** \`${startDate.toRFC2822()}\` (<t:${startDate.toSeconds()}:R>)\n`;
 		embedDescription += `**\\- Registration end date:** \`${registrationEndDate.toRFC2822()}\` (<t:${registrationEndDate.toSeconds()}:R>)\n`;
 		embedDescription += "-------------------------------------------\n";
