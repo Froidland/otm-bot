@@ -66,26 +66,28 @@ export const send: SubCommand = {
 			true
 		) as GuildTextBasedChannel;
 
-		const previousChannel = await interaction.guild?.channels.fetch(
-			tryout.embedChannelId
-		);
+		if (tryout.embedChannelId && tryout.embedMessageId) {
+			const previousChannel = await interaction.guild?.channels.fetch(
+				tryout.embedChannelId
+			);
 
-		if (previousChannel) {
-			try {
-				const messages = await (
-					previousChannel as GuildTextBasedChannel
-				).messages.fetch({
-					around: tryout.embedMessageId,
-				});
+			if (previousChannel) {
+				try {
+					const messages = await (
+						previousChannel as GuildTextBasedChannel
+					).messages.fetch({
+						around: tryout.embedMessageId,
+					});
 
-				const previousMessage = messages.get(tryout.embedMessageId);
+					const previousMessage = messages.get(tryout.embedMessageId);
 
-				if (previousMessage) {
-					await previousMessage.delete();
-					wasPreviousEmbedDeleted = true;
+					if (previousMessage) {
+						await previousMessage.delete();
+						wasPreviousEmbedDeleted = true;
+					}
+				} catch (error) {
+					logger.error(error);
 				}
-			} catch (error) {
-				logger.error(error);
 			}
 		}
 

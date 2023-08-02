@@ -10,6 +10,7 @@ import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
 	GuildTextBasedChannel,
+	Message,
 	PermissionFlagsBits,
 	Role,
 	SlashCommandSubcommandBuilder,
@@ -37,9 +38,11 @@ export const create: SubCommand = {
 		.addChannelOption((option) =>
 			option
 				.setName("embed-channel")
-				.setDescription("The channel where the tryout embed will be sent.")
+				.setDescription(
+					"The channel where the tryout embed will be sent. (Default: Do not send)"
+				)
 				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(true)
+				.setRequired(false)
 		)
 		.addRoleOption((option) =>
 			option
@@ -128,9 +131,8 @@ export const create: SubCommand = {
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
 		const embedChannel = interaction.options.getChannel(
-			"embed-channel",
-			true
-		) as GuildTextBasedChannel;
+			"embed-channel"
+		) as GuildTextBasedChannel | null;
 
 		let playerRole = interaction.options.getRole("player-role") as Role | null;
 		let managementRole = interaction.options.getRole(
@@ -239,17 +241,19 @@ export const create: SubCommand = {
 		embedDescription += `**\\- Player Channel:** ${playerChannel}`;
 
 		try {
-			const registrationEmbed = await embedChannel.send(
-				tryoutRegistration(name)
-			);
+			let embedMessage: Message | null = null;
+
+			if (embedChannel) {
+				embedMessage = await embedChannel.send(tryoutRegistration(name));
+			}
 
 			await db.tryout.create({
 				data: {
 					id,
 					name,
 					serverId: interaction.guildId!,
-					embedChannelId: embedChannel.id,
-					embedMessageId: registrationEmbed.id,
+					embedChannelId: embedChannel?.id,
+					embedMessageId: embedMessage?.id,
 					managementRoleId: managementRole.id,
 					refereeRoleId: refereeRole.id,
 					playerRoleId: playerRole.id,
