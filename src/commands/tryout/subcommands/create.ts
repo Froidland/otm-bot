@@ -197,7 +197,7 @@ export const create: SubCommand = {
 			return;
 		}
 
-		if (endDate > startDate) {
+		if (endDate < startDate) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
