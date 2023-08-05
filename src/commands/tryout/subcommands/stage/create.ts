@@ -10,6 +10,7 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 import { DateTime } from "luxon";
+import { TryoutStage } from "@prisma/client";
 
 export const create: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
@@ -42,10 +43,19 @@ export const create: SubCommand = {
 					"The end date of the tryout stage. (Format: YYYY-MM-DD HH:MM)"
 				)
 				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("stage-dependency-id")
+				.setDescription(
+					"The custom ID of the stage players will have to play before joining this one. (Default: None)"
+				)
+				.setRequired(false)
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 		const hasAdminPermission = isMemberAdmin(interaction);
+		let stageDependency: TryoutStage | null = null;
 
 		if (!hasAdminPermission) {
 			await interaction.editReply({
@@ -75,6 +85,10 @@ export const create: SubCommand = {
 			{
 				zone: "utc",
 			}
+		);
+
+		const stageDependencyId = interaction.options.getString(
+			"stage-dependency-id"
 		);
 
 		const user = await db.user.findFirst({
@@ -162,11 +176,37 @@ export const create: SubCommand = {
 			return;
 		}
 
+		if (stageDependencyId) {
+			stageDependency = await db.tryoutStage.findFirst({
+				where: {
+					customId: stageDependencyId,
+				},
+			});
+
+			if (!stageDependency) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Invalid stage dependency!")
+							.setDescription(
+								"The stage dependency provided does not exist. Please make sure you are using the correct custom ID."
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
 		let embedDescription = "**__Tryout stage info:__**\n";
 		embedDescription += `**Name:** \`${name}\`\n`;
 		embedDescription += `**Custom ID:** \`${customId}\`\n`;
 		embedDescription += `**Start date:** \`${startDate.toRFC2822()}\`\n`;
 		embedDescription += `**End date:** \`${endDate.toRFC2822()}\`\n`;
+		embedDescription += `**Stage dependency:** \`${
+			stageDependency?.name ?? "None"
+		}\``;
 
 		try {
 			await db.tryoutStage.create({
@@ -179,6 +219,15 @@ export const create: SubCommand = {
 							id: tryout.id,
 						},
 					},
+					//? If the stageDependency does exist, then we just connect it. Otherwise, we set it to undefined, which is basically sending nothing.
+					stageDependency:
+						stageDependency === null
+							? undefined
+							: {
+									connect: {
+										id: stageDependency.id,
+									},
+							  },
 				},
 			});
 

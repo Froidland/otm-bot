@@ -212,6 +212,12 @@ model TryoutStage {
 
   lobbies TryoutLobby[]
 
+	// TODO: Maybe support multiple stage dependencies.
+  stageDependency   TryoutStage? @relation(fields: [stageDependencyId], references: [id], name: "dependency")
+  stageDependencyId String?
+
+  stageDependants TryoutStage[] @relation("dependency")
+
   // mappool maybe?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)

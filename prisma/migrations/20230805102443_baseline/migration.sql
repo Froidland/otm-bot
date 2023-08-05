@@ -119,12 +119,14 @@ CREATE TABLE `tryouts` (
     `name` VARCHAR(191) NOT NULL,
     `staffChannelId` VARCHAR(191) NOT NULL,
     `playerChannelId` VARCHAR(191) NOT NULL,
-    `embedChannelId` VARCHAR(191) NOT NULL,
-    `embedMessageId` VARCHAR(191) NOT NULL,
+    `embedChannelId` VARCHAR(191) NULL,
+    `embedMessageId` VARCHAR(191) NULL,
     `managementRoleId` VARCHAR(191) NOT NULL,
     `refereeRoleId` VARCHAR(191) NOT NULL,
     `playerRoleId` VARCHAR(191) NOT NULL,
     `serverId` VARCHAR(191) NOT NULL,
+    `startDate` TIMESTAMP(6) NOT NULL,
+    `endDate` TIMESTAMP(6) NOT NULL,
     `ownerId` INTEGER NOT NULL,
     `createdAt` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updatedAt` TIMESTAMP(6) NOT NULL,
@@ -138,6 +140,7 @@ CREATE TABLE `tryout_stages` (
     `name` VARCHAR(191) NOT NULL,
     `customId` VARCHAR(191) NOT NULL,
     `tryoutId` VARCHAR(191) NOT NULL,
+    `stageDependencyId` VARCHAR(191) NULL,
     `createdAt` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `updatedAt` TIMESTAMP(6) NOT NULL,
 
@@ -217,6 +220,9 @@ ALTER TABLE `tryouts` ADD CONSTRAINT `tryouts_ownerId_fkey` FOREIGN KEY (`ownerI
 
 -- AddForeignKey
 ALTER TABLE `tryout_stages` ADD CONSTRAINT `tryout_stages_tryoutId_fkey` FOREIGN KEY (`tryoutId`) REFERENCES `tryouts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `tryout_stages` ADD CONSTRAINT `tryout_stages_stageDependencyId_fkey` FOREIGN KEY (`stageDependencyId`) REFERENCES `tryout_stages`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `tryout_lobbies` ADD CONSTRAINT `tryout_lobbies_stageId_fkey` FOREIGN KEY (`stageId`) REFERENCES `tryout_stages`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
