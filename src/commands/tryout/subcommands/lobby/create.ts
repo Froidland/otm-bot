@@ -18,7 +18,7 @@ export const create: SubCommand = {
 		.addStringOption((option) =>
 			option
 				.setName("stage-id")
-				.setDescription("The ID of the tryout stage.")
+				.setDescription("The custom ID of the tryout stage.")
 				.setRequired(true)
 		)
 		.addStringOption((option) =>
