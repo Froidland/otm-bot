@@ -120,6 +120,24 @@ export const create: SubCommand = {
 			return;
 		}
 
+		if (
+			startDate.toJSDate() < tryout.startDate ||
+			endDate.toJSDate() > tryout.endDate
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid dates!")
+						.setDescription(
+							"The dates provided for the stage cannot be outside the range provided for the tryout itself."
+						),
+				],
+			});
+
+			return;
+		}
+
 		const existingTryoutStage = await db.tryoutStage.findFirst({
 			where: {
 				tryout: {

@@ -15,6 +15,7 @@ import {
 	Role,
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
+import { DateTime } from "luxon";
 
 // TODO: Add the ability to set restrictions to the tryout, like only players with a certain role can join, or players from a specific country.
 export const create: SubCommand = {
@@ -33,6 +34,22 @@ export const create: SubCommand = {
 			option
 				.setName("acronym")
 				.setDescription('The acronym of the tryout stage. (Example: "5WC CLT")')
+				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("start-date")
+				.setDescription(
+					"The date when the tryout starts. (Format: YYYY-MM-DD HH:MM)"
+				)
+				.setRequired(true)
+		)
+		.addStringOption((option) =>
+			option
+				.setName("end-date")
+				.setDescription(
+					"The date when the tryout ends. (Format: YYYY-MM-DD HH:MM)"
+				)
 				.setRequired(true)
 		)
 		.addChannelOption((option) =>
@@ -149,6 +166,50 @@ export const create: SubCommand = {
 			"player-channel"
 		) as GuildTextBasedChannel | null;
 
+		const startDate = DateTime.fromFormat(
+			interaction.options.getString("start-date", true),
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
+		);
+
+		const endDate = DateTime.fromFormat(
+			interaction.options.getString("end-date", true),
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
+		);
+
+		if (!startDate.isValid || !endDate.isValid) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							"One of the dates you provided is not in the correct format. Please correct it and try again."
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (endDate > startDate) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription("The end date cannot be before the start date."),
+				],
+			});
+
+			return;
+		}
+
 		const parentCategory =
 			interaction.options.getChannel("parent-category") ?? undefined;
 
@@ -263,6 +324,8 @@ export const create: SubCommand = {
 					playerRoleId: playerRole.id,
 					playerChannelId: playerChannel.id,
 					staffChannelId: staffChannel.id,
+					startDate: startDate.toJSDate(),
+					endDate: endDate.toJSDate(),
 					owner: {
 						connect: {
 							discordId: interaction.user.id,

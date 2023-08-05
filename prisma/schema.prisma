@@ -153,7 +153,6 @@ model Team {
 
   invitations TeamInvite[]
 
-  // TODO: This looks scuffed as fuck, gotta figure out another way to do this relation.
   matchesAsRedTeam  Match[] @relation("redTeam")
   matchesAsBlueTeam Match[] @relation("blueTeam")
 
@@ -178,7 +177,7 @@ model TeamInvite {
 }
 
 model Tryout {
-  id               String @id
+  id               String   @id
   name             String
   staffChannelId   String
   playerChannelId  String
@@ -188,6 +187,8 @@ model Tryout {
   refereeRoleId    String
   playerRoleId     String
   serverId         String
+  startDate        DateTime @db.Timestamp(6)
+  endDate          DateTime @db.Timestamp(6)
 
   stages  TryoutStage[]
   owner   User          @relation(fields: [ownerId], references: [id])
