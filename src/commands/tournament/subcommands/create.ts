@@ -92,9 +92,7 @@ export const create: SubCommand = {
 		.addNumberOption((option) =>
 			option
 				.setName("team-size")
-				.setDescription(
-					"The size of the teams for the tournament. (max. 64)"
-				)
+				.setDescription("The size of the teams for the tournament. (max. 64)")
 				.setMaxValue(64)
 				.setRequired(true)
 		)
@@ -210,19 +208,16 @@ export const create: SubCommand = {
 			true
 		) as ScoringType;
 
-		const startDateString = interaction.options.getString("start-date", true);
-
-		const registrationEndDateString = interaction.options.getString(
-			"registration-end-date",
-			true
+		const startDate = DateTime.fromFormat(
+			interaction.options.getString("start-date", true),
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
 		);
 
-		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
-
 		const registrationEndDate = DateTime.fromFormat(
-			registrationEndDateString,
+			interaction.options.getString("registration-end-date", true),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",

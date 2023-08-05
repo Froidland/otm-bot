@@ -73,12 +73,15 @@ export const create: SubCommand = {
 
 		const stageId = interaction.options.getString("stage-id", true);
 		const customId = interaction.options.getString("custom-id", true);
-		const startDateString = interaction.options.getString("start-date", true);
 		const playerLimit = interaction.options.getNumber("player-limit", true);
 
-		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
+		const startDate = DateTime.fromFormat(
+			interaction.options.getString("start-date", true),
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
+		);
 
 		if (!startDate.isValid) {
 			await interaction.editReply({

@@ -61,15 +61,21 @@ export const create: SubCommand = {
 		const customId = interaction.options
 			.getString("custom-id", true)
 			.toUpperCase();
-		const startDateString = interaction.options.getString("start-date", true);
-		const endDateString = interaction.options.getString("end-date", true);
 
-		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
-		const endDate = DateTime.fromFormat(endDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
+		const startDate = DateTime.fromFormat(
+			interaction.options.getString("start-date", true),
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
+		);
+		const endDate = DateTime.fromFormat(
+			interaction.options.getString("end-date", true),
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			}
+		);
 
 		const user = await db.user.findFirst({
 			where: {
