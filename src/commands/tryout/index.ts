@@ -9,7 +9,6 @@ import embedGroup from "./subcommands/embed";
 import lobbyGroup from "./subcommands/lobby";
 import stageGroup from "./subcommands/stage";
 
-// TODO: Research subcommand groups and implement them for the tryout-lobby and tryout-stage commands.
 const tryout: Command = {
 	data: new SlashCommandBuilder()
 		.setName("tryout")
