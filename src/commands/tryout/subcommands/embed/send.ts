@@ -77,6 +77,7 @@ export const send: SubCommand = {
 						previousChannel as GuildTextBasedChannel
 					).messages.fetch({
 						around: tryout.embedMessageId,
+						limit: 1,
 					});
 
 					const previousMessage = messages.get(tryout.embedMessageId);
@@ -89,6 +90,8 @@ export const send: SubCommand = {
 					logger.error(error);
 				}
 			}
+		} else {
+			wasPreviousEmbedDeleted = true;
 		}
 
 		try {
