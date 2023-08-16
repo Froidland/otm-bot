@@ -1,5 +1,4 @@
 import { ButtonHandler } from "@/interfaces/buttonHandler";
-import { joinTryout } from "./tryout";
-import { leaveTryout } from "./tryout/leave";
+import { joinTryout, leaveTryout } from "./tryout";
 
 export const buttonList: ButtonHandler[] = [joinTryout, leaveTryout];
