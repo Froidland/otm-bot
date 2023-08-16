@@ -9,6 +9,7 @@ import {
 
 // TODO: Implement pagination.
 // TODO: Maybe make this message interactive with a dropdown for the lobby the player wishes to join.
+// TODO: Consider only showing the lobbies in the future and add an option to show all the lobbies.
 export const list: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("list")
@@ -34,7 +35,14 @@ export const list: SubCommand = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				playerChannelId: interaction.channel!.id,
+				OR: [
+					{
+						playerChannelId: interaction.channel!.id,
+					},
+					{
+						staffChannelId: interaction.channel!.id,
+					},
+				],
 			},
 			include: {
 				stages: {
@@ -64,7 +72,7 @@ export const list: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command can only be used in a player channel."
+							"This command can only be used in a tryout channel.",
 						),
 				],
 			});
@@ -96,6 +104,7 @@ export const list: SubCommand = {
 
 			if (stage.lobbies.length < 1) {
 				embedDescription += `\\- *No lobbies in this stage*\n\n`;
+
 				continue;
 			}
 
@@ -104,8 +113,10 @@ export const list: SubCommand = {
 					embedDescription += `\\- ~Lobby \`${lobby.customId}\`~ (${
 						lobby._count.players
 					}/${lobby.playerLimit}) <t:${lobby.startDate.getTime() / 1000}:R>\n`;
+
 					continue;
 				}
+
 				embedDescription += `\\- \`${lobby.customId}\` (${
 					lobby._count.players
 				}/${lobby.playerLimit}) <t:${lobby.startDate.getTime() / 1000}:R>\n`;
