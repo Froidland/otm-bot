@@ -11,13 +11,13 @@
 		"lint:fix": "eslint .  --ext .ts --fix"
 	},
 	"keywords": [
-		"discord",
+		"discord.js",
 		"bot",
 		"typescript",
-		"esbuild",
+		"ts-node",
 		"mysql",
 		"mariadb",
-		"typeorm",
+		"prisma",
 		"osu!"
 	],
 	"author": "Francisco Hauva <phauva@gmail.com>",
@@ -35,7 +35,7 @@
 		"luxon": "^3.4.0",
 		"mysql2": "^3.6.0",
 		"osu-api-extended": "^2.7.65",
-		"prettier": "^2.8.8",
+		"prettier": "^3.0.2",
 		"typescript": "^5.1.6",
 		"winston": "^3.10.0",
 		"winston-daily-rotate-file": "^4.7.1"
