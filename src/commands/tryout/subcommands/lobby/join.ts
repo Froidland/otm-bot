@@ -253,7 +253,7 @@ export const join: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"An error occured while trying to join the lobby. Please try again later"
+							"An error occurred while trying to join the lobby. Please try again later",
 						),
 				],
 			});
