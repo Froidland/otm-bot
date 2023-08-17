@@ -2,12 +2,12 @@ import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces";
 import { logger } from "@/utils";
-import { TryoutLobby } from "@prisma/client";
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
+import { DateTime } from "luxon";
 
 export const join: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
@@ -17,7 +17,7 @@ export const join: SubCommand = {
 			option
 				.setName("lobby-id")
 				.setDescription("The ID of the lobby to join.")
-				.setRequired(true)
+				.setRequired(true),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -61,6 +61,11 @@ export const join: SubCommand = {
 										},
 									},
 								},
+								_count: {
+									select: {
+										players: true,
+									},
+								},
 							},
 						},
 					},
@@ -75,7 +80,7 @@ export const join: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command can only be used in a player channel."
+							"This command can only be used in a player channel.",
 						),
 				],
 			});
@@ -96,12 +101,12 @@ export const join: SubCommand = {
 			return;
 		}
 
-		let selectedLobby: TryoutLobby | null = null;
+		let selectedLobby = null;
 
 		const stagesMap = new Map(
 			tryout.stages.map((stage) => {
 				return [stage.id, stage];
-			})
+			}),
 		);
 
 		for (const stage of tryout.stages) {
@@ -134,6 +139,34 @@ export const join: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid lobby!")
 						.setDescription("The lobby you are trying to join does not exist."),
+				],
+			});
+
+			return;
+		}
+
+		if (selectedLobby.startDate.getTime() < DateTime.now().toMillis()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Lobby has already started!")
+						.setDescription(
+							"The lobby you are trying to join has already started.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (selectedLobby._count.players >= selectedLobby.playerLimit) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Lobby is full!")
+						.setDescription("The lobby you are trying to join is full."),
 				],
 			});
 
