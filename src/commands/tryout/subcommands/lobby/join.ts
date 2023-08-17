@@ -167,6 +167,17 @@ export const join: SubCommand = {
 						},
 					},
 				});
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Green")
+							.setTitle("Joined!")
+							.setDescription(
+								`You have successfully joined lobby \`${selectedLobby.customId}\`.`,
+							),
+					],
+				});
 			} catch (error) {
 				logger.error(error);
 
@@ -176,7 +187,7 @@ export const join: SubCommand = {
 							.setColor("Red")
 							.setTitle("DB Error")
 							.setDescription(
-								"An error occured while trying to join the lobby. Please try again later"
+								"An error occured while trying to join the lobby. Please try again later",
 							),
 					],
 				});
@@ -207,7 +218,7 @@ export const join: SubCommand = {
 							.setColor("Red")
 							.setTitle("Unfulfilled requirement!")
 							.setDescription(
-								`In order to join this lobby, you need to register in a lobby for stage \`${currentCheck.name}\``
+								`In order to join this lobby, you need to register in a lobby for stage \`${currentCheck.name}\``,
 							),
 					],
 				});
@@ -242,8 +253,16 @@ export const join: SubCommand = {
 				},
 			});
 
-			// TODO: Make this pretty lol.
-			await interaction.editReply("Yes");
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Joined!")
+						.setDescription(
+							`You have successfully joined lobby \`${selectedLobby.customId}\`.`,
+						),
+				],
+			});
 		} catch (error) {
 			logger.error(error);
 
