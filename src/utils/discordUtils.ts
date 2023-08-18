@@ -5,7 +5,7 @@ import {
 	PermissionsBitField,
 } from "discord.js";
 
-export async function isMemberAdmin(interaction: ChatInputCommandInteraction) {
+export function isMemberAdmin(interaction: ChatInputCommandInteraction) {
 	if (!interaction.member) {
 		return false;
 	}
@@ -15,7 +15,7 @@ export async function isMemberAdmin(interaction: ChatInputCommandInteraction) {
 	);
 }
 
-export async function isUserTournamentStaff(
+export function isUserTournamentStaff(
 	interaction: ChatInputCommandInteraction,
 	tournament: Tournament
 ) {
@@ -24,7 +24,7 @@ export async function isUserTournamentStaff(
 	);
 }
 
-export async function isUserTournamentReferee(
+export function isUserTournamentReferee(
 	interaction: ChatInputCommandInteraction,
 	tournament: Tournament
 ) {
@@ -33,7 +33,7 @@ export async function isUserTournamentReferee(
 	);
 }
 
-export async function isUserTryoutReferee(
+export function isUserTryoutReferee(
 	interaction: ChatInputCommandInteraction,
 	tryout: Tryout
 ) {
