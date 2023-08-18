@@ -1,6 +1,7 @@
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces";
+import { isUserTryoutReferee } from "@/utils/discordUtils";
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -15,7 +16,7 @@ export const claim: SubCommand = {
 			option
 				.setName("lobby-id")
 				.setDescription("The ID of the lobby to claim.")
-				.setRequired(true)
+				.setRequired(true),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -68,7 +69,22 @@ export const claim: SubCommand = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"This channel is not a staff channel for a tryout."
+							"This channel is not a staff channel for a tryout.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutReferee(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You are not a referee for this tryout. Please contact an organizer if you believe this is a mistake.",
 						),
 				],
 			});
@@ -120,7 +136,7 @@ export const claim: SubCommand = {
 						.setColor("Green")
 						.setTitle("Success")
 						.setDescription(
-							`You have successfully claimed the lobby ${lobby.customId}.`
+							`You have successfully claimed the lobby ${lobby.customId}.`,
 						),
 				],
 			});
@@ -131,7 +147,7 @@ export const claim: SubCommand = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"An error occurred while claiming the lobby. Please try again later."
+							"An error occurred while claiming the lobby. Please try again later.",
 						),
 				],
 			});
