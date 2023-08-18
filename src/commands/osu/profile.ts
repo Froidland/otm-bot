@@ -7,17 +7,18 @@ import { v2 } from "osu-api-extended";
 import { Command } from "@/interfaces/command";
 import { getFlagUrl } from "@/utils";
 import db from "@/db";
+import { DateTime } from "luxon";
 
 export const profile: Command = {
 	data: new SlashCommandBuilder()
 		.setName("profile")
 		.setDescription(
-			"Sends the profile of your linked username. Accepts a username as an optional argument."
+			"Sends the profile of your linked username. Accepts a username as an optional argument.",
 		)
 		.addStringOption((option) =>
 			option
 				.setName("username")
-				.setDescription("Username of the user to display the profile of.")
+				.setDescription("Username of the user to display the profile of."),
 		)
 		.addStringOption((option) =>
 			option
@@ -39,8 +40,8 @@ export const profile: Command = {
 					{
 						name: "mania",
 						value: "mania",
-					}
-				)
+					},
+				),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -66,7 +67,7 @@ export const profile: Command = {
 							.setColor("Red")
 							.setTitle("No Account!")
 							.setDescription(
-								"You don't have an account. Please use the `/link` command to link your osu! account if you want to use this command without specifying a username"
+								"You don't have an account. Please use the `/link` command to link your osu! account if you want to use this command without specifying a username",
 							),
 					],
 				});
@@ -82,7 +83,7 @@ export const profile: Command = {
 		const userDetails = await v2.user.details(
 			searchParameter,
 			mode === null ? "osu" : (mode as "osu" | "taiko" | "fruits" | "mania"),
-			username === null ? "id" : "username"
+			username === null ? "id" : "username",
 		);
 
 		// @ts-expect-error Unfortunately, the response can indeed have an error property, osu-api-extended doesn't throw an error when the user is not found.
@@ -109,10 +110,6 @@ export const profile: Command = {
 
 		const medalCount = userDetails.user_achievements.length;
 
-		const joinDateString = new Date(userDetails.join_date).toLocaleString(
-			new Intl.Locale("es-ES")
-		);
-
 		let description = `Accuracy: \`${acc}%\` • Level: \`${currentLevel}.${currentLevelProgress}\`\n`;
 		description += `Playcount: \`${playCount}\` (\`${playTimeHours} hrs\`)\n`;
 		description += `Medals: \`${medalCount}\``;
@@ -121,7 +118,7 @@ export const profile: Command = {
 			.setColor("Green")
 			.setAuthor({
 				name: `${userDetails.username}: ${userDetails.statistics.pp.toFixed(
-					2
+					2,
 				)}pp (#${userDetails.statistics.global_rank ?? 0} ${
 					userDetails.country_code
 				}${userDetails.statistics.country_rank ?? 0})`,
@@ -129,7 +126,11 @@ export const profile: Command = {
 				iconURL: countryFlagUrl,
 			})
 			.setDescription(description)
-			.setFooter({ text: `Joined osu! on ${joinDateString}` })
+			.setFooter({
+				text: `Joined osu! on ${DateTime.fromISO(
+					userDetails.join_date,
+				).toFormat("dd/MM/yyyy, HH:mm")}`,
+			})
 			.setThumbnail(userDetails.avatar_url);
 
 		await interaction.editReply({ embeds: [embed] });
