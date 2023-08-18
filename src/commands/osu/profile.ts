@@ -8,6 +8,10 @@ import { Command } from "@/interfaces/command";
 import { getFlagUrl } from "@/utils";
 import db from "@/db";
 import { DateTime } from "luxon";
+import { NoAccountEmbed } from "@/embeds";
+
+const gamemodes = ["osu", "taiko", "fruits", "mania"] as const;
+type Gamemode = (typeof gamemodes)[number];
 
 export const profile: Command = {
 	data: new SlashCommandBuilder()
@@ -45,12 +49,9 @@ export const profile: Command = {
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
-		// TODO: Refactor to comply with strict mode
 
-		const username = interaction.options.getString("username", false);
-		const mode = interaction.options.getString("mode", false);
-
-		let searchParameter: string | number;
+		let username = interaction.options.getString("username");
+		const mode = interaction.options.getString("mode") as Gamemode | null;
 
 		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
 		if (!username) {
@@ -62,28 +63,19 @@ export const profile: Command = {
 
 			if (!user) {
 				await interaction.editReply({
-					embeds: [
-						new EmbedBuilder()
-							.setColor("Red")
-							.setTitle("No Account!")
-							.setDescription(
-								"You don't have an account. Please use the `/link` command to link your osu! account if you want to use this command without specifying a username",
-							),
-					],
+					embeds: [NoAccountEmbed],
 				});
 
 				return;
 			}
 
-			searchParameter = user.osuId;
-		} else {
-			searchParameter = interaction.options.get("username")?.value as string;
+			username = user.osuId.toString();
 		}
 
 		const userDetails = await v2.user.details(
-			searchParameter,
-			mode === null ? "osu" : (mode as "osu" | "taiko" | "fruits" | "mania"),
-			username === null ? "id" : "username",
+			username,
+			mode || "osu",
+			!username ? "id" : "username",
 		);
 
 		// @ts-expect-error Unfortunately, the response can indeed have an error property, osu-api-extended doesn't throw an error when the user is not found.
