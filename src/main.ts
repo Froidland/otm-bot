@@ -1,5 +1,4 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
-import "dotenv/config";
 import { auth } from "osu-api-extended";
 import { logger } from "./utils/";
 import { onInteraction, onReady } from "./events";
@@ -8,7 +7,7 @@ import { onInteraction, onReady } from "./events";
 //? Take a look at https://github.com/lostfictions/znv
 // TODO: Rate limiting.
 
-(async () => {
+async function bootstrap() {
 	const client = new Client({
 		intents: [
 			GatewayIntentBits.Guilds,
@@ -43,13 +42,15 @@ import { onInteraction, onReady } from "./events";
 		await auth.login(
 			+process.env.OSU_CLIENT_ID!,
 			process.env.OSU_CLIENT_SECRET!,
-			["public"]
+			["public"],
 		);
 		await client.login(process.env.BOT_TOKEN);
 	} catch (error) {
 		logger.error(
-			`There was an error while trying to start the bot. Reason: ${error}`
+			`There was an error while trying to start the bot. Reason: ${error}`,
 		);
 		process.exit(1);
 	}
-})();
+}
+
+bootstrap();

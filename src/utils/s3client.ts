@@ -1,6 +1,4 @@
 import { S3 } from "@aws-sdk/client-s3";
-import dotenv from "dotenv";
-dotenv.config();
 
 const S3Client = new S3({
 	region: "auto",

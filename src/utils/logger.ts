@@ -1,7 +1,6 @@
 import DailyRotateFile from "winston-daily-rotate-file";
 import * as winston from "winston";
 import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
-import "dotenv/config";
 const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 const logDatePattern = process.env.LOG_DATE_PATTERN ?? "DD-MM-YYYY";
 
@@ -20,7 +19,7 @@ const transports: winston.transport[] = [
 			timestamp(),
 			printf(({ timestamp, level, message }) => {
 				return `${timestamp} [${level}] ${message}`;
-			})
+			}),
 		),
 	}),
 	new DailyRotateFile({
@@ -35,7 +34,7 @@ const transports: winston.transport[] = [
 			timestamp(),
 			printf(({ timestamp, level, message }) => {
 				return `${timestamp} [${level}] ${message}`;
-			})
+			}),
 		),
 	}),
 	new winston.transports.Console({
@@ -44,7 +43,7 @@ const transports: winston.transport[] = [
 			colorize(),
 			printf(({ timestamp, level, message }) => {
 				return `${timestamp} [${level}] ${message}`;
-			})
+			}),
 		),
 	}),
 ];
@@ -60,7 +59,7 @@ if (
 			token: process.env.AXIOM_TOKEN,
 			orgId: process.env.AXIOM_ORG_ID,
 			format: combine(errors({ stack: true }), json()),
-		})
+		}),
 	);
 }
 
@@ -70,7 +69,7 @@ export const logger = winston.createLogger({
 		timestamp(),
 		printf(({ timestamp, level, message }) => {
 			return `${timestamp} [${level}] ${message}`;
-		})
+		}),
 	),
 	transports,
 });

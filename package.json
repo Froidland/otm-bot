@@ -4,9 +4,9 @@
 	"description": "A peronal bot made by Pancho with special tournament modifications.",
 	"main": "/src/main.ts",
 	"scripts": {
-		"start": "ts-node src/main.ts",
+		"start": "ts-node --require dotenv/config src/main.ts",
 		"start:prod": "npx prisma migrate deploy && ts-node src/main.ts",
-		"dev": "cross-env NODE_ENV=development nodemon src/main.ts",
+		"dev": "cross-env NODE_ENV=development nodemon --require dotenv/config src/main.ts",
 		"lint": "eslint .  --ext .ts",
 		"lint:fix": "eslint .  --ext .ts --fix"
 	},
