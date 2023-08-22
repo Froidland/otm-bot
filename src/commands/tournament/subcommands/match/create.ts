@@ -26,29 +26,29 @@ export const create: SubCommand = {
 			option
 				.setName("custom-id")
 				.setDescription(
-					'The custom ID of the match. Example: "A12" (Has to be unique for the tournament)'
+					'The custom ID of the match. Example: "A12" (Has to be unique for the tournament)',
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("schedule")
 				.setDescription(
-					'The schedule of the match in UTC. Format: "YYYY-MM-DD HH:MM"'
+					'The schedule of the match in UTC. Format: "YYYY-MM-DD HH:MM"',
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("red-team")
 				.setDescription("The unique ID of the first team in the match.")
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("blue-team")
 				.setDescription("The unique ID of the second team in the match.")
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
@@ -94,9 +94,9 @@ export const create: SubCommand = {
 					{
 						name: "Grand Finals",
 						value: "GrandFinals",
-					}
+					},
 				)
-				.setRequired(true)
+				.setRequired(true),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -104,7 +104,7 @@ export const create: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -126,7 +126,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid team IDs.")
 						.setDescription(
-							"The team IDs you provided are the same. Please provide different team IDs."
+							"The team IDs you provided are the same. Please provide different team IDs.",
 						),
 				],
 			});
@@ -138,7 +138,7 @@ export const create: SubCommand = {
 
 		const tournament = await db.tournament.findFirst({
 			where: {
-				staffChannelId: interaction.channelId,
+				staff_channel_id: interaction.channelId,
 			},
 		});
 
@@ -161,7 +161,7 @@ export const create: SubCommand = {
 				tournament: {
 					id: tournament.id,
 				},
-				customId,
+				custom_id: customId,
 			},
 		});
 
@@ -172,7 +172,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid custom ID.")
 						.setDescription(
-							"The custom ID you provided is already in use. Please provide a different custom ID."
+							"The custom ID you provided is already in use. Please provide a different custom ID.",
 						),
 				],
 			});
@@ -184,7 +184,7 @@ export const create: SubCommand = {
 			where: {
 				id: redTeamId,
 				tournament: {
-					staffChannelId: interaction.channelId,
+					staff_channel_id: interaction.channelId,
 				},
 			},
 		});
@@ -196,7 +196,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid team ID.")
 						.setDescription(
-							"The team ID you provided for the red team is invalid or the team is not participating in this tournament."
+							"The team ID you provided for the red team is invalid or the team is not participating in this tournament.",
 						),
 				],
 			});
@@ -208,7 +208,7 @@ export const create: SubCommand = {
 			where: {
 				id: blueTeamId,
 				tournament: {
-					staffChannelId: interaction.channelId,
+					staff_channel_id: interaction.channelId,
 				},
 			},
 		});
@@ -220,7 +220,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid team ID.")
 						.setDescription(
-							"The team ID you provided for the blue team is invalid or the team is not participating in this tournament."
+							"The team ID you provided for the blue team is invalid or the team is not participating in this tournament.",
 						),
 				],
 			});
@@ -230,13 +230,13 @@ export const create: SubCommand = {
 
 		const stage = interaction.options.getString(
 			"stage",
-			true
+			true,
 		) as TournamentStage;
 
 		const schedule = DateTime.fromFormat(
 			interaction.options.getString("schedule", true),
 			"yyyy-MM-dd HH:mm",
-			{ zone: "utc" }
+			{ zone: "utc" },
 		);
 
 		if (!schedule.isValid) {
@@ -259,7 +259,7 @@ export const create: SubCommand = {
 			await db.match.create({
 				data: {
 					id,
-					customId,
+					custom_id: customId,
 					schedule: schedule.toJSDate(),
 					tournament: {
 						connect: {
@@ -302,7 +302,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"There was an error while creating the match. Please try again later."
+							"There was an error while creating the match. Please try again later.",
 						),
 				],
 			});

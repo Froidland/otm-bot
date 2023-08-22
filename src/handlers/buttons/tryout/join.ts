@@ -17,7 +17,7 @@ export const joinTryout: ButtonHandler = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -31,12 +31,12 @@ export const joinTryout: ButtonHandler = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				embedMessageId: interaction.message.id,
+				embed_message_id: interaction.message.id,
 			},
 			include: {
 				players: {
 					where: {
-						userId: user.id,
+						user_id: user.id,
 					},
 				},
 			},
@@ -75,14 +75,14 @@ export const joinTryout: ButtonHandler = {
 				data: {
 					players: {
 						create: {
-							userId: user.id,
+							user_id: user.id,
 						},
 					},
 				},
 			});
 
 			const playerRole = await interaction.guild?.roles.fetch(
-				tryout.playerRoleId
+				tryout.player_role_id,
 			);
 
 			if (!playerRole) {
@@ -90,7 +90,7 @@ export const joinTryout: ButtonHandler = {
 			}
 
 			await (interaction.member?.roles as GuildMemberRoleManager).add(
-				playerRole
+				playerRole,
 			);
 
 			await interaction.editReply({
@@ -110,7 +110,7 @@ export const joinTryout: ButtonHandler = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"An error occurred while joining the tryout. Please try again later."
+							"An error occurred while joining the tryout. Please try again later.",
 						),
 				],
 			});

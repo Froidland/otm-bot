@@ -26,7 +26,7 @@ export const join: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -40,13 +40,13 @@ export const join: SubCommand = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				playerChannelId: interaction.channelId,
+				player_channel_id: interaction.channelId,
 			},
 			include: {
 				players: {
 					where: {
 						player: {
-							discordId: interaction.user.id,
+							discord_id: interaction.user.id,
 						},
 					},
 				},
@@ -57,7 +57,7 @@ export const join: SubCommand = {
 								players: {
 									where: {
 										player: {
-											discordId: interaction.user.id,
+											discord_id: interaction.user.id,
 										},
 									},
 								},
@@ -103,7 +103,7 @@ export const join: SubCommand = {
 
 		let selectedLobby = null;
 
-		const stagesMap = new Map(
+		const stageMap = new Map(
 			tryout.stages.map((stage) => {
 				return [stage.id, stage];
 			}),
@@ -111,7 +111,7 @@ export const join: SubCommand = {
 
 		for (const stage of tryout.stages) {
 			for (const lobby of stage.lobbies) {
-				if (lobby.customId === lobbyId) {
+				if (lobby.custom_id === lobbyId) {
 					selectedLobby = lobby;
 				}
 			}
@@ -130,7 +130,7 @@ export const join: SubCommand = {
 			return;
 		}
 
-		const selectedStage = stagesMap.get(selectedLobby.stageId);
+		const selectedStage = stageMap.get(selectedLobby.stageId);
 
 		if (!selectedStage) {
 			await interaction.editReply({
@@ -145,7 +145,7 @@ export const join: SubCommand = {
 			return;
 		}
 
-		if (selectedLobby.startDate.getTime() < DateTime.now().toMillis()) {
+		if (selectedLobby.schedule.getTime() < DateTime.now().toMillis()) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -160,7 +160,7 @@ export const join: SubCommand = {
 			return;
 		}
 
-		if (selectedLobby._count.players >= selectedLobby.playerLimit) {
+		if (selectedLobby._count.players >= selectedLobby.player_limit) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -174,7 +174,7 @@ export const join: SubCommand = {
 		}
 
 		//? If there's no stage dependency, we let the player join the lobby.
-		if (!selectedStage.stageDependencyId) {
+		if (!selectedStage.stage_dependency_id) {
 			try {
 				await db.tryoutLobby.update({
 					where: {
@@ -184,9 +184,9 @@ export const join: SubCommand = {
 						players: {
 							connectOrCreate: {
 								where: {
-									tryoutLobbyId_userId: {
-										tryoutLobbyId: selectedLobby.id,
-										userId: user.id,
+									tryout_lobby_id_user_id: {
+										tryout_lobby_id: selectedLobby.id,
+										user_id: user.id,
 									},
 								},
 								create: {
@@ -207,7 +207,7 @@ export const join: SubCommand = {
 							.setColor("Green")
 							.setTitle("Joined!")
 							.setDescription(
-								`You have successfully joined lobby \`${selectedLobby.customId}\`.`,
+								`You have successfully joined lobby \`${selectedLobby.custom_id}\`.`,
 							),
 					],
 				});
@@ -231,14 +231,14 @@ export const join: SubCommand = {
 
 		//? This checks whether the player fulfills all the dependencies of the lobby's stage.
 		//? It assumes there are no circular dependencies, this is guaranteed in the stage creation process.
-		let currentCheck: typeof selectedStage;
+		let currentStageCheck: typeof selectedStage;
 		do {
-			currentCheck = stagesMap.get(selectedStage.stageDependencyId)!;
+			currentStageCheck = stageMap.get(selectedStage.stage_dependency_id)!;
 			let playerCheck = false;
 
 			//? This checks for whether the player is in one of the stage's lobbies.
 			//? It checks for 0 because the db query only returns players that match the player that is requesting to join.
-			for (const lobby of currentCheck.lobbies) {
+			for (const lobby of currentStageCheck.lobbies) {
 				if (lobby.players.length !== 0) {
 					playerCheck = true;
 				}
@@ -251,14 +251,14 @@ export const join: SubCommand = {
 							.setColor("Red")
 							.setTitle("Unfulfilled requirement!")
 							.setDescription(
-								`In order to join this lobby, you need to register in a lobby for stage \`${currentCheck.name}\``,
+								`In order to join this lobby, you need to register in a lobby for stage \`${currentStageCheck.name}\``,
 							),
 					],
 				});
 
 				return;
 			}
-		} while (currentCheck.stageDependencyId);
+		} while (currentStageCheck.stage_dependency_id);
 
 		try {
 			await db.tryoutLobby.update({
@@ -269,9 +269,9 @@ export const join: SubCommand = {
 					players: {
 						connectOrCreate: {
 							where: {
-								tryoutLobbyId_userId: {
-									tryoutLobbyId: selectedLobby.id,
-									userId: user.id,
+								tryout_lobby_id_user_id: {
+									tryout_lobby_id: selectedLobby.id,
+									user_id: user.id,
 								},
 							},
 							create: {
@@ -292,7 +292,7 @@ export const join: SubCommand = {
 						.setColor("Green")
 						.setTitle("Joined!")
 						.setDescription(
-							`You have successfully joined lobby \`${selectedLobby.customId}\`.`,
+							`You have successfully joined lobby \`${selectedLobby.custom_id}\`.`,
 						),
 				],
 			});

@@ -25,16 +25,16 @@ export const create: SubCommand = {
 				.setName("name")
 				.setDescription("The name of the tournament. (Max. 64 characters)")
 				.setRequired(true)
-				.setMaxLength(64)
+				.setMaxLength(64),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("acronym")
 				.setDescription(
-					"The acronym for the tournament. (Max. 16 characters, will be transformed to uppercase.)"
+					"The acronym for the tournament. (Max. 16 characters, will be transformed to uppercase.)",
 				)
 				.setRequired(true)
-				.setMaxLength(16)
+				.setMaxLength(16),
 		)
 		.addStringOption((option) =>
 			option
@@ -44,8 +44,8 @@ export const create: SubCommand = {
 				.addChoices(
 					{ name: "Score", value: "Score" },
 					{ name: "Accuracy", value: "Accuracy" },
-					{ name: "Miss count", value: "MissCount" }
-				)
+					{ name: "Miss count", value: "MissCount" },
+				),
 		)
 		.addStringOption((option) =>
 			option
@@ -54,8 +54,8 @@ export const create: SubCommand = {
 				.setRequired(true)
 				.addChoices(
 					{ name: "ScoreV1", value: "ScoreV1" },
-					{ name: "ScoreV2", value: "ScoreV2" }
-				)
+					{ name: "ScoreV2", value: "ScoreV2" },
+				),
 		)
 		.addStringOption((option) =>
 			option
@@ -70,87 +70,87 @@ export const create: SubCommand = {
 					{
 						name: "One vs One",
 						value: "OneVsOne",
-					}
-				)
+					},
+				),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("start-date")
 				.setDescription(
-					"The date at which the tournament will start. (Format: YYYY-MM-DD HH:MM)"
+					"The date at which the tournament will start. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("registration-end-date")
 				.setDescription(
-					"The date at which the registration for the tournament will end. (Format: YYYY-MM-DD HH:MM)"
+					"The date at which the registration for the tournament will end. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addNumberOption((option) =>
 			option
 				.setName("team-size")
 				.setDescription("The size of the teams for the tournament. (max. 64)")
 				.setMaxValue(64)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addNumberOption((option) =>
 			option
 				.setName("lobby-team-size")
 				.setDescription(
-					"The amount of players per team in the lobby. (Can't be higher than the team size)"
+					"The amount of players per team in the lobby. (Can't be higher than the team size)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("schedule-channel")
 				.setDescription(
-					"The channel where the schedules for the tournament will be posted."
+					"The channel where the schedules for the tournament will be posted.",
 				)
 				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("staff-role")
 				.setDescription(
-					"The staff role for the tournament. One will be created based on the acronym if not specified."
+					"The staff role for the tournament. One will be created based on the acronym if not specified.",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("mappooler-role")
 				.setDescription(
-					"The mappooler role for the tournament. One will be created based on the acronym if not specified."
+					"The mappooler role for the tournament. One will be created based on the acronym if not specified.",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("referee-role")
 				.setDescription(
-					"The referee role for the tournament. One will be created based on the acronym if not specified."
+					"The referee role for the tournament. One will be created based on the acronym if not specified.",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("player-role")
 				.setDescription(
-					"The player role for the tournament. One will be created based on the acronym if not specified."
+					"The player role for the tournament. One will be created based on the acronym if not specified.",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("parent-category")
 				.setDescription(
-					"The category under which the created channels will be placed."
-				)
+					"The category under which the created channels will be placed.",
+				),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -168,7 +168,7 @@ export const create: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -188,24 +188,24 @@ export const create: SubCommand = {
 
 		const tournamentType = interaction.options.getString(
 			"type",
-			true
+			true,
 		) as TournamentType;
 
 		const teamSize = interaction.options.getNumber("team-size", true);
 
 		const lobbyTeamSize = interaction.options.getNumber(
 			"lobby-team-size",
-			true
+			true,
 		);
 
 		const winCondition = interaction.options.getString(
 			"win-condition",
-			true
+			true,
 		) as WinCondition;
 
 		const scoring = interaction.options.getString(
 			"scoring",
-			true
+			true,
 		) as ScoringType;
 
 		const startDate = DateTime.fromFormat(
@@ -213,7 +213,7 @@ export const create: SubCommand = {
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 
 		const registrationEndDate = DateTime.fromFormat(
@@ -221,7 +221,7 @@ export const create: SubCommand = {
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 
 		// TODO: Maybe give feedback on each error instead of just one generic error message.
@@ -240,7 +240,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid date!")
 						.setDescription(
-							"The registration end date cannot be before the start date."
+							"The registration end date cannot be before the start date.",
 						),
 				],
 			});
@@ -264,7 +264,7 @@ export const create: SubCommand = {
 			staffRole,
 			mappoolerRole,
 			refereeRole,
-			playerRole
+			playerRole,
 		);
 
 		let embedDescription = "**__Tournament info:__**\n";
@@ -299,28 +299,28 @@ export const create: SubCommand = {
 					id,
 					name,
 					acronym,
-					serverId: interaction.guild!.id,
-					startDate: startDate.toJSDate(),
-					registrationEndDate: registrationEndDate.toJSDate(),
-					staffChannelId: staffChannel.id,
-					mappolerChannelId: mappoolerChannel.id,
-					refereeChannelId: refereeChannel.id,
-					scheduleChannelId: scheduleChannel.id,
-					playerChannelId: playerChannel.id,
-					staffRoleId: staffRole.id,
-					mappolerRoleId: mappoolerRole.id,
-					refereeRoleId: refereeRole.id,
-					playerRoleId: playerRole.id,
-					owner: {
+					server_id: interaction.guild!.id,
+					start_date: startDate.toJSDate(),
+					registration_end_date: registrationEndDate.toJSDate(),
+					staff_channel_id: staffChannel.id,
+					mappooler_channel_id: mappoolerChannel.id,
+					referee_channel_id: refereeChannel.id,
+					schedule_channel_id: scheduleChannel.id,
+					player_channel_id: playerChannel.id,
+					staff_role_id: staffRole.id,
+					mappooler_role_id: mappoolerRole.id,
+					referee_role_id: refereeRole.id,
+					player_role_id: playerRole.id,
+					creator: {
 						connect: {
-							discordId: interaction.user.id,
+							id: user.id,
 						},
 					},
-					winCondition,
+					win_condition: winCondition,
 					scoring,
 					type: tournamentType,
-					teamSize,
-					lobbyTeamSize,
+					team_size: teamSize,
+					lobby_team_size: lobbyTeamSize,
 				},
 			});
 
@@ -344,7 +344,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"There was an error while creating the tournament. All changes will be reverted. Please contact the bot owner if this error persists."
+							"There was an error while creating the tournament. All changes will be reverted. Please contact the bot owner if this error persists.",
 						),
 				],
 			});
@@ -379,7 +379,7 @@ async function getTournamentRoles(interaction: ChatInputCommandInteraction) {
 	let staffRole = interaction.options.getRole("staff-role") as Role | null;
 
 	let mappoolerRole = interaction.options.getRole(
-		"mappooler-role"
+		"mappooler-role",
 	) as Role | null;
 
 	let refereeRole = interaction.options.getRole("referee-role") as Role | null;
@@ -423,18 +423,18 @@ async function getTournamentChannels(
 	staffRole: Role,
 	mappoolerRole: Role,
 	refereeRole: Role,
-	playerRole: Role
+	playerRole: Role,
 ) {
 	const guild = interaction.guild!;
 
 	const acronym = interaction.options.getString("acronym", true) as string;
 
 	const parentCategory = interaction.options.getChannel(
-		"parent-category"
+		"parent-category",
 	) as CategoryChannel | null;
 
 	let scheduleChannel = interaction.options.getChannel(
-		"schedule-channel"
+		"schedule-channel",
 	) as GuildBasedChannel | null;
 
 	const staffChannel = await guild.channels.create({

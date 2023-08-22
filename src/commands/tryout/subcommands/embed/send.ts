@@ -15,14 +15,14 @@ export const send: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("send")
 		.setDescription(
-			"Resends the tryout embed to the specified channel, deleting the old one."
+			"Resends the tryout embed to the specified channel, deleting the old one.",
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("channel")
 				.setDescription("The channel where the tryout embed will be sent.")
 				.setRequired(true)
-				.addChannelTypes(ChannelType.GuildText)
+				.addChannelTypes(ChannelType.GuildText),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -30,7 +30,7 @@ export const send: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -44,7 +44,7 @@ export const send: SubCommand = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				staffChannelId: interaction.channelId,
+				staff_channel_id: interaction.channelId,
 			},
 		});
 
@@ -63,12 +63,12 @@ export const send: SubCommand = {
 
 		const channel = interaction.options.getChannel(
 			"channel",
-			true
+			true,
 		) as GuildTextBasedChannel;
 
-		if (tryout.embedChannelId && tryout.embedMessageId) {
+		if (tryout.embed_channel_id && tryout.embed_message_id) {
 			const previousChannel = await interaction.guild?.channels.fetch(
-				tryout.embedChannelId
+				tryout.embed_channel_id,
 			);
 
 			if (previousChannel) {
@@ -76,11 +76,11 @@ export const send: SubCommand = {
 					const messages = await (
 						previousChannel as GuildTextBasedChannel
 					).messages.fetch({
-						around: tryout.embedMessageId,
+						around: tryout.embed_message_id,
 						limit: 1,
 					});
 
-					const previousMessage = messages.get(tryout.embedMessageId);
+					const previousMessage = messages.get(tryout.embed_message_id);
 
 					if (previousMessage) {
 						await previousMessage.delete();
@@ -102,8 +102,8 @@ export const send: SubCommand = {
 					id: tryout.id,
 				},
 				data: {
-					embedChannelId: channel.id,
-					embedMessageId: newMessage.id,
+					embed_channel_id: channel.id,
+					embed_message_id: newMessage.id,
 				},
 			});
 
@@ -116,7 +116,7 @@ export const send: SubCommand = {
 							`The tryout embed has been sent successfully to ${channel}` +
 								(wasPreviousEmbedDeleted
 									? "."
-									: " but there was an error while trying to delete the previous one. Please delete it manually.")
+									: " but there was an error while trying to delete the previous one. Please delete it manually."),
 						),
 				],
 			});
@@ -127,7 +127,7 @@ export const send: SubCommand = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"An error occurred while sending the tryout embed."
+							"An error occurred while sending the tryout embed.",
 						),
 				],
 			});

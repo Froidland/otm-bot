@@ -20,7 +20,7 @@ export function isUserTournamentStaff(
 	tournament: Tournament
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
-		tournament.staffRoleId
+		tournament.staff_role_id
 	);
 }
 
@@ -29,7 +29,7 @@ export function isUserTournamentReferee(
 	tournament: Tournament
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
-		tournament.refereeRoleId
+		tournament.referee_role_id
 	);
 }
 
@@ -38,6 +38,6 @@ export function isUserTryoutReferee(
 	tryout: Tryout
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
-		tryout.refereeRoleId
+		tryout.referee_role_id
 	);
 }

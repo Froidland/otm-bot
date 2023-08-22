@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,133 +10,150 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// TODO: Might want to store a history of the changes made to the users table.
 model User {
-  id        Int    @id @default(autoincrement())
-  osuId     Int    @unique
-  discordId String @unique
-  username  String
-  balance   Int    @default(0)
+  id String @id
 
-  credentials OAuthCredentials?
+  osu_id       String
+  osu_username String
 
-  // Owner relations
-  ownedTournaments Tournament[]
-  ownedTryouts     Tryout[]
-  ownedTeams       Team[]
+  discord_id       String?
+  discord_username String?
+
+  // Creator relations
+  created_tournaments Tournament[]
+  created_tryouts     Tryout[]
+  created_teams       Team[]
 
   // Player relations
-  tryouts       PlayersOnTryouts[]
-  tryoutLobbies PlayersOnTryoutLobbies[]
-  teams         PlayersOnTeams[]
-  teamInvites   TeamInvite[]
+  tryouts        PlayersOnTryouts[]
+  tryout_lobbies PlayersOnTryoutLobbies[]
+  teams          PlayersOnTeams[]
+  team_invites   TeamInvite[]
 
   // Referee relations
-  claimedMatches       Match[]
-  claimedTryoutLobbies TryoutLobby[]
+  claimed_matches        Match[]
+  claimed_tryout_lobbies TryoutLobby[]
 
-  // should probably save data returned from osu api here
+  sessions Session[]
+  keys     Key[]
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
+  @@index([osu_username])
+  @@index([osu_id])
+  @@index([discord_username])
+  @@index([discord_id])
   @@map("users")
 }
 
+model Session {
+  id String @id
+
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id String
+
+  active_expires BigInt
+  idle_expires   BigInt
+
+  @@index([user_id])
+  @@map("sessions")
+}
+
+model Key {
+  id String @id
+
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id String
+
+  hashed_password String?
+
+  oauth_credentials OAuthCredentials?
+
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
+
+  @@index([user_id])
+  @@map("keys")
+}
+
 model OAuthCredentials {
-  id           Int      @id @default(autoincrement())
-  accessToken  String   @db.VarChar(1024)
-  refreshToken String   @db.VarChar(1024)
-  expiresAt    DateTime
-  scope        String
-  tokenType    String
+  access_token            String  @db.VarChar(1024)
+  refresh_token           String? @db.VarChar(1024)
+  access_token_expires_in Int
 
-  user   User @relation(fields: [userId], references: [id])
-  userId Int  @unique
+  key    Key    @relation(fields: [key_id], references: [id])
+  key_id String
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
+  @@id([key_id])
   @@map("oauth_credentials")
 }
 
-model OAuthState {
-  id        Int     @id @default(autoincrement())
-  state     String
-  discordId String
-  messageId String
-  fulfilled Boolean @default(false)
-
-  expiresAt DateTime @db.Timestamp(6)
-
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
-
-  @@map("oauth_state")
-}
-
 model Tournament {
-  id                  String   @id
-  name                String
-  acronym             String
-  serverId            String
-  startDate           DateTime @db.Timestamp(6)
-  registrationEndDate DateTime @db.Timestamp(6)
-  staffChannelId      String
-  mappolerChannelId   String
-  refereeChannelId    String
-  scheduleChannelId   String
-  playerChannelId     String
-  staffRoleId         String
-  mappolerRoleId      String
-  refereeRoleId       String
-  playerRoleId        String
-  teamSize            Int
-  lobbyTeamSize       Int
+  id                    String   @id
+  name                  String
+  acronym               String
+  server_id             String
+  start_date            DateTime @db.Timestamp(6)
+  registration_end_date DateTime @db.Timestamp(6)
+  staff_channel_id      String
+  mappooler_channel_id  String
+  referee_channel_id    String
+  schedule_channel_id   String
+  player_channel_id     String
+  staff_role_id         String
+  mappooler_role_id     String
+  referee_role_id       String
+  player_role_id        String
+  team_size             Int
+  lobby_team_size       Int
   // maybe add an isJoinable field?
   // TODO: Add restrictions. (e.g. rank, country, etc.)
 
-  winCondition WinCondition
-  scoring      ScoringType
-  type         TournamentType
+  win_condition WinCondition
+  scoring       ScoringType
+  type          TournamentType
 
   matches Match[]
   teams   Team[]
 
-  owner   User @relation(fields: [ownerId], references: [id])
-  ownerId Int
+  creator      User   @relation(fields: [creator_id], references: [id])
+  creator_id String
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("tournaments")
 }
 
 model Match {
-  id       String          @id
-  customId String
-  schedule DateTime        @db.Timestamp(6)
-  mpLink   String?
-  status   MatchStatus     @default(Pending)
-  stage    TournamentStage
+  id        String          @id
+  custom_id String
+  schedule  DateTime        @db.Timestamp(6)
+  mp_link   String?
+  status    MatchStatus     @default(Pending)
+  stage     TournamentStage
 
-  referee   User? @relation(fields: [refereeId], references: [id])
-  refereeId Int?
+  referee    User?   @relation(fields: [referee_id], references: [id])
+  referee_id String?
 
   // scores maybe?
 
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
-  tournamentId String
+  tournament    Tournament @relation(fields: [tournament_id], references: [id])
+  tournament_id String
 
   // teams MatchesOnTeams[]
-  redTeam   Team   @relation("redTeam", fields: [redTeamId], references: [id])
-  redTeamId String
+  redTeam     Team   @relation("red_team", fields: [red_team_id], references: [id])
+  red_team_id String
 
-  blueTeam   Team   @relation("blueTeam", fields: [blueTeamId], references: [id])
-  blueTeamId String
+  blueTeam     Team   @relation("blue_team", fields: [blue_team_id], references: [id])
+  blue_team_id String
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("matches")
 }
@@ -143,23 +163,23 @@ model Team {
   name     String
   timezone String @map("idealTimezone")
 
-  owner   User @relation(fields: [ownerId], references: [id])
-  ownerId Int
+  creator    User   @relation(fields: [creator_id], references: [id])
+  creator_id String
 
   players PlayersOnTeams[]
 
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
-  tournamentId String
+  tournament    Tournament @relation(fields: [tournament_id], references: [id])
+  tournament_id String
 
   invitations TeamInvite[]
 
-  matchesAsRedTeam  Match[] @relation("redTeam")
-  matchesAsBlueTeam Match[] @relation("blueTeam")
+  matches_as_red_team  Match[] @relation("red_team")
+  matches_as_blue_team Match[] @relation("blue_team")
 
-  onePlayerTeam Boolean @default(false)
+  one_player_team Boolean @default(false)
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("teams")
 }
@@ -167,115 +187,141 @@ model Team {
 model TeamInvite {
   id BigInt @id @default(autoincrement())
 
-  team   Team   @relation(fields: [teamId], references: [id])
-  teamId String
+  status TeamInviteStatus @default(Pending)
 
-  player   User @relation(fields: [playerId], references: [id])
-  playerId Int
+  team    Team   @relation(fields: [team_id], references: [id])
+  team_id String
+
+  user    User   @relation(fields: [user_id], references: [id])
+  user_id String
+
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("team_invites")
 }
 
-model Tryout {
-  id               String   @id
-  name             String
-  staffChannelId   String
-  playerChannelId  String
-  embedChannelId   String?
-  embedMessageId   String?
-  managementRoleId String
-  refereeRoleId    String
-  playerRoleId     String
-  serverId         String
-  startDate        DateTime @db.Timestamp(6)
-  endDate          DateTime @db.Timestamp(6)
+enum TeamInviteStatus {
+	Pending
+  Accepted
+  Rejected
 
-  stages  TryoutStage[]
-  owner   User          @relation(fields: [ownerId], references: [id])
-  ownerId Int
+  @@map("team_invite_status")
+}
+
+model Tryout {
+  id                String   @id
+  name              String
+  staff_channel_id  String
+  player_channel_id String
+  embed_channel_id  String?
+  embed_message_id  String?
+  admin_role_id     String
+  referee_role_id   String
+  player_role_id    String
+  server_id         String
+  start_date        DateTime @db.Timestamp(6)
+  end_date          DateTime @db.Timestamp(6)
+
+  stages     TryoutStage[]
+  creator    User          @relation(fields: [creator_id], references: [id])
+  creator_id String
 
   players PlayersOnTryouts[]
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
+  @@index([staff_channel_id])
+  @@index([player_channel_id])
   @@map("tryouts")
 }
 
 model TryoutStage {
-  id       String @id
-  name     String
-  customId String
+  id         String  @id
+  name       String
+  custom_id  String
+  root_stage Boolean @default(false)
 
-  tryout   Tryout @relation(fields: [tryoutId], references: [id])
-  tryoutId String
+  tryout    Tryout @relation(fields: [tryout_id], references: [id])
+  tryout_id String
 
   lobbies TryoutLobby[]
 
-	// TODO: Maybe support multiple stage dependencies.
-  stageDependency   TryoutStage? @relation(fields: [stageDependencyId], references: [id], name: "dependency")
-  stageDependencyId String?
+  stage_dependency    TryoutStage? @relation(fields: [stage_dependency_id], references: [id], name: "dependency")
+  stage_dependency_id String?
 
-  stageDependants TryoutStage[] @relation("dependency")
+  stage_dependants TryoutStage[] @relation("dependency")
 
   // mappool maybe?
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("tryout_stages")
 }
 
 model TryoutLobby {
-  id          String   @id
-  customId    String
-  playerLimit Int
-  startDate   DateTime @db.Timestamp(6)
+  id           String   @id
+  custom_id    String
+  player_limit Int
+  schedule     DateTime @db.Timestamp(6)
 
   stage   TryoutStage @relation(fields: [stageId], references: [id])
   stageId String
 
-  referee   User? @relation(fields: [refereeId], references: [id])
-  refereeId Int?
+  referee    User?   @relation(fields: [referee_id], references: [id])
+  referee_id String?
 
   players PlayersOnTryoutLobbies[]
 
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("tryout_lobbies")
 }
 
 model PlayersOnTryoutLobbies {
-  tryoutLobbyId String
-  userId        Int
+  tryout_lobby_id String
+  user_id         String
 
-  tryoutLobby TryoutLobby @relation(fields: [tryoutLobbyId], references: [id])
-  player      User        @relation(fields: [userId], references: [id])
+  tryoutLobby TryoutLobby @relation(fields: [tryout_lobby_id], references: [id])
+  player      User        @relation(fields: [user_id], references: [id])
 
-  @@id([tryoutLobbyId, userId])
+  played Boolean @default(false)
+
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
+
+  @@id([tryout_lobby_id, user_id])
   @@map("players_to_tryout_lobbies")
 }
 
 model PlayersOnTryouts {
-  tryoutId String
-  userId   Int
+  tryout_id String
+  user_id   String
 
-  tryout Tryout @relation(fields: [tryoutId], references: [id])
-  player User   @relation(fields: [userId], references: [id])
+  tryout Tryout @relation(fields: [tryout_id], references: [id])
+  player User   @relation(fields: [user_id], references: [id])
 
-  @@id([tryoutId, userId])
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
+
+  @@id([tryout_id, user_id])
   @@map("players_to_tryouts")
 }
 
 model PlayersOnTeams {
-  teamId String
-  userId Int
+  team_id String
+  user_id String
 
-  team   Team @relation(fields: [teamId], references: [id])
-  player User @relation(fields: [userId], references: [id])
+  team   Team @relation(fields: [team_id], references: [id])
+  player User @relation(fields: [user_id], references: [id])
 
-  @@id([teamId, userId])
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
+
+  @@id([team_id, user_id])
   @@map("players_to_teams")
 }
 

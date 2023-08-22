@@ -17,14 +17,14 @@ export const claim: SubCommand = {
 			option
 				.setName("match-id")
 				.setDescription("The ID of the match you want to claim.")
-				.setRequired(true)
+				.setRequired(true),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -40,7 +40,7 @@ export const claim: SubCommand = {
 
 		const tournament = await db.tournament.findFirst({
 			where: {
-				refereeChannelId: interaction.channelId,
+				referee_channel_id: interaction.channelId,
 			},
 		});
 
@@ -51,7 +51,7 @@ export const claim: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command can only be used in a tournament referee channel."
+							"This command can only be used in a tournament referee channel.",
 						),
 				],
 			});
@@ -66,7 +66,7 @@ export const claim: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid permissions!")
 						.setDescription(
-							"You need to be a tournament referee to use this command."
+							"You need to be a tournament referee to use this command.",
 						),
 				],
 			});
@@ -93,14 +93,14 @@ export const claim: SubCommand = {
 			return;
 		}
 
-		if (match.refereeId) {
+		if (match.referee_id) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Invalid match!")
 						.setDescription(
-							"This match has already been claimed by another referee."
+							"This match has already been claimed by another referee.",
 						),
 				],
 			});
@@ -114,7 +114,7 @@ export const claim: SubCommand = {
 					id: matchId,
 				},
 				data: {
-					refereeId: user.id,
+					referee_id: user.id,
 				},
 			});
 		} catch (error) {

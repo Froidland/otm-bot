@@ -17,13 +17,13 @@ const create: SubCommand = {
 			option
 				.setName("name")
 				.setDescription("The name of the team.")
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("timezone")
 				.setDescription("The team's timezone.")
-				.setRequired(true)
+				.setRequired(true),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply({
@@ -32,7 +32,7 @@ const create: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -46,7 +46,7 @@ const create: SubCommand = {
 
 		const tournament = await db.tournament.findFirst({
 			where: {
-				playerChannelId: interaction.channelId,
+				player_channel_id: interaction.channelId,
 			},
 		});
 
@@ -57,7 +57,7 @@ const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command can only be used in a player channel."
+							"This command can only be used in a player channel.",
 						),
 				],
 			});
@@ -67,10 +67,10 @@ const create: SubCommand = {
 
 		const existingTeam = await db.team.findFirst({
 			where: {
-				tournamentId: tournament.id,
+				tournament_id: tournament.id,
 				OR: [
 					{
-						ownerId: user.id,
+						creator_id: user.id,
 					},
 					{
 						players: {
@@ -114,9 +114,9 @@ const create: SubCommand = {
 					id,
 					name,
 					timezone,
-					owner: {
+					creator: {
 						connect: {
-							discordId: interaction.user.id,
+							id: user.id,
 						},
 					},
 					tournament: {
@@ -149,7 +149,7 @@ const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"An error occurred while creating your team. Changes have not been saved."
+							"An error occurred while creating your team. Changes have not been saved.",
 						),
 				],
 			});

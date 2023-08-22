@@ -57,7 +57,7 @@ export const profile: Command = {
 		if (!username) {
 			const user = await db.user.findFirst({
 				where: {
-					discordId: interaction.user.id,
+					discord_id: interaction.user.id,
 				},
 			});
 
@@ -69,7 +69,7 @@ export const profile: Command = {
 				return;
 			}
 
-			username = user.osuId.toString();
+			username = user.osu_id.toString();
 		}
 
 		const userDetails = await v2.user.details(

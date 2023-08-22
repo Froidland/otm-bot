@@ -16,7 +16,7 @@ const invite: SubCommand = {
 			option
 				.setName("player")
 				.setDescription("The player you want to invite.")
-				.setRequired(true)
+				.setRequired(true),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply({ ephemeral: true });
@@ -26,7 +26,7 @@ const invite: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -40,7 +40,7 @@ const invite: SubCommand = {
 
 		const tournament = await db.tournament.findFirst({
 			where: {
-				playerChannelId: interaction.channelId,
+				player_channel_id: interaction.channelId,
 			},
 		});
 
@@ -51,7 +51,7 @@ const invite: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command can only be used in a player channel."
+							"This command can only be used in a player channel.",
 						),
 				],
 			});
@@ -61,8 +61,8 @@ const invite: SubCommand = {
 
 		const team = await db.team.findFirst({
 			where: {
-				tournamentId: tournament.id,
-				ownerId: user.id,
+				tournament_id: tournament.id,
+				creator_id: user.id,
 			},
 		});
 
@@ -73,7 +73,7 @@ const invite: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid team!")
 						.setDescription(
-							"You are not the owner of a team in this tournament. Only the owner of a team can invite players."
+							"You are not the owner of a team in this tournament. Only the owner of a team can invite players.",
 						),
 				],
 			});
@@ -83,18 +83,18 @@ const invite: SubCommand = {
 
 		const playerUser = await db.user.findFirst({
 			where: {
-				discordId: player.id,
+				discord_id: player.id,
 			},
 			include: {
-				ownedTeams: {
+				created_teams: {
 					where: {
-						tournamentId: tournament.id,
+						tournament_id: tournament.id,
 					},
 				},
 				teams: {
 					where: {
 						team: {
-							tournamentId: tournament.id,
+							tournament_id: tournament.id,
 						},
 					},
 				},
@@ -108,7 +108,7 @@ const invite: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid player!")
 						.setDescription(
-							"The player you are trying to invite does not have an account."
+							"The player you are trying to invite does not have an account.",
 						),
 				],
 			});
@@ -116,14 +116,14 @@ const invite: SubCommand = {
 			return;
 		}
 
-		if (playerUser.ownedTeams.length > 0 || playerUser.teams.length > 0) {
+		if (playerUser.created_teams.length > 0 || playerUser.teams.length > 0) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Invalid player!")
 						.setDescription(
-							"The player you are trying to invite is already in a team."
+							"The player you are trying to invite is already in a team.",
 						),
 				],
 			});
@@ -135,7 +135,7 @@ const invite: SubCommand = {
 			where: {
 				teams: {
 					some: {
-						teamId: team.id,
+						team_id: team.id,
 					},
 				},
 			},
@@ -143,19 +143,19 @@ const invite: SubCommand = {
 
 		let dmEmbedDescription = `You have been invited to join ${interaction.user}'s team (\`${team.name}\`) for the \`${tournament.name}\` tournament.\n`;
 		dmEmbedDescription += "**The team members are:**\n";
-		dmEmbedDescription += `${interaction.user} - [${user.username}](https://osu.ppy.sh/users/${user.osuId})\n`;
+		dmEmbedDescription += `${interaction.user} - [${user.osu_username}](https://osu.ppy.sh/users/${user.osu_id})\n`;
 
 		if (teamPlayers.length > 0) {
 			for (const teamPlayer of teamPlayers) {
-				dmEmbedDescription += `<@${teamPlayer.discordId}> [${teamPlayer.username}](https://osu.ppy.sh/users/${teamPlayer.osuId})\n`;
+				dmEmbedDescription += `<@${teamPlayer.discord_id}> [${teamPlayer.osu_username}](https://osu.ppy.sh/users/${teamPlayer.osu_id})\n`;
 			}
 		}
 
 		try {
 			await db.teamInvite.create({
 				data: {
-					teamId: team.id,
-					playerId: playerUser.id,
+					team_id: team.id,
+					user_id: playerUser.id,
 				},
 			});
 
@@ -165,7 +165,7 @@ const invite: SubCommand = {
 						.setColor("Green")
 						.setTitle("Player invited!")
 						.setDescription(
-							`You have successfully invited ${player} to your team.`
+							`You have successfully invited ${player} to your team.`,
 						),
 				],
 			});
@@ -181,7 +181,7 @@ const invite: SubCommand = {
 			});
 
 			logger.info(
-				`User ${interaction.user.id} invited ${player.id} to their team.`
+				`User ${interaction.user.id} invited ${player.id} to their team.`,
 			);
 		} catch (error) {
 			logger.error(error);
@@ -192,7 +192,7 @@ const invite: SubCommand = {
 						.setColor("Red")
 						.setTitle("Something went wrong!")
 						.setDescription(
-							"An error occurred while trying to invite the player to your team. Please try again later."
+							"An error occurred while trying to invite the player to your team. Please try again later.",
 						),
 				],
 			});

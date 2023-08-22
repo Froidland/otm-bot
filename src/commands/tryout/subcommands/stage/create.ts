@@ -20,37 +20,37 @@ export const create: SubCommand = {
 			option
 				.setName("name")
 				.setDescription('The name of the tryout stage. (Example: "Week 1")')
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("custom-id")
 				.setDescription('The custom ID of the tryout stage. (Example: "W1")')
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("start-date")
 				.setDescription(
-					"The start date of the tryout stage. (Format: YYYY-MM-DD HH:MM)"
+					"The start date of the tryout stage. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("end-date")
 				.setDescription(
-					"The end date of the tryout stage. (Format: YYYY-MM-DD HH:MM)"
+					"The end date of the tryout stage. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("stage-dependency-id")
 				.setDescription(
-					"The custom ID of the stage players will have to play before joining this one. (Default: None)"
+					"The custom ID of the stage players will have to play before joining this one. (Default: None)",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -77,23 +77,23 @@ export const create: SubCommand = {
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 		const endDate = DateTime.fromFormat(
 			interaction.options.getString("end-date", true),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 
 		const stageDependencyId = interaction.options.getString(
-			"stage-dependency-id"
+			"stage-dependency-id",
 		);
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -115,7 +115,14 @@ export const create: SubCommand = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				staffChannelId: interaction.channelId,
+				staff_channel_id: interaction.channelId,
+			},
+			include: {
+				_count: {
+					select: {
+						stages: true,
+					},
+				},
 			},
 		});
 
@@ -126,7 +133,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command needs to be run in a tryout staff channel."
+							"This command needs to be run in a tryout staff channel.",
 						),
 				],
 			});
@@ -135,8 +142,8 @@ export const create: SubCommand = {
 		}
 
 		if (
-			startDate.toJSDate() < tryout.startDate ||
-			endDate.toJSDate() > tryout.endDate
+			startDate.toJSDate() < tryout.start_date ||
+			endDate.toJSDate() > tryout.end_date
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -144,7 +151,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid dates!")
 						.setDescription(
-							"The dates provided for the stage cannot be outside the range provided for the tryout itself."
+							"The dates provided for the stage cannot be outside the range provided for the tryout itself.",
 						),
 				],
 			});
@@ -157,7 +164,7 @@ export const create: SubCommand = {
 				tryout: {
 					id: tryout.id,
 				},
-				customId,
+				custom_id: customId,
 			},
 		});
 
@@ -168,7 +175,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid custom ID!")
 						.setDescription(
-							"A tryout stage with the provided custom ID already exists."
+							"A tryout stage with the provided custom ID already exists.",
 						),
 				],
 			});
@@ -179,7 +186,7 @@ export const create: SubCommand = {
 		if (stageDependencyId) {
 			stageDependency = await db.tryoutStage.findFirst({
 				where: {
-					customId: stageDependencyId,
+					custom_id: stageDependencyId,
 				},
 			});
 
@@ -190,7 +197,7 @@ export const create: SubCommand = {
 							.setColor("Red")
 							.setTitle("Invalid stage dependency!")
 							.setDescription(
-								"The stage dependency provided does not exist. Please make sure you are using the correct custom ID."
+								"The stage dependency provided does not exist. Please make sure you are using the correct custom ID.",
 							),
 					],
 				});
@@ -212,7 +219,7 @@ export const create: SubCommand = {
 			await db.tryoutStage.create({
 				data: {
 					id,
-					customId,
+					custom_id: customId,
 					name,
 					tryout: {
 						connect: {
@@ -220,7 +227,7 @@ export const create: SubCommand = {
 						},
 					},
 					//? If the stageDependency does exist, then we just connect it. Otherwise, we set it to undefined, which is basically sending nothing.
-					stageDependency:
+					stage_dependency:
 						stageDependency === null
 							? undefined
 							: {
@@ -228,6 +235,7 @@ export const create: SubCommand = {
 										id: stageDependency.id,
 									},
 							  },
+					root_stage: tryout._count.stages === 0 ? true : false,
 				},
 			});
 
@@ -251,7 +259,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"An error occurred while creating the tryout stage. All changes will be reverted. Please contact the bot owner if this error persists."
+							"An error occurred while creating the tryout stage. All changes will be reverted. Please contact the bot owner if this error persists.",
 						),
 				],
 			});

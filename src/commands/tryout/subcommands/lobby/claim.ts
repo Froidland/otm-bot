@@ -23,7 +23,7 @@ export const claim: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -40,7 +40,7 @@ export const claim: SubCommand = {
 		//? Get the tryout for the current staff channel and include any lobbies that match the lobby ID.
 		const tryout = await db.tryout.findFirst({
 			where: {
-				staffChannelId: interaction.channelId,
+				staff_channel_id: interaction.channelId,
 			},
 			include: {
 				stages: {
@@ -54,7 +54,7 @@ export const claim: SubCommand = {
 					include: {
 						lobbies: {
 							where: {
-								customId: lobbyId,
+								custom_id: lobbyId,
 							},
 						},
 					},
@@ -107,7 +107,7 @@ export const claim: SubCommand = {
 
 		const lobby = tryout.stages[0].lobbies[0];
 
-		if (lobby.refereeId) {
+		if (lobby.referee_id) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -126,7 +126,7 @@ export const claim: SubCommand = {
 					id: lobby.id,
 				},
 				data: {
-					refereeId: user.id,
+					referee_id: user.id,
 				},
 			});
 
@@ -136,7 +136,7 @@ export const claim: SubCommand = {
 						.setColor("Green")
 						.setTitle("Success")
 						.setDescription(
-							`You have successfully claimed the lobby ${lobby.customId}.`,
+							`You have successfully claimed the lobby ${lobby.custom_id}.`,
 						),
 				],
 			});

@@ -19,21 +19,21 @@ export const create: SubCommand = {
 			option
 				.setName("stage-id")
 				.setDescription("The custom ID of the tryout stage.")
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("custom-id")
 				.setDescription("The custom ID of the lobby. (Example: A1)")
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("start-date")
 				.setDescription(
-					"The start date of the lobby. (Format: YYYY-MM-DD HH:MM)"
+					"The start date of the lobby. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addNumberOption(
 			(option) =>
@@ -41,7 +41,7 @@ export const create: SubCommand = {
 					.setName("player-limit")
 					.setDescription("The player limit of the lobby.")
 					.setRequired(true)
-					.setMaxValue(16) //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
+					.setMaxValue(16), //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -59,7 +59,7 @@ export const create: SubCommand = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -80,7 +80,7 @@ export const create: SubCommand = {
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 
 		if (!startDate.isValid) {
@@ -93,9 +93,9 @@ export const create: SubCommand = {
 
 		const stage = await db.tryoutStage.findFirst({
 			where: {
-				customId: stageId,
+				custom_id: stageId,
 				tryout: {
-					staffChannelId: interaction.channelId,
+					staff_channel_id: interaction.channelId,
 				},
 			},
 		});
@@ -107,7 +107,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid stage!")
 						.setDescription(
-							"Please make sure you are in a tryout staff channel and that the stage exists."
+							"Please make sure you are in a tryout staff channel and that the stage exists.",
 						),
 				],
 			});
@@ -117,9 +117,9 @@ export const create: SubCommand = {
 
 		const duplicateLobby = await db.tryoutLobby.findFirst({
 			where: {
-				customId,
+				custom_id: customId,
 				stage: {
-					customId: stageId,
+					custom_id: stageId,
 				},
 			},
 		});
@@ -131,7 +131,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Duplicate lobby ID!")
 						.setDescription(
-							"The lobby ID you provided is already in use. Please use a different one."
+							"The lobby ID you provided is already in use. Please use a different one.",
 						),
 				],
 			});
@@ -145,19 +145,12 @@ export const create: SubCommand = {
 		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
 
 		try {
-			/* await db.tryoutLobbies.insert({
-				id,
-				playerLimit,
-				lobbyId: customId,
-				startDate: startDate.toJSDate(),
-				stage,
-			}); */
 			await db.tryoutLobby.create({
 				data: {
 					id,
-					playerLimit,
-					customId,
-					startDate: startDate.toJSDate(),
+					player_limit: playerLimit,
+					custom_id: customId,
+					schedule: startDate.toJSDate(),
 					stage: {
 						connect: {
 							id: stage.id,
@@ -186,7 +179,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"There was an error while creating the tryout lobby. All changes will be reverted. Please contact the bot owner if this error persists."
+							"There was an error while creating the tryout lobby. All changes will be reverted. Please contact the bot owner if this error persists.",
 						),
 				],
 			});

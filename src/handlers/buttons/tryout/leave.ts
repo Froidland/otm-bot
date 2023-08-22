@@ -17,7 +17,7 @@ export const leaveTryout: ButtonHandler = {
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -31,12 +31,12 @@ export const leaveTryout: ButtonHandler = {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				embedMessageId: interaction.message.id,
+				embed_message_id: interaction.message.id,
 			},
 			include: {
 				players: {
 					where: {
-						userId: user.id,
+						user_id: user.id,
 					},
 				},
 				stages: {
@@ -45,7 +45,7 @@ export const leaveTryout: ButtonHandler = {
 							some: {
 								players: {
 									some: {
-										userId: user.id,
+										user_id: user.id,
 									},
 								},
 							},
@@ -88,7 +88,7 @@ export const leaveTryout: ButtonHandler = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"You cannot leave this tryout because you have already joined a lobby."
+							"You cannot leave this tryout because you have already joined a lobby.",
 						),
 				],
 			});
@@ -104,9 +104,9 @@ export const leaveTryout: ButtonHandler = {
 				data: {
 					players: {
 						delete: {
-							tryoutId_userId: {
-								userId: user.id,
-								tryoutId: tryout.id,
+							tryout_id_user_id: {
+								user_id: user.id,
+								tryout_id: tryout.id,
 							},
 						},
 					},
@@ -114,7 +114,7 @@ export const leaveTryout: ButtonHandler = {
 			});
 
 			const playerRole = await interaction.guild?.roles.fetch(
-				tryout.playerRoleId
+				tryout.player_role_id,
 			);
 
 			if (!playerRole) {
@@ -122,7 +122,7 @@ export const leaveTryout: ButtonHandler = {
 			}
 
 			await (interaction.member?.roles as GuildMemberRoleManager).remove(
-				playerRole
+				playerRole,
 			);
 
 			await interaction.editReply({

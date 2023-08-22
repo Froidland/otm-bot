@@ -26,91 +26,91 @@ export const create: SubCommand = {
 			option
 				.setName("name")
 				.setDescription(
-					'The name of the tryout. (Example: "5WC Chile Tryouts 2023")'
+					'The name of the tryout. (Example: "5WC Chile Tryouts 2023")',
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("acronym")
 				.setDescription('The acronym of the tryout stage. (Example: "5WC CLT")')
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("start-date")
 				.setDescription(
-					"The date when the tryout starts. (Format: YYYY-MM-DD HH:MM)"
+					"The date when the tryout starts. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addStringOption((option) =>
 			option
 				.setName("end-date")
 				.setDescription(
-					"The date when the tryout ends. (Format: YYYY-MM-DD HH:MM)"
+					"The date when the tryout ends. (Format: YYYY-MM-DD HH:MM)",
 				)
-				.setRequired(true)
+				.setRequired(true),
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("embed-channel")
 				.setDescription(
-					"The channel where the tryout embed will be sent. (Default: Do not send)"
+					"The channel where the tryout embed will be sent. (Default: Do not send)",
 				)
 				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("management-role")
 				.setDescription(
-					"The role that staff members need to have to be able to manage the tryout. (Default: New Role)"
+					"The role that staff members need to have to be able to manage the tryout. (Default: New Role)",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("referee-role")
 				.setDescription(
-					"The role that referees need to have to be able to claim lobbies. (Default: New Role)"
+					"The role that referees need to have to be able to claim lobbies. (Default: New Role)",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addRoleOption((option) =>
 			option
 				.setName("player-role")
 				.setDescription(
-					"The role that players need to have to be able to execute the schedule commands. (Default: New Role)"
+					"The role that players need to have to be able to execute the schedule commands. (Default: New Role)",
 				)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("staff-channel")
 				.setDescription(
-					"The channel where the staff members can manage the tryout. (Default: New Channel)"
+					"The channel where the staff members can manage the tryout. (Default: New Channel)",
 				)
 				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("player-channel")
 				.setDescription(
-					"The channel where the players can talk. (Default: New Channel)"
+					"The channel where the players can talk. (Default: New Channel)",
 				)
 				.addChannelTypes(ChannelType.GuildText)
-				.setRequired(false)
+				.setRequired(false),
 		)
 		.addChannelOption((option) =>
 			option
 				.setName("parent-category")
 				.setDescription(
-					"The parent category where the tryout channels will be created. (Default: None)"
+					"The parent category where the tryout channels will be created. (Default: None)",
 				)
 				.addChannelTypes(ChannelType.GuildCategory)
-				.setRequired(false)
+				.setRequired(false),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
@@ -118,12 +118,12 @@ export const create: SubCommand = {
 		let playerChannelCreated = false;
 		let staffChannelCreated = false;
 		let playerRoleCreated = false;
-		let managementRoleCreated = false;
+		let adminRoleCreated = false;
 		let refereeRoleCreated = false;
 
 		const user = await db.user.findFirst({
 			where: {
-				discordId: interaction.user.id,
+				discord_id: interaction.user.id,
 			},
 		});
 
@@ -148,22 +148,22 @@ export const create: SubCommand = {
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
 		const embedChannel = interaction.options.getChannel(
-			"embed-channel"
+			"embed-channel",
 		) as GuildTextBasedChannel | null;
 
 		let playerRole = interaction.options.getRole("player-role") as Role | null;
-		let managementRole = interaction.options.getRole(
-			"management-role"
+		let adminRole = interaction.options.getRole(
+			"management-role",
 		) as Role | null;
 		let refereeRole = interaction.options.getRole(
-			"referee-role"
+			"referee-role",
 		) as Role | null;
 
 		let staffChannel = interaction.options.getChannel(
-			"staff-channel"
+			"staff-channel",
 		) as GuildTextBasedChannel | null;
 		let playerChannel = interaction.options.getChannel(
-			"player-channel"
+			"player-channel",
 		) as GuildTextBasedChannel | null;
 
 		const startDate = DateTime.fromFormat(
@@ -171,7 +171,7 @@ export const create: SubCommand = {
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 
 		const endDate = DateTime.fromFormat(
@@ -179,7 +179,7 @@ export const create: SubCommand = {
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
-			}
+			},
 		);
 
 		if (!startDate.isValid || !endDate.isValid) {
@@ -189,7 +189,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("Invalid date!")
 						.setDescription(
-							"One of the dates you provided is not in the correct format. Please correct it and try again."
+							"One of the dates you provided is not in the correct format. Please correct it and try again.",
 						),
 				],
 			});
@@ -221,12 +221,12 @@ export const create: SubCommand = {
 			playerRoleCreated = true;
 		}
 
-		if (!managementRole) {
-			managementRole = (await interaction.guild?.roles.create({
+		if (!adminRole) {
+			adminRole = (await interaction.guild?.roles.create({
 				name: `${acronym}: Management`,
 			})) as Role;
 
-			managementRoleCreated = true;
+			adminRoleCreated = true;
 		}
 
 		if (!refereeRole) {
@@ -247,7 +247,7 @@ export const create: SubCommand = {
 						deny: [PermissionFlagsBits.ViewChannel],
 					},
 					{
-						id: managementRole.id,
+						id: adminRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 					{
@@ -275,7 +275,7 @@ export const create: SubCommand = {
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 					{
-						id: managementRole.id,
+						id: adminRole.id,
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 					{
@@ -292,9 +292,9 @@ export const create: SubCommand = {
 		let embedDescription = "**__Tryout info:__**\n";
 		embedDescription += `**\\- Name:** \`${name}\`\n`;
 		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
-		embedDescription += `**\\- Owner:** <@${user.discordId}>\n`;
+		embedDescription += `**\\- Owner:** <@${user.discord_id}>\n`;
 		embedDescription += "**__Tryout roles and channels:__**\n";
-		embedDescription += `**\\- Management Role:** <@&${managementRole.id}>\n`;
+		embedDescription += `**\\- Admin Role:** <@&${adminRole.id}>\n`;
 		embedDescription += `**\\- Referee Role:** <@&${refereeRole.id}>\n`;
 		embedDescription += `**\\- Player Role:** <@&${playerRole.id}>\n`;
 
@@ -316,19 +316,19 @@ export const create: SubCommand = {
 				data: {
 					id,
 					name,
-					serverId: interaction.guildId!,
-					embedChannelId: embedChannel?.id,
-					embedMessageId: embedMessage?.id,
-					managementRoleId: managementRole.id,
-					refereeRoleId: refereeRole.id,
-					playerRoleId: playerRole.id,
-					playerChannelId: playerChannel.id,
-					staffChannelId: staffChannel.id,
-					startDate: startDate.toJSDate(),
-					endDate: endDate.toJSDate(),
-					owner: {
+					server_id: interaction.guildId!,
+					embed_channel_id: embedChannel?.id,
+					embed_message_id: embedMessage?.id,
+					admin_role_id: adminRole.id,
+					referee_role_id: refereeRole.id,
+					player_role_id: playerRole.id,
+					player_channel_id: playerChannel.id,
+					staff_channel_id: staffChannel.id,
+					start_date: startDate.toJSDate(),
+					end_date: endDate.toJSDate(),
+					creator: {
 						connect: {
-							discordId: interaction.user.id,
+							id: user.id,
 						},
 					},
 				},
@@ -354,7 +354,7 @@ export const create: SubCommand = {
 						.setColor("Red")
 						.setTitle("DB error!")
 						.setDescription(
-							"An error occurred while creating the tryout. All changes will be reverted. Please contact the bot owner if this error persists."
+							"An error occurred while creating the tryout. All changes will be reverted. Please contact the bot owner if this error persists.",
 						),
 				],
 			});
@@ -365,7 +365,7 @@ export const create: SubCommand = {
 
 			// Roles
 			if (playerRoleCreated) playerRole.delete();
-			if (managementRoleCreated) managementRole.delete();
+			if (adminRoleCreated) adminRole.delete();
 			if (refereeRoleCreated) refereeRole.delete();
 		}
 	},
