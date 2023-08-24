@@ -9,6 +9,7 @@ import {
 } from "discord.js";
 import { DateTime } from "luxon";
 
+// TODO: Check whether the user has already played a lobby in the stage.
 export const join: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
 		.setName("join")
@@ -175,6 +176,40 @@ export const join: SubCommand = {
 
 		//? If there's no stage dependency, we let the player join the lobby.
 		if (!selectedStage.stage_dependency_id) {
+			for (const lobby of selectedStage.lobbies) {
+				if (lobby.id === selectedLobby.id) {
+					continue;
+				}
+
+				if (lobby.players.length > 0) {
+					await db.playersOnTryoutLobbies.update({
+						where: {
+							tryout_lobby_id_user_id: {
+								tryout_lobby_id: lobby.id,
+								user_id: user.id,
+							},
+						},
+						data: {
+							user_id: user.id,
+							tryout_lobby_id: selectedLobby.id,
+						},
+					});
+
+					await interaction.editReply({
+						embeds: [
+							new EmbedBuilder()
+								.setColor("Green")
+								.setTitle("Joined!")
+								.setDescription(
+									`You have been successfully moved to lobby \`${selectedLobby.custom_id}\` from lobby \`${lobby.custom_id}\`.`,
+								),
+						],
+					});
+
+					return;
+				}
+			}
+
 			try {
 				await db.tryoutLobby.update({
 					where: {
