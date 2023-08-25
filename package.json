@@ -1,7 +1,7 @@
 {
-	"name": "panchobot",
+	"name": "otm-bot",
 	"version": "1.0.0",
-	"description": "A peronal bot made by Pancho with special tournament modifications.",
+	"description": "osu! tournament manager bot",
 	"main": "/src/main.ts",
 	"scripts": {
 		"start": "ts-node --require dotenv/config src/main.ts",
