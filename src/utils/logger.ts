@@ -1,7 +1,7 @@
 import DailyRotateFile from "winston-daily-rotate-file";
 import * as winston from "winston";
-import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
-const { combine, timestamp, printf, colorize, errors, json } = winston.format;
+import LokiTransport from "winston-loki";
+const { combine, timestamp, printf, colorize, json } = winston.format;
 const logDatePattern = process.env.LOG_DATE_PATTERN ?? "DD-MM-YYYY";
 
 // TODO: Don't really know if the logger should be in the utils folder.
@@ -49,16 +49,21 @@ const transports: winston.transport[] = [
 ];
 
 if (
-	process.env.AXIOM_DATASET &&
-	process.env.AXIOM_TOKEN &&
-	process.env.AXIOM_ORG_ID
+	process.env.LOKI_ENDPOINT &&
+	process.env.LOKI_USER &&
+	process.env.LOKI_PASSWORD
 ) {
 	transports.push(
-		new AxiomTransport({
-			dataset: process.env.AXIOM_DATASET,
-			token: process.env.AXIOM_TOKEN,
-			orgId: process.env.AXIOM_ORG_ID,
-			format: combine(errors({ stack: true }), json()),
+		new LokiTransport({
+			host: process.env.LOKI_ENDPOINT,
+			labels: {
+				app: "otm-bot",
+			},
+			json: true,
+			format: json(),
+			replaceTimestamp: true,
+			basicAuth: `${process.env.LOKI_USER}:${process.env.LOKI_PASSWORD}`,
+			onConnectionError: (error) => console.error(error),
 		}),
 	);
 }
