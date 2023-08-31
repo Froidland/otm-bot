@@ -47,7 +47,7 @@ export const claim: SubCommand = {
 					where: {
 						lobbies: {
 							some: {
-								id: lobbyId,
+								custom_id: lobbyId,
 							},
 						},
 					},
@@ -136,7 +136,7 @@ export const claim: SubCommand = {
 						.setColor("Green")
 						.setTitle("Success")
 						.setDescription(
-							`You have successfully claimed the lobby ${lobby.custom_id}.`,
+							`You have successfully claimed lobby \`${lobby.custom_id}\`.`,
 						),
 				],
 			});
