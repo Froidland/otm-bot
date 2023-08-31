@@ -2,6 +2,7 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import { auth } from "osu-api-extended";
 import { logger } from "./utils/";
 import { onInteraction, onReady } from "./events";
+import db from "./db";
 
 // TODO: Implement runtime checks for the environment variables. (Maybe use zod for this)
 //? Take a look at https://github.com/lostfictions/znv
@@ -45,6 +46,9 @@ async function bootstrap() {
 			["public"],
 		);
 		await client.login(process.env.BOT_TOKEN);
+
+		await db.$connect();
+		// TODO: Graceful shutdown.
 	} catch (error) {
 		logger.error(
 			`There was an error while trying to start the bot. Reason: ${error}`,
