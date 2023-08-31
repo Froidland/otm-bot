@@ -100,6 +100,8 @@ export const join: SubCommand = {
 						),
 				],
 			});
+
+			return;
 		}
 
 		if (user.tryout_lobbies.length === 0) {
