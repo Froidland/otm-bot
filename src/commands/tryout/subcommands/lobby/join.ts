@@ -35,6 +35,11 @@ export const join: SubCommand = {
 					where: {
 						tryoutLobby: {
 							custom_id: lobbyId,
+							stage: {
+								tryout: {
+									player_channel_id: interaction.channel?.id,
+								},
+							},
 						},
 					},
 					include: {
