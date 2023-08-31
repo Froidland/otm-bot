@@ -63,6 +63,7 @@ export const list: SubCommand = {
 						include: {
 							lobbies: {
 								include: {
+									referee: true,
 									_count: {
 										select: {
 											players: true,
@@ -108,6 +109,7 @@ export const list: SubCommand = {
 									},
 								},
 								include: {
+									referee: true,
 									_count: {
 										select: {
 											players: true,
@@ -167,14 +169,22 @@ export const list: SubCommand = {
 				if (lobby._count.players >= lobby.player_limit) {
 					embedDescription += `\\- ~Lobby \`${lobby.custom_id}\`~ (${
 						lobby._count.players
-					}/${lobby.player_limit}) <t:${lobby.schedule.getTime() / 1000}:R>\n`;
+					}/${lobby.player_limit}) <t:${lobby.schedule.getTime() / 1000}:R> | ${
+						lobby.referee
+							? `Referee: <@${lobby.referee?.discord_id}>`
+							: "*No Referee*"
+					}\n`;
 
 					continue;
 				}
 
-				embedDescription += `\\- \`${lobby.custom_id}\` (${
+				embedDescription += `\\- \`${lobby.custom_id}\` (\`${
 					lobby._count.players
-				}/${lobby.player_limit}) <t:${lobby.schedule.getTime() / 1000}:R>\n`;
+				}/${lobby.player_limit}\`) <t:${lobby.schedule.getTime() / 1000}:R> | ${
+					lobby.referee
+						? `Referee: <@${lobby.referee?.discord_id}>`
+						: "*No Referee*"
+				}\n`;
 			}
 
 			embedDescription += "\n";
