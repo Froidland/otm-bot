@@ -155,7 +155,7 @@ export const list: SubCommand = {
 		let embedDescription = "";
 
 		for (const stage of tryout.stages) {
-			embedDescription += `**Stage \`${stage.name}\`**\n`;
+			embedDescription += `**Stage \`${stage.name}\`** (\`${stage.custom_id}\`)\n`;
 
 			if (stage.lobbies.length < 1) {
 				embedDescription += `\\- *No lobbies in this stage*\n\n`;
