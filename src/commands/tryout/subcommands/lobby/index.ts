@@ -4,6 +4,7 @@ import { create } from "./create";
 import { claim } from "./claim";
 import { join } from "./join";
 import { list } from "./list";
+import { leave } from "./leave";
 
 const lobbyGroup: SubCommandGroup = {
 	data: new SlashCommandSubcommandGroupBuilder()
@@ -12,8 +13,9 @@ const lobbyGroup: SubCommandGroup = {
 		.addSubcommand(create.data)
 		.addSubcommand(claim.data)
 		.addSubcommand(join.data)
+		.addSubcommand(leave.data)
 		.addSubcommand(list.data),
-	subCommands: [create, claim, join, list],
+	subCommands: [create, claim, join, leave, list],
 };
 
 export default lobbyGroup;
