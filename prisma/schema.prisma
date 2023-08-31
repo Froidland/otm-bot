@@ -241,17 +241,11 @@ model TryoutStage {
   id         String  @id
   name       String
   custom_id  String
-  root_stage Boolean @default(false)
 
   tryout    Tryout @relation(fields: [tryout_id], references: [id])
   tryout_id String
 
   lobbies TryoutLobby[]
-
-  stage_dependency    TryoutStage? @relation(fields: [stage_dependency_id], references: [id], name: "dependency")
-  stage_dependency_id String?
-
-  stage_dependants TryoutStage[] @relation("dependency")
 
   // mappool maybe?
 

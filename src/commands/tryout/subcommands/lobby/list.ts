@@ -70,7 +70,6 @@ export const list: SubCommand = {
 									},
 								},
 							},
-							stage_dependency: true,
 						},
 						orderBy: {
 							created_at: "asc",
@@ -116,7 +115,6 @@ export const list: SubCommand = {
 									},
 								},
 							},
-							stage_dependency: true,
 						},
 						orderBy: {
 							created_at: "asc",
@@ -157,11 +155,7 @@ export const list: SubCommand = {
 		let embedDescription = "";
 
 		for (const stage of tryout.stages) {
-			if (stage.stage_dependency) {
-				embedDescription += `**Stage \`${stage.name}\`** *(Depends on \`${stage.stage_dependency.custom_id}\`)*\n`;
-			} else {
-				embedDescription += `**Stage \`${stage.name}\`**\n`;
-			}
+			embedDescription += `**Stage \`${stage.name}\`**\n`;
 
 			if (stage.lobbies.length < 1) {
 				embedDescription += `\\- *No lobbies in this stage*\n\n`;
