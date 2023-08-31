@@ -172,8 +172,8 @@ export const create: SubCommand = {
 		let embedDescription = "**__Tryout stage info:__**\n";
 		embedDescription += `**Name:** \`${name}\`\n`;
 		embedDescription += `**Custom ID:** \`${customId}\`\n`;
-		embedDescription += `**Start date:** \`${startDate.toRFC2822()}\`\n`;
-		embedDescription += `**End date:** \`${endDate.toRFC2822()}\`\n`;
+		embedDescription += `**Start date:** \`${startDate.toRFC2822()}\` <t:${startDate.toSeconds()}:R>\n`;
+		embedDescription += `**End date:** \`${endDate.toRFC2822()}\` <t:${endDate.toSeconds()}:R>\n`;
 
 		try {
 			await db.tryoutStage.create({
