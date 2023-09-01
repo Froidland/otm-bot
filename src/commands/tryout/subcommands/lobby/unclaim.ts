@@ -22,7 +22,9 @@ export const unclaim: SubCommand = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		await interaction.deferReply();
 
-		const lobbyId = interaction.options.getString("lobby-id", true);
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
 
 		const user = await db.user.findFirst({
 			where: {

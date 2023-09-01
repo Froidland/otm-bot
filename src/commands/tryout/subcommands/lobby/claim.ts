@@ -35,7 +35,9 @@ export const claim: SubCommand = {
 			return;
 		}
 
-		const lobbyId = interaction.options.getString("lobby-id", true);
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
 
 		//? Get the tryout for the current staff channel and include any lobbies that match the lobby ID.
 		const tryout = await db.tryout.findFirst({

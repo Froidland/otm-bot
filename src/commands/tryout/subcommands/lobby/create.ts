@@ -72,7 +72,9 @@ export const create: SubCommand = {
 		}
 
 		const stageId = interaction.options.getString("stage-id", true);
-		const customId = interaction.options.getString("custom-id", true);
+		const customId = interaction.options
+			.getString("custom-id", true)
+			.toUpperCase();
 		const playerLimit = interaction.options.getNumber("player-limit", true);
 
 		const startDate = DateTime.fromFormat(

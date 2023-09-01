@@ -24,7 +24,9 @@ export const join: SubCommand = {
 			ephemeral: true,
 		});
 
-		const lobbyId = interaction.options.getString("lobby-id", true);
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
 
 		const user = await db.user.findFirst({
 			where: {
