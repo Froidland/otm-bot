@@ -30,23 +30,6 @@ export const join: SubCommand = {
 			where: {
 				discord_id: interaction.user.id,
 			},
-			include: {
-				tryout_lobbies: {
-					where: {
-						tryoutLobby: {
-							custom_id: lobbyId,
-							stage: {
-								tryout: {
-									player_channel_id: interaction.channel?.id,
-								},
-							},
-						},
-					},
-					include: {
-						tryoutLobby: true,
-					},
-				},
-			},
 		});
 
 		if (!user) {
@@ -104,7 +87,25 @@ export const join: SubCommand = {
 			return;
 		}
 
-		if (user.tryout_lobbies.length === 0) {
+		const lobby = await db.tryoutLobby.findFirst({
+			where: {
+				custom_id: lobbyId,
+				stage: {
+					tryout: {
+						player_channel_id: interaction.channel?.id,
+					},
+				},
+			},
+			include: {
+				_count: {
+					select: {
+						players: true,
+					},
+				},
+			},
+		});
+
+		if (!lobby) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -124,7 +125,7 @@ export const join: SubCommand = {
 					NOT: {
 						id: lobbyId,
 					},
-					stageId: user.tryout_lobbies[0].tryoutLobby.stageId,
+					stageId: lobby.stageId,
 				},
 			},
 		});
@@ -145,26 +146,47 @@ export const join: SubCommand = {
 		}
 
 		try {
+			console.log(previousLobby);
+			console.log(lobby);
+
 			if (previousLobby) {
-				await db.playersOnTryoutLobbies.update({
+				await db.tryoutLobby.update({
 					where: {
-						tryout_lobby_id_user_id: {
-							user_id: user.id,
-							tryout_lobby_id: previousLobby.tryout_lobby_id,
+						id: previousLobby.tryout_lobby_id,
+					},
+					data: {
+						players: {
+							delete: {
+								tryout_lobby_id_user_id: {
+									tryout_lobby_id: previousLobby.tryout_lobby_id,
+									user_id: user.id,
+								},
+							},
 						},
-					},
-					data: {
-						tryout_lobby_id: lobbyId,
-					},
-				});
-			} else {
-				await db.playersOnTryoutLobbies.create({
-					data: {
-						user_id: user.id,
-						tryout_lobby_id: lobbyId,
 					},
 				});
 			}
+
+			await db.tryoutLobby.update({
+				where: {
+					id: lobby.id,
+				},
+				data: {
+					players: {
+						connectOrCreate: {
+							where: {
+								tryout_lobby_id_user_id: {
+									tryout_lobby_id: lobby.id,
+									user_id: user.id,
+								},
+							},
+							create: {
+								user_id: user.id,
+							},
+						},
+					},
+				},
+			});
 
 			await interaction.editReply({
 				embeds: [
@@ -185,7 +207,7 @@ export const join: SubCommand = {
 						.setColor("Red")
 						.setTitle("Something went wrong!")
 						.setDescription(
-							"An unexpected error occurred. Please try again later or contact a staff member.",
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
 						),
 				],
 			});
