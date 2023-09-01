@@ -120,6 +120,9 @@ export const create: SubCommand = {
 				custom_id: customId,
 				stage: {
 					custom_id: stageId,
+					tryout: {
+						staff_channel_id: interaction.channel?.id,
+					},
 				},
 			},
 		});
