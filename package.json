@@ -38,6 +38,7 @@
 		"mysql2": "^3.6.0",
 		"osu-api-extended": "^2.7.65",
 		"prettier": "^3.0.3",
+		"toad-scheduler": "^3.0.0",
 		"typescript": "^5.2.2",
 		"winston": "^3.10.0",
 		"winston-daily-rotate-file": "^4.7.1",

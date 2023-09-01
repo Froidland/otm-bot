@@ -44,6 +44,9 @@ dependencies:
   prettier:
     specifier: ^3.0.3
     version: 3.0.3
+  toad-scheduler:
+    specifier: ^3.0.0
+    version: 3.0.0
   typescript:
     specifier: ^5.2.2
     version: 5.2.2
@@ -3588,6 +3591,10 @@ packages:
     dependencies:
       is-number: 7.0.0
     dev: true
+
+  /toad-scheduler@3.0.0:
+    resolution: {integrity: sha512-BYmrORvaGmjziir/ra8qD3qAKczJveqK5ZOO/wn7oS5qLI4iibOza3DBGgu+EwNp9zdlBTKSeZPmxZxzGy1dxw==}
+    dev: false
 
   /touch@3.1.0:
     resolution: {integrity: sha512-WBx8Uy5TLtOSRtIq+M03/sKDrXCLHxwDcquSP2c43Le03/9serjQBIztjRz6FkJez9D/hleyAXTBGLwwZUw9lA==}
