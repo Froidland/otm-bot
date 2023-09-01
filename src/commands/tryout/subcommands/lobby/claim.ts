@@ -147,7 +147,7 @@ export const claim: SubCommand = {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"An error occurred while claiming the lobby. Please try again later.",
+							"An error occurred while claiming the lobby. Please try again later or contact an organizer if this issue persists.",
 						),
 				],
 			});
