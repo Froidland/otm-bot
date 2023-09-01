@@ -134,7 +134,7 @@ export const claim: SubCommand = {
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
-						.setTitle("Success")
+						.setTitle("Lobby claimed!")
 						.setDescription(
 							`You have successfully claimed lobby \`${lobby.custom_id}\`.`,
 						),
