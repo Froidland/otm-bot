@@ -9,8 +9,8 @@ dependencies:
     specifier: ^3.400.0
     version: 3.400.0
   '@aws-sdk/s3-request-presigner':
-    specifier: ^3.400.0
-    version: 3.400.0
+    specifier: ^3.405.0
+    version: 3.405.0
   '@axiomhq/winston':
     specifier: ^0.1.3
     version: 0.1.3
@@ -540,8 +540,8 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@aws-sdk/s3-request-presigner@3.400.0:
-    resolution: {integrity: sha512-6XFzm+sXBy85VKkd9GjGUAHtyfmfCcznvdohQ/1eqqYHWUQrTN4w0hGSWRhu4w7u4mpwoJhR71UF864iWvoCaQ==}
+  /@aws-sdk/s3-request-presigner@3.405.0:
+    resolution: {integrity: sha512-UxOw4TMgS5TONm4VmZnWXSv4RUPKNv9Rtvy1S0dYl8WZSqrihN3KPY3bHP/H/A7fWTyjSWnKqK9YtPsrSMfULQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/signature-v4-multi-region': 3.398.0
