@@ -71,7 +71,9 @@ export const create: SubCommand = {
 			return;
 		}
 
-		const stageId = interaction.options.getString("stage-id", true);
+		const stageId = interaction.options
+			.getString("stage-id", true)
+			.toUpperCase();
 		const customId = interaction.options
 			.getString("custom-id", true)
 			.toUpperCase();
