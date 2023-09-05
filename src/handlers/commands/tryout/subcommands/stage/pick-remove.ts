@@ -127,7 +127,9 @@ export const pickRemove: SubCommand = {
 			return;
 		}
 
-		const embedDescription = `[${tryout.stages[0].mappool[0].beatmap?.artist} - ${tryout.stages[0].mappool[0].beatmap?.title} [${tryout.stages[0].mappool[0].beatmap?.version}]](https://osu.ppy.sh/beatmaps/${tryout.stages[0].mappool[0].beatmap?.id}) has removed as the **${pick}** from stage \`${tryout.stages[0].name}\`.`;
+		const beatmap = tryout.stages[0].mappool[0].beatmap;
+
+		const embedDescription = `[${beatmap?.artist} - ${beatmap?.title} [${beatmap?.version}]](https://osu.ppy.sh/beatmaps/${beatmap?.id}) has removed as the **${pick}** from stage \`${tryout.stages[0].name}\`.`;
 
 		try {
 			await db.tryoutStage.update({
