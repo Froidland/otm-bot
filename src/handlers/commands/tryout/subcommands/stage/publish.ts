@@ -104,6 +104,19 @@ export const publish: SubCommand = {
 			return;
 		}
 
+		if (tryout.stages[0].is_published) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid stage!")
+						.setDescription("The stage you specified is already published."),
+				],
+			});
+
+			return;
+		}
+
 		try {
 			await db.tryoutStage.update({
 				where: {
