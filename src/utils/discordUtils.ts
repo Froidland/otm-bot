@@ -11,33 +11,42 @@ export function isMemberAdmin(interaction: ChatInputCommandInteraction) {
 	}
 
 	return (interaction.member.permissions as Readonly<PermissionsBitField>).has(
-		"Administrator"
+		"Administrator",
 	);
 }
 
 export function isUserTournamentStaff(
 	interaction: ChatInputCommandInteraction,
-	tournament: Tournament
+	tournament: Tournament,
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
-		tournament.staff_role_id
+		tournament.staff_role_id,
 	);
 }
 
 export function isUserTournamentReferee(
 	interaction: ChatInputCommandInteraction,
-	tournament: Tournament
+	tournament: Tournament,
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
-		tournament.referee_role_id
+		tournament.referee_role_id,
 	);
 }
 
 export function isUserTryoutReferee(
 	interaction: ChatInputCommandInteraction,
-	tryout: Tryout
+	tryout: Tryout,
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
-		tryout.referee_role_id
+		tryout.referee_role_id,
+	);
+}
+
+export function isUserTryoutAdmin(
+	interaction: ChatInputCommandInteraction,
+	tryout: Tryout,
+) {
+	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+		tryout.admin_role_id,
 	);
 }
