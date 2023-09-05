@@ -4,6 +4,7 @@ import subCommands from "./subcommands";
 import create from "./subcommands/create";
 import invite from "./subcommands/invite";
 
+// TODO: Move this to subcommand group under tournament.
 const team: Command = {
 	data: new SlashCommandBuilder()
 		.setName("team")

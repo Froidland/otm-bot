@@ -20,7 +20,7 @@ export const list: SubCommand = {
 		.addBooleanOption((option) =>
 			option
 				.setName("show-all")
-				.setDescription("Show all the lobbies in the tryout. (Default: false)")
+				.setDescription("Include the lobbies that are no longer available. (Default: false)")
 				.setRequired(false),
 		),
 	execute: async (interaction: ChatInputCommandInteraction) => {
