@@ -24,7 +24,7 @@ const tryoutLobbyReminderTask = new AsyncTask(
 						gt: currentDate.toJSDate(),
 						lt: dateThreshold.toJSDate(),
 					},
-					isReminderSent: false,
+					is_reminder_sent: false,
 				},
 				include: {
 					players: {
@@ -143,7 +143,7 @@ const tryoutLobbyReminderTask = new AsyncTask(
 						},
 					},
 					data: {
-						isReminderSent: true,
+						is_reminder_sent: true,
 					},
 				});
 			});

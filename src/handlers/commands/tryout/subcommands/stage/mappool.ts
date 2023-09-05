@@ -114,7 +114,7 @@ export const mappool: SubCommand = {
 
 		if (
 			interaction.channel?.id === tryout.player_channel_id &&
-			!tryout.stages[0].isPublished &&
+			!tryout.stages[0].is_published &&
 			!isUserTryoutAdmin(interaction, tryout)
 		) {
 			console.log("no");
@@ -133,6 +133,7 @@ export const mappool: SubCommand = {
 		}
 
 		// TODO: For the love of anything please implement a custom sort function to do this or something cause this is sacrilege (or not, who knows...)
+		// TODO: Automate grouping the different mods as to not rely on the "extra" array in the object and support additional mods.
 		const mappoolObject = {
 			NM: tryout.stages[0].mappool
 				.filter((pick) => pick.pick_id.startsWith("NM"))
