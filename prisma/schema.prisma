@@ -247,7 +247,7 @@ model TryoutStage {
 
   lobbies TryoutLobby[]
 
-  mappool     TryoutMapPick[]
+  mappool      TryoutMapPick[]
   is_published Boolean         @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
@@ -330,6 +330,9 @@ model TryoutMapPick {
   stage    TryoutStage @relation(fields: [stage_id], references: [id])
   stage_id String
 
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
+
   @@id([pick_id, stage_id])
 }
 
@@ -352,6 +355,9 @@ model Beatmap {
   cover_url         String
 
   tryout_map_picks TryoutMapPick[]
+
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt
 }
 
 enum MatchStatus {
