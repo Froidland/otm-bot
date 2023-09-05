@@ -120,7 +120,7 @@ model Tournament {
   matches Match[]
   teams   Team[]
 
-  creator      User   @relation(fields: [creator_id], references: [id])
+  creator    User   @relation(fields: [creator_id], references: [id])
   creator_id String
 
   created_at DateTime @default(now()) @db.Timestamp(6)
@@ -202,7 +202,7 @@ model TeamInvite {
 }
 
 enum TeamInviteStatus {
-	Pending
+  Pending
   Accepted
   Rejected
 
@@ -238,16 +238,17 @@ model Tryout {
 }
 
 model TryoutStage {
-  id         String  @id
-  name       String
-  custom_id  String
+  id        String @id
+  name      String
+  custom_id String
 
   tryout    Tryout @relation(fields: [tryout_id], references: [id])
   tryout_id String
 
   lobbies TryoutLobby[]
 
-  // mappool maybe?
+  mappool     TryoutMapPick[]
+  isPublished Boolean         @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -269,7 +270,7 @@ model TryoutLobby {
 
   players PlayersOnTryoutLobbies[]
 
-	isReminderSent Boolean @default(false)
+  isReminderSent Boolean @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -319,6 +320,38 @@ model PlayersOnTeams {
 
   @@id([team_id, user_id])
   @@map("players_to_teams")
+}
+
+model TryoutMapPick {
+  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id])
+  beatmap_id Int?
+
+  pick_id  String
+  stage    TryoutStage @relation(fields: [stage_id], references: [id])
+  stage_id String
+
+  @@id([pick_id, stage_id])
+}
+
+model Beatmap {
+  id Int @id
+
+  beatmapset_id     Int
+  artist            String
+  title             String
+  difficulty_rating Float
+  circle_size       Float
+  hp_drain          Float
+  accuracy          Float
+  approach_rate     Float
+  mode              String
+  status            String
+  total_length      Int
+  creator           String
+  version           String
+  cover_url         String
+
+  tryout_map_picks TryoutMapPick[]
 }
 
 enum MatchStatus {
