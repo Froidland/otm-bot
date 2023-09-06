@@ -123,7 +123,7 @@ const tryoutLobbyReminderTask = new AsyncTask(
 				return fulfilledReminderLobbies;
 			})
 			.then(async (fulfilledReminders) => {
-				if (!fulfilledReminders) {
+				if (!fulfilledReminders || fulfilledReminders.length === 0) {
 					return;
 				}
 
