@@ -1,10 +1,12 @@
 import db from "@/db";
 import DiscordBot from "@/discordBot";
 import { logger } from "@/utils";
+import { EmbedBuilder } from "discord.js";
 import { DateTime, Duration } from "luxon";
 import { AsyncTask } from "toad-scheduler";
 
 // TODO: Needs a revisit cause this looks too convoluted.
+// TODO: Consider running these in a completely separate app/service.
 const tryoutLobbyReminderTask = new AsyncTask(
 	"tryout-lobby-reminder",
 	async () => {
@@ -31,6 +33,8 @@ const tryoutLobbyReminderTask = new AsyncTask(
 						select: {
 							player: {
 								select: {
+									osu_username: true,
+									osu_id: true,
 									discord_id: true,
 								},
 							},
@@ -61,16 +65,29 @@ const tryoutLobbyReminderTask = new AsyncTask(
 					return;
 				}
 
-				logger.info(`Seding ${lobbies.length} reminders...`);
+				logger.info(
+					`Sending ${lobbies.length} ${
+						lobbies.length > 1 ? "reminders" : "reminder"
+					}...`,
+				);
+
 				const fulfilledReminderLobbies = [];
 
 				for (const lobby of lobbies) {
-					const messagePromises = [];
 					if (lobby._count.players === 0) {
 						logger.info(
 							`Skipping lobby ${lobby.id} due to not having any players.`,
 						);
+
 						continue;
+					}
+
+					const messagePromises = [];
+					let staffMessage =
+						"The following players are registered for this lobby:\n\n";
+
+					for (const player of lobby.players) {
+						staffMessage += `• <@${player.player.discord_id}> | \`${player.player.osu_username}\` - \`!mp invite #${player.player.osu_id}\``;
 					}
 
 					const playerMentions = lobby.players.map((player) => {
@@ -88,33 +105,48 @@ const tryoutLobbyReminderTask = new AsyncTask(
 					if (playerChannel && playerChannel.isTextBased()) {
 						messagePromises.push(
 							playerChannel.send({
-								content: `Lobby \`${lobby.custom_id}\` starts in <t:${
-									lobby.schedule.getTime() / 1000
-								}:R>\n${playerMentions.join(" ")}`,
+								content: playerMentions.join(" "),
+								embeds: [
+									new EmbedBuilder()
+										.setColor("Blue")
+										.setTitle(
+											`Lobby ${lobby.custom_id} starts ${DateTime.fromJSDate(
+												lobby.schedule,
+											)
+												.setLocale("en-US")
+												.toRelative()}!`,
+										)
+										.setDescription(
+											lobby.referee
+												? `The referee <@${lobby.referee.discord_id}> will make the lobby soon, make sure you are in-game to receive your invite. `
+												: "The lobby will be made soon, make sure you are in-game to receive your invite.",
+										),
+								],
 							}),
 						);
 					}
 
 					if (staffChannel && staffChannel.isTextBased()) {
-						if (lobby.referee) {
-							messagePromises.push(
-								staffChannel.send({
-									content: `Lobby \`${lobby.custom_id}\` starts in <t:${
-										lobby.schedule.getTime() / 1000
-									}:R>, make sure you are able to ref it or unclaim it so that another referee can take it`,
-								}),
-							);
-						} else {
-							messagePromises.push(
-								staffChannel.send({
-									content: `Lobby \`${lobby.custom_id}\` starts in <t:${
-										lobby.schedule.getTime() / 1000
-									}:R> and has no referee. <@${
-										lobby.stage.tryout.referee_role_id
-									}>`,
-								}),
-							);
-						}
+						messagePromises.push(
+							staffChannel.send({
+								content: lobby.referee
+									? `<@${lobby.referee.discord_id}>`
+									: `<@&${lobby.stage.tryout.referee_role_id}>`,
+								embeds: [
+									new EmbedBuilder()
+										.setColor(lobby.referee ? "Blue" : "Red")
+										.setTitle(
+											`Lobby ${lobby.custom_id} starts ${DateTime.fromJSDate(
+												lobby.schedule,
+											)
+												.setLocale("en-US")
+												.toRelative()}` +
+												(lobby.referee ? "!" : " and has no referee!"),
+										)
+										.setDescription(staffMessage),
+								],
+							}),
+						);
 					}
 
 					fulfilledReminderLobbies.push(lobby.id);
