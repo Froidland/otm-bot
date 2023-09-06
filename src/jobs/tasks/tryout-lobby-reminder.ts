@@ -117,16 +117,7 @@ const tryoutLobbyReminderTask = new AsyncTask(
 						}
 					}
 
-					//? If any of the messages got sent, we mark the reminder as sent.
-					const messageSent = (await Promise.allSettled(messagePromises)).some(
-						(result) => {
-							result.status === "fulfilled";
-						},
-					);
-
-					if (messageSent) {
-						fulfilledReminderLobbies.push(lobby.id);
-					}
+					fulfilledReminderLobbies.push(lobby.id);
 				}
 
 				return fulfilledReminderLobbies;
