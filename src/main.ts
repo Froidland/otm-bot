@@ -6,8 +6,6 @@ import { scheduler } from "./jobs";
 import { SimpleIntervalJob } from "toad-scheduler";
 import tryoutLobbyReminderTask from "./jobs/tasks/tryout-lobby-reminder";
 
-// TODO: Implement runtime checks for the environment variables. (Maybe use zod for this)
-//? Take a look at https://github.com/lostfictions/znv
 // TODO: Rate limiting.
 // TODO: Graceful shutdown.
 
