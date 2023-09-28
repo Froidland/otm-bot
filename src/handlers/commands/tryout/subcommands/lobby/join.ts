@@ -96,6 +96,7 @@ export const join: SubCommand = {
 					tryout: {
 						player_channel_id: interaction.channel?.id,
 					},
+					is_published: true,
 				},
 			},
 			include: {

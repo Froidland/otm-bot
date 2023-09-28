@@ -72,6 +72,9 @@ export const list: SubCommand = {
 								},
 							},
 						},
+						where: {
+							is_published: true,
+						},
 						orderBy: {
 							created_at: "asc",
 						},
@@ -100,6 +103,7 @@ export const list: SubCommand = {
 									},
 								},
 							},
+							is_published: true,
 						},
 						include: {
 							lobbies: {
