@@ -11,9 +11,9 @@ import {
 } from "discord.js";
 import { v2 } from "osu-api-extended";
 
-export const pickSet: SubCommand = {
+export const mapSet: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
-		.setName("pick-set")
+		.setName("map-set")
 		.setDescription("Set a specific pick for the specified stage's mappool.")
 		.addStringOption((option) =>
 			option
@@ -156,6 +156,7 @@ export const pickSet: SubCommand = {
 				},
 			});
 		}
+
 		const mapLengthFormat = `${(beatmap.total_length / 60)
 			.toFixed(0)
 			.padStart(2, "0")}:${(beatmap.total_length % 60)

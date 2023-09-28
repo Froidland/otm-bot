@@ -9,9 +9,9 @@ import {
 	SlashCommandSubcommandBuilder,
 } from "discord.js";
 
-export const pickRemove: SubCommand = {
+export const mapRemove: SubCommand = {
 	data: new SlashCommandSubcommandBuilder()
-		.setName("pick-remove")
+		.setName("map-remove")
 		.setDescription("Remove a pick from the stage's mappool.")
 		.addStringOption((option) =>
 			option
