@@ -2,6 +2,7 @@ import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { SubCommand } from "@/interfaces";
 import { logger } from "@/utils";
+import { isUserTryoutAdmin, isUserTryoutReferee } from "@/utils/discordUtils";
 import {
 	ChatInputCommandInteraction,
 	EmbedBuilder,
@@ -82,6 +83,25 @@ export const join: SubCommand = {
 						.setTitle("Not registered!")
 						.setDescription(
 							"You must register for the tryout before joining a lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!tryout.allow_staff &&
+			(isUserTryoutReferee(interaction, tryout) ||
+				isUserTryoutAdmin(interaction, tryout))
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Staff not allowed!")
+						.setDescription(
+							"Staff members are not allowed to join lobbies in this tryout.",
 						),
 				],
 			});

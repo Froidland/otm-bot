@@ -220,6 +220,7 @@ model Tryout {
   referee_role_id   String
   player_role_id    String
   server_id         String
+  allow_staff Boolean @default(false)
   start_date        DateTime @db.Timestamp(6)
   end_date          DateTime @db.Timestamp(6)
 

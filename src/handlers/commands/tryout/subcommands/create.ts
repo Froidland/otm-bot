@@ -61,6 +61,14 @@ export const create: SubCommand = {
 				.addChannelTypes(ChannelType.GuildText)
 				.setRequired(false),
 		)
+		.addBooleanOption((option) =>
+			option
+				.setName("allow-staff")
+				.setDescription(
+					"Whether or not staff members can join the tryout. (Default: false)",
+				)
+				.setRequired(false),
+		)
 		.addRoleOption((option) =>
 			option
 				.setName("management-role")
@@ -181,6 +189,8 @@ export const create: SubCommand = {
 				zone: "utc",
 			},
 		);
+
+		const allowStaff = interaction.options.getBoolean("allow-staff") || false;
 
 		if (!startDate.isValid || !endDate.isValid) {
 			await interaction.editReply({
@@ -324,6 +334,7 @@ export const create: SubCommand = {
 					player_role_id: playerRole.id,
 					player_channel_id: playerChannel.id,
 					staff_channel_id: staffChannel.id,
+					allow_staff: allowStaff,
 					start_date: startDate.toJSDate(),
 					end_date: endDate.toJSDate(),
 					creator: {
