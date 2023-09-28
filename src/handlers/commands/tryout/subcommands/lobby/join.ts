@@ -148,9 +148,6 @@ export const join: SubCommand = {
 		}
 
 		try {
-			console.log(previousLobby);
-			console.log(lobby);
-
 			if (previousLobby) {
 				await db.tryoutLobby.update({
 					where: {
