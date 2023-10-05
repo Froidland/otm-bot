@@ -1,13 +1,10 @@
+import { ApplyOptions } from "@sapphire/decorators";
 import { Listener } from "@sapphire/framework";
 
+@ApplyOptions<Listener.Options>({
+	event: "error",
+})
 export class ErrorListener extends Listener {
-	public constructor(context: Listener.Context, options: Listener.Options) {
-		super(context, {
-			...options,
-			event: "error",
-		});
-	}
-
 	public run(error: Error) {
 		this.container.logger.error(error.stack);
 
