@@ -1,14 +1,11 @@
+import { ApplyOptions } from "@sapphire/decorators";
 import { Command } from "@sapphire/framework";
 import { SlashCommandBuilder, userMention } from "discord.js";
 
+@ApplyOptions<Command.Options>({
+	description: "Sends a ping message.",
+})
 export class PingCommand extends Command {
-	public constructor(context: Command.Context, options: Command.Options) {
-		super(context, {
-			...options,
-			description: "Sends a ping message.",
-		});
-	}
-
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder: SlashCommandBuilder) =>
 			builder //
