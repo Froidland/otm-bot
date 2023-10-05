@@ -6,7 +6,7 @@ import { EmbedBuilder } from "discord.js";
 	description:
 		"Help message for linking your discord account to your osu! account.",
 })
-export class UserCommand extends Command {
+export class LoginCommand extends Command {
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder //

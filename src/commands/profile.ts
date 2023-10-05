@@ -14,7 +14,7 @@ type Gamemode = (typeof gamemodes)[number];
 	description:
 		"Sends the profile of your linked username. Accepts a username as an optional argument.",
 })
-export class UserCommand extends Command {
+export class ProfileCommand extends Command {
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder //
