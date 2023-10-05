@@ -1,5 +1,5 @@
-import { logger } from "@/utils";
 import { PrismaClient } from "@prisma/client";
+import { container } from "@sapphire/framework";
 
 export const tournamentTypes = ["OneVsOne", "TeamBased"] as const;
 export const winConditions = ["Accuracy", "MissCount", "Score"] as const;
@@ -26,7 +26,7 @@ export type ScoringType = (typeof scoringTypes)[number];
 
 function getPrismaClient() {
 	if (process.env.NODE_ENV === "development") {
-		logger.debug("Using prisma client with logging enabled.");
+		container.logger.debug("Using prisma client with logging enabled.");
 
 		const client = new PrismaClient({
 			log: [
@@ -46,15 +46,15 @@ function getPrismaClient() {
 		});
 
 		client.$on("info", (e) => {
-			logger.debug(e.message);
+			container.logger.debug(e.message);
 		});
 
 		client.$on("warn", (e) => {
-			logger.warn(e.message);
+			container.logger.warn(e.message);
 		});
 
 		client.$on("query", (e) => {
-			logger.debug(e.duration + "ms " + e.query);
+			container.logger.debug(e.duration + "ms " + e.query);
 		});
 
 		return client;
