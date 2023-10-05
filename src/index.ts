@@ -2,6 +2,7 @@ import { SapphireClient, container } from "@sapphire/framework";
 import "@sapphire/plugin-logger";
 import { GatewayIntentBits } from "discord.js";
 import db from "./db";
+import { auth } from "osu-api-extended";
 
 async function bootstrap() {
 	const client = new SapphireClient({
@@ -13,6 +14,12 @@ async function bootstrap() {
 	});
 
 	try {
+		await auth.login(
+			+process.env.OSU_CLIENT_ID!,
+			process.env.OSU_CLIENT_SECRET!,
+			["public"],
+		);
+
 		await client.login(process.env.BOT_TOKEN);
 
 		await db.$connect();
