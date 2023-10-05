@@ -14,7 +14,7 @@ import {
 @ApplyOptions<InteractionHandler.Options>({
 	interactionHandlerType: InteractionHandlerTypes.Button,
 })
-export class ButtonHandler extends InteractionHandler {
+export class LeaveTryoutButtonHandler extends InteractionHandler {
 	public async run(interaction: ButtonInteraction) {
 		await interaction.deferReply({
 			ephemeral: true,
