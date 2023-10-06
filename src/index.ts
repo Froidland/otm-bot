@@ -1,5 +1,6 @@
-import { SapphireClient, container } from "@sapphire/framework";
-import "@sapphire/plugin-logger";
+import "@sapphire/plugin-hmr";
+import "@sapphire/plugin-logger/register";
+import { LogLevel, SapphireClient, container } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import db from "./db";
 import { auth } from "osu-api-extended";
@@ -7,15 +8,22 @@ import { scheduler } from "./background-jobs";
 import { SimpleIntervalJob } from "toad-scheduler";
 import tryoutLobbyReminderTask from "./background-jobs/tasks/tryout-lobby-reminder";
 
-async function bootstrap() {
-	const client = new SapphireClient({
-		intents: [
-			GatewayIntentBits.Guilds,
-			GatewayIntentBits.GuildMessages,
-			GatewayIntentBits.MessageContent,
-		],
-	});
+const client = new SapphireClient({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+	],
+	hmr: {
+		enabled: process.env.NODE_ENV === "development",
+	},
+	logger: {
+		level:
+			process.env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info,
+	},
+});
 
+async function bootstrap() {
 	try {
 		await auth.login(
 			+process.env.OSU_CLIENT_ID!,
@@ -24,6 +32,22 @@ async function bootstrap() {
 		);
 
 		await client.login(process.env.BOT_TOKEN);
+
+		if (process.env.NODE_ENV === "development") {
+			container.logger.info("Using PrismaClient with logging enabled.");
+
+			db.$on("info", (e) => {
+				container.logger.debug(e.message);
+			});
+
+			db.$on("warn", (e) => {
+				container.logger.warn(e.message);
+			});
+
+			db.$on("query", (e) => {
+				container.logger.debug(e.duration + "ms " + e.query);
+			});
+		}
 
 		await db.$connect();
 
