@@ -56,6 +56,14 @@ import { DateTime } from "luxon";
 					name: "assign",
 					chatInputRun: "chatInputPlayerAssign",
 				},
+				{
+					name: "unassign",
+					chatInputRun: "chatInputPlayerUnassign",
+				},
+				{
+					name: "unassign-id",
+					chatInputRun: "chatInputPlayerUnassignId",
+				},
 			],
 		},
 	],
@@ -242,6 +250,50 @@ export class LobbyCommand extends Subcommand {
 									option
 										.setName("player")
 										.setDescription("The user to assign to the lobby.")
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("unassign")
+								.setDescription(
+									"Manually unassign a player from a tryout lobby.",
+								)
+								.addStringOption((option) =>
+									option
+										.setName("lobby-id")
+										.setDescription(
+											"The ID of the lobby to unassign the player from.",
+										)
+										.setRequired(true),
+								)
+								.addUserOption((option) =>
+									option
+										.setName("player")
+										.setDescription("The user to unassign from the lobby.")
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("unassign-id")
+								.setDescription(
+									"Manually unassign a player from a tryout lobby by their osu! ID when the user is not in the server.",
+								)
+								.addStringOption((option) =>
+									option
+										.setName("lobby-id")
+										.setDescription(
+											"The ID of the lobby to unassign the player from.",
+										)
+										.setRequired(true),
+								)
+								.addStringOption((option) =>
+									option
+										.setName("player-id")
+										.setDescription(
+											"The osu! ID of the player to unassign from the lobby.",
+										)
 										.setRequired(true),
 								),
 						),
@@ -1847,6 +1899,372 @@ export class LobbyCommand extends Subcommand {
 			});
 
 			return;
+		}
+	}
+
+	public async chatInputPlayerUnassign(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
+
+		const playerOption = interaction.options.getUser("player", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel!.id,
+					},
+					{
+						staff_channel_id: interaction.channel!.id,
+					},
+				],
+			},
+			include: {
+				stages: {
+					where: {
+						lobbies: {
+							some: {
+								custom_id: lobbyId,
+							},
+						},
+					},
+					include: {
+						lobbies: {
+							where: {
+								custom_id: lobbyId,
+							},
+							include: {
+								players: {
+									where: {
+										player: {
+											discord_id: playerOption.id,
+										},
+									},
+									include: {
+										player: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!isUserTryoutReferee(interaction, tryout) &&
+			!isUserTryoutAdmin(interaction, tryout)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Not a referee!")
+						.setDescription(
+							"You are not a referee for this tryout. Please contact an organizer if you believe this is a mistake.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.stages.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No stages!")
+						.setDescription("There are no lobbies that match the provided ID."),
+				],
+			});
+
+			return;
+		}
+
+		//? At this point, lobby is guaranteed to exist because we only bring back stages that have lobbies that match the provided ID.
+		const lobby = tryout.stages[0].lobbies[0];
+
+		if (lobby.players.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No players!")
+						.setDescription(
+							"The player you are trying to unassign is not in this lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (lobby.players[0].played) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Already played!")
+						.setDescription(
+							"You cannot unassign a player that has already played a lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.playersOnTryoutLobbies.delete({
+				where: {
+					tryout_lobby_id_user_id: {
+						tryout_lobby_id: lobby.id,
+						user_id: lobby.players[0].player.id,
+					},
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success!")
+						.setDescription(
+							`Successfully unassigned <@${lobby.players[0].player.discord_id}> (\`${lobby.players[0].player.osu_username}\`) from lobby \`${lobby.custom_id}\`.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Something went wrong!")
+						.setDescription(
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+						),
+				],
+			});
+		}
+	}
+
+	public async chatInputPlayerUnassignId(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
+
+		const playerId = interaction.options.getString("player-id", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel!.id,
+					},
+					{
+						staff_channel_id: interaction.channel!.id,
+					},
+				],
+			},
+			include: {
+				stages: {
+					where: {
+						lobbies: {
+							some: {
+								custom_id: lobbyId,
+							},
+						},
+					},
+					include: {
+						lobbies: {
+							where: {
+								custom_id: lobbyId,
+							},
+							include: {
+								players: {
+									where: {
+										player: {
+											osu_id: playerId,
+										},
+									},
+									include: {
+										player: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!isUserTryoutReferee(interaction, tryout) &&
+			!isUserTryoutAdmin(interaction, tryout)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Not a referee!")
+						.setDescription(
+							"You are not a referee for this tryout. Please contact an organizer if you believe this is a mistake.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.stages.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No stages!")
+						.setDescription("There are no lobbies that match the provided ID."),
+				],
+			});
+
+			return;
+		}
+
+		//? At this point, lobby is guaranteed to exist because we only bring back stages that have lobbies that match the provided ID.
+		const lobby = tryout.stages[0].lobbies[0];
+
+		if (lobby.players.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No players!")
+						.setDescription(
+							"The player you are trying to unassign is not in this lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (lobby.players[0].played) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Already played!")
+						.setDescription(
+							"You cannot unassign a player that has already played a lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.playersOnTryoutLobbies.delete({
+				where: {
+					tryout_lobby_id_user_id: {
+						tryout_lobby_id: lobby.id,
+						user_id: lobby.players[0].player.id,
+					},
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success!")
+						.setDescription(
+							`Successfully unassigned <@${lobby.players[0].player.discord_id}> (\`${lobby.players[0].player.osu_username}\`) from lobby \`${lobby.custom_id}\`.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Something went wrong!")
+						.setDescription(
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+						),
+				],
+			});
 		}
 	}
 }
