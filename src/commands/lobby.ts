@@ -1852,6 +1852,23 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
+		if (
+			DateTime.fromJSDate(destinationLobby.schedule as Date) < DateTime.now()
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Lobby already played!")
+						.setDescription(
+							"The lobby you are trying to assign to has already been played.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		try {
 			if (originLobby) {
 				await db.playersOnTryoutLobbies.update({
