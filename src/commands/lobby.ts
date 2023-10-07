@@ -207,6 +207,22 @@ export class UserCommand extends Subcommand {
 			return;
 		}
 
+		if (startDate < DateTime.fromJSDate(stage.start_date as Date)
+		|| startDate > DateTime.fromJSDate(stage.end_date as Date)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							"The date you provided is not within the tryout's date range.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		const duplicateLobby = await db.tryoutLobby.findFirst({
 			where: {
 				custom_id: customId,
