@@ -241,6 +241,8 @@ model Tryout {
 model TryoutStage {
   id        String @id
   name      String
+  start_date DateTime @db.Timestamp(6)
+  end_date   DateTime @db.Timestamp(6)
   custom_id String
 
   tryout    Tryout @relation(fields: [tryout_id], references: [id])

@@ -701,13 +701,11 @@ export class TryoutCommand extends Subcommand {
 			await db.tryoutStage.create({
 				data: {
 					id,
+					start_date: startDate.toJSDate(),
+					end_date: endDate.toJSDate(),
 					custom_id: customId,
 					name,
-					tryout: {
-						connect: {
-							id: tryout.id,
-						},
-					},
+					tryout_id: tryout.id,
 				},
 			});
 
