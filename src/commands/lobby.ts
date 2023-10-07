@@ -951,6 +951,9 @@ export class LobbyCommand extends Subcommand {
 										},
 									},
 								},
+								orderBy: {
+									schedule: "asc",
+								},
 							},
 						},
 						where: {
@@ -1001,6 +1004,9 @@ export class LobbyCommand extends Subcommand {
 										},
 									},
 								},
+								orderBy: {
+									schedule: "asc",
+								}
 							},
 						},
 						orderBy: {
