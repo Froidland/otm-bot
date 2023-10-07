@@ -2,6 +2,7 @@ import db from "@/db";
 import { InvalidDateTime, NoAccountEmbed } from "@/embeds";
 import { isUserTryoutAdmin, isUserTryoutReferee } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
+import { Prisma } from "@prisma/client";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import { EmbedBuilder, SlashCommandSubcommandBuilder } from "discord.js";
@@ -13,6 +14,10 @@ import { DateTime } from "luxon";
 		{
 			name: "create",
 			chatInputRun: "chatInputCreate",
+		},
+		{
+			name: "batch-create",
+			chatInputRun: "chatInputBatchCreate",
 		},
 		{
 			name: "claim",
@@ -73,6 +78,55 @@ export class LobbyCommand extends Subcommand {
 									.setDescription("The player limit of the lobby.")
 									.setRequired(true)
 									.setMaxValue(16), //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
+						),
+				)
+				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
+					builder
+						.setName("batch-create")
+						.setDescription("Creates multiple tryout lobbies at once.")
+						.addStringOption((option) =>
+							option
+								.setName("stage-id")
+								.setDescription("The custom ID of the tryout stage.")
+								.setRequired(true),
+						)
+						.addStringOption((option) =>
+							option
+								.setName("custom-id-prefix")
+								.setDescription(
+									"The prefix of the custom ID of the lobbies. (Example: A)",
+								)
+								.setRequired(true),
+						)
+						.addStringOption((option) =>
+							option
+								.setName("start-date")
+								.setDescription(
+									"The start date of the lobbies. (Format: YYYY-MM-DD HH:MM)",
+								)
+								.setRequired(true),
+						)
+						.addNumberOption((option) =>
+							option
+								.setName("player-limit")
+								.setDescription("The player limit of the lobbies. (Max: 16)")
+								.setRequired(true)
+								.setMaxValue(16),
+						)
+						.addNumberOption((option) =>
+							option
+								.setName("count")
+								.setDescription("The amount of lobbies to create. (Max: 8)")
+								.setRequired(true)
+								.setMaxValue(8),
+						)
+						.addStringOption((option) =>
+							option
+								.setName("interval")
+								.setDescription(
+									"The interval between each lobby. (Format: HH:MM)",
+								)
+								.setRequired(true),
 						),
 				)
 				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
@@ -293,6 +347,213 @@ export class LobbyCommand extends Subcommand {
 						.setTitle("DB error!")
 						.setDescription(
 							"There was an error while creating the tryout lobby. All changes will be reverted. Please contact the bot owner if this error persists.",
+						),
+				],
+			});
+		}
+	}
+
+	public async chatInputBatchCreate(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const stageId = interaction.options
+			.getString("stage-id", true)
+			.toUpperCase();
+		const customIdPrefix = interaction.options
+			.getString("custom-id-prefix", true)
+			.toUpperCase();
+		const startDateOption = interaction.options.getString("start-date", true);
+		const playerLimit = interaction.options.getNumber("player-limit", true);
+		const count = interaction.options.getNumber("count", true);
+		const interval = interaction.options.getString("interval", true);
+
+		const startDate = DateTime.fromFormat(startDateOption, "yyyy-MM-dd HH:mm", {
+			zone: "utc",
+		});
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				staff_channel_id: interaction.channelId,
+			},
+			include: {
+				stages: {
+					where: {
+						custom_id: stageId,
+					},
+					include: {
+						lobbies: true,
+					},
+				},
+			},
+		});
+
+		if (!tryout || tryout.stages.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid stage!")
+						.setDescription(
+							"Please make sure you are in a tryout staff channel and that the stage exists.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const stage = tryout.stages[0];
+
+		if (startDate < DateTime.fromJSDate(stage.start_date as Date)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							"The date you provided is not within the tryout's date range.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const existingLobbies = stage.lobbies.filter((lobby) =>
+			lobby.custom_id.startsWith(customIdPrefix),
+		);
+
+		if (existingLobbies.length > 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Duplicate lobby ID!")
+						.setDescription(
+							"The custom prefix ID is already in use by another lobby. Please consider using a different one,using the `create` command instead or deleting the existing lobbies.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!startDate.isValid) {
+			await interaction.editReply({
+				embeds: [InvalidDateTime],
+			});
+
+			return;
+		}
+
+		const intervalDuration = DateTime.fromFormat(interval, "HH:mm", {
+			zone: "utc",
+		});
+
+		if (!intervalDuration.isValid) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid interval!")
+						.setDescription(
+							"The interval you provided is invalid. Please make sure it is in the format `HH:MM`.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const lobbiesToCreate: Prisma.TryoutLobbyCreateManyInput[] = [];
+
+		for (let i = 0; i < count; i++) {
+			const currentSchedule = startDate.plus({
+				hours: intervalDuration.hour * i,
+				minutes: intervalDuration.minute * i,
+			});
+
+			if (
+				currentSchedule.day !== startDate.day ||
+				currentSchedule > DateTime.fromJSDate(stage.end_date as Date)
+			) {
+				break;
+			}
+
+			lobbiesToCreate.push({
+				id: createId(),
+				player_limit: playerLimit,
+				custom_id: `${customIdPrefix}${i + 1}`,
+				schedule: startDate
+					.plus({
+						hours: intervalDuration.hour * i,
+						minutes: intervalDuration.minute * i,
+					})
+					.toJSDate(),
+				stageId: stage.id,
+			});
+		}
+
+		let embedDescription = "**__Tryout Lobbies info:__**\n";
+		embedDescription += `**Tryout:** \`${tryout.name}\`\n`;
+		embedDescription += `**Stage:** \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
+		embedDescription += `**Lobby count:** \`${lobbiesToCreate.length}\`\n\n`;
+		embedDescription += `**__Details:__**\n`;
+
+		for (const lobby of lobbiesToCreate) {
+			embedDescription += `Lobby \`${lobby.custom_id}\`\n`;
+			embedDescription += `\\- Unique ID: \`${lobby.id}\`\n`;
+			embedDescription += `\\- Start Date: \`${DateTime.fromJSDate(
+				lobby.schedule as Date,
+				{
+					zone: "utc",
+				},
+			).toRFC2822()}\` (<t:${DateTime.fromJSDate(
+				lobby.schedule as Date,
+			).toSeconds()}:R>)\n`;
+			embedDescription += `\\- Player Limit: \`${lobby.player_limit}\`\n`;
+			embedDescription += "\n";
+		}
+
+		try {
+			await db.tryoutLobby.createMany({
+				data: lobbiesToCreate,
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Tryout lobbies created!")
+						.setDescription(embedDescription),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("DB error!")
+						.setDescription(
+							"There was an error while creating the tryout lobbies. All changes will be reverted. Please contact the bot owner if this error persists.",
 						),
 				],
 			});
