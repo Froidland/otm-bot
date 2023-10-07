@@ -5,7 +5,11 @@ import { createId } from "@paralleldrive/cuid2";
 import { Prisma } from "@prisma/client";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
-import { EmbedBuilder, SlashCommandSubcommandBuilder } from "discord.js";
+import {
+	EmbedBuilder,
+	SlashCommandSubcommandBuilder,
+	userMention,
+} from "discord.js";
 import { DateTime } from "luxon";
 
 @ApplyOptions<Subcommand.Options>({
@@ -38,6 +42,10 @@ import { DateTime } from "luxon";
 		{
 			name: "list",
 			chatInputRun: "chatInputList",
+		},
+		{
+			name: "info",
+			chatInputRun: "chatInputInfo",
 		},
 	],
 })
@@ -186,6 +194,19 @@ export class LobbyCommand extends Subcommand {
 									"Include the lobbies that are no longer available. (Default: false)",
 								)
 								.setRequired(false),
+						),
+				)
+				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
+					builder
+						.setName("info")
+						.setDescription("Get information about a tryout lobby.")
+						.addStringOption((option) =>
+							option
+								.setName("lobby-id")
+								.setDescription(
+									"The custom ID of the lobby to get information about.",
+								)
+								.setRequired(true),
 						),
 				),
 		);
@@ -1269,7 +1290,7 @@ export class LobbyCommand extends Subcommand {
 								},
 								orderBy: {
 									schedule: "asc",
-								}
+								},
 							},
 						},
 						orderBy: {
@@ -1352,6 +1373,150 @@ export class LobbyCommand extends Subcommand {
 					.setDescription(embedDescription)
 					.setFooter({
 						text: "The times displayed are localized to your timezone.",
+					}),
+			],
+		});
+	}
+
+	public async chatInputInfo(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel!.id,
+					},
+					{
+						staff_channel_id: interaction.channel!.id,
+					},
+				],
+			},
+			include: {
+				stages: {
+					include: {
+						lobbies: {
+							where: {
+								custom_id: lobbyId,
+							},
+							include: {
+								referee: true,
+								players: {
+									include: {
+										player: true,
+									},
+								},
+								_count: {
+									select: {
+										players: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.stages.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No stages!")
+						.setDescription("There are no stages in this tryout yet."),
+				],
+			});
+
+			return;
+		}
+
+		const stage = tryout.stages[0];
+
+		if (stage.lobbies.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No lobbies!")
+						.setDescription("There are no lobbies in this stage yet."),
+				],
+			});
+
+			return;
+		}
+
+		const lobby = stage.lobbies[0];
+
+		let embedDescription = "**Details:**\n";
+		embedDescription += `\\- **Stage:** \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
+		embedDescription += `\\- **Lobby:** \`${lobby.custom_id}\`\n`;
+		embedDescription += `\\- **Referee:** ${
+			lobby.referee ? `<@${lobby.referee.discord_id}>` : "*No referee assigned*"
+		}\n`;
+		embedDescription += `\\- **Schedule:** \`${DateTime.fromJSDate(
+			lobby.schedule as Date,
+			{
+				zone: "utc",
+			},
+		).toRFC2822()}\` (<t:${DateTime.fromJSDate(
+			lobby.schedule as Date,
+		).toSeconds()}:R>)\n\n`;
+		embedDescription += `**Players (${lobby._count.players}/${lobby.player_limit}):**\n`;
+
+		if (lobby._count.players > 0) {
+			for (const player of lobby.players) {
+				embedDescription += `\\- ${userMention(player.player.discord_id!)} (\`${
+					player.player.osu_username
+				}\`)\n`;
+			}
+		} else {
+			embedDescription += "*No players in this lobby*\n";
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle(`Lobby \`${lobby.custom_id}\` info`)
+					.setDescription(embedDescription)
+					.setFooter({
+						text: `Unique ID: ${lobby.id}`,
 					}),
 			],
 		});
