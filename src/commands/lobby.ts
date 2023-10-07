@@ -205,14 +205,6 @@ export class LobbyCommand extends Subcommand {
 						.setName("list")
 						.setDescription(
 							"List all the lobbies in the tryout. By default, this will only show the pending lobbies.",
-						)
-						.addBooleanOption((option) =>
-							option
-								.setName("show-all")
-								.setDescription(
-									"Include the lobbies that are no longer available. (Default: false)",
-								)
-								.setRequired(false),
 						),
 				)
 				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
@@ -1287,8 +1279,6 @@ export class LobbyCommand extends Subcommand {
 			ephemeral: true,
 		});
 
-		const showAll = interaction.options.getBoolean("show-all") ?? false;
-
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
@@ -1305,95 +1295,43 @@ export class LobbyCommand extends Subcommand {
 
 		let tryout = null;
 
-		if (showAll) {
-			tryout = await db.tryout.findFirst({
-				where: {
-					OR: [
-						{
-							player_channel_id: interaction.channel!.id,
-						},
-						{
-							staff_channel_id: interaction.channel!.id,
-						},
-					],
-				},
-				include: {
-					stages: {
-						include: {
-							lobbies: {
-								include: {
-									referee: true,
-									_count: {
-										select: {
-											players: true,
-										},
+		tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel!.id,
+					},
+					{
+						staff_channel_id: interaction.channel!.id,
+					},
+				],
+			},
+			include: {
+				stages: {
+					include: {
+						lobbies: {
+							include: {
+								referee: true,
+								_count: {
+									select: {
+										players: true,
 									},
 								},
-								orderBy: {
-									schedule: "asc",
-								},
 							},
-						},
-						where: {
-							is_published: true,
-						},
-						orderBy: {
-							created_at: "asc",
+							orderBy: {
+								schedule: "asc",
+							},
 						},
 					},
-				},
-			});
-		} else {
-			tryout = await db.tryout.findFirst({
-				where: {
-					OR: [
-						{
-							player_channel_id: interaction.channel!.id,
-						},
-						{
-							staff_channel_id: interaction.channel!.id,
-						},
-					],
-				},
-				include: {
-					stages: {
-						where: {
-							lobbies: {
-								every: {
-									schedule: {
-										gt: DateTime.now().toJSDate(),
-									},
-								},
-							},
-							is_published: true,
-						},
-						include: {
-							lobbies: {
-								where: {
-									schedule: {
-										gt: DateTime.now().toJSDate(),
-									},
-								},
-								include: {
-									referee: true,
-									_count: {
-										select: {
-											players: true,
-										},
-									},
-								},
-								orderBy: {
-									schedule: "asc",
-								},
-							},
-						},
-						orderBy: {
-							created_at: "asc",
-						},
+					where: {
+						is_published: true,
+					},
+					orderBy: {
+						created_at: "asc",
 					},
 				},
-			});
-		}
+			},
+		});
 
 		if (!tryout) {
 			await interaction.editReply({
