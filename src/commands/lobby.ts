@@ -293,7 +293,6 @@ export class LobbyCommand extends Subcommand {
 		);
 	}
 
-	// TODO: Set up proper permissions for this command.
 	public async chatInputCreate(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -346,6 +345,9 @@ export class LobbyCommand extends Subcommand {
 					staff_channel_id: interaction.channelId,
 				},
 			},
+			include: {
+				tryout: true,
+			},
 		});
 
 		if (!stage) {
@@ -356,6 +358,21 @@ export class LobbyCommand extends Subcommand {
 						.setTitle("Invalid stage!")
 						.setDescription(
 							"Please make sure you are in a tryout staff channel and that the stage exists.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, stage.tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription(
+							"You do not have the required permissions to create a tryout lobby.",
 						),
 				],
 			});
@@ -510,6 +527,21 @@ export class LobbyCommand extends Subcommand {
 						.setTitle("Invalid stage!")
 						.setDescription(
 							"Please make sure you are in a tryout staff channel and that the stage exists.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription(
+							"You do not have the required permissions to create a tryout lobby.",
 						),
 				],
 			});
