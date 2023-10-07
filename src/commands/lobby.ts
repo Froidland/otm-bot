@@ -416,10 +416,7 @@ export class LobbyCommand extends Subcommand {
 				stages: {
 					where: {
 						custom_id: stageId,
-					},
-					include: {
-						lobbies: true,
-					},
+					}
 				},
 			},
 		});
@@ -456,7 +453,15 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		const existingLobbies = stage.lobbies.filter((lobby) =>
+		const lobbies = await db.tryoutLobby.findMany({
+			where: {
+				stage: {
+					tryout_id: tryout.id,
+				}
+			}
+		})
+
+		const existingLobbies = lobbies.filter((lobby) =>
 			lobby.custom_id.startsWith(customIdPrefix),
 		);
 
