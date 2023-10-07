@@ -36,7 +36,7 @@ import { DateTime } from "luxon";
 		},
 	],
 })
-export class UserCommand extends Subcommand {
+export class LobbyCommand extends Subcommand {
 	public override registerApplicationCommands(registry: Subcommand.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder //
