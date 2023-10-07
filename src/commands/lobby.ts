@@ -773,6 +773,21 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
+		if (DateTime.fromJSDate(lobby.schedule as Date) < DateTime.now()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This lobby has already started. You cannot claim a lobby that has already started.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		try {
 			await db.tryoutLobby.update({
 				where: {
