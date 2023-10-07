@@ -1597,7 +1597,7 @@ export class LobbyCommand extends Subcommand {
 			for (const player of lobby.players) {
 				embedDescription += `\\- ${userMention(player.player.discord_id!)} (\`${
 					player.player.osu_username
-				}\`)\n`;
+				}\` - \`#${player.player.osu_id}\`)\n`;
 			}
 		} else {
 			embedDescription += "*No players in this lobby*\n";
