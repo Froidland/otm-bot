@@ -8,6 +8,7 @@ import { Subcommand } from "@sapphire/plugin-subcommands";
 import {
 	EmbedBuilder,
 	SlashCommandSubcommandBuilder,
+	SlashCommandSubcommandGroupBuilder,
 	userMention,
 } from "discord.js";
 import { DateTime } from "luxon";
@@ -46,6 +47,16 @@ import { DateTime } from "luxon";
 		{
 			name: "info",
 			chatInputRun: "chatInputInfo",
+		},
+		{
+			name: "player",
+			type: "group",
+			entries: [
+				{
+					name: "assign",
+					chatInputRun: "chatInputPlayerAssign",
+				},
+			],
 		},
 	],
 })
@@ -207,6 +218,40 @@ export class LobbyCommand extends Subcommand {
 									"The custom ID of the lobby to get information about.",
 								)
 								.setRequired(true),
+						),
+				)
+				.addSubcommandGroup((builder: SlashCommandSubcommandGroupBuilder) =>
+					builder
+						.setName("player")
+						.setDescription("Commands for managing players in a tryout lobby.")
+						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
+							builder
+								.setName("assign")
+								.setDescription(
+									"Manually assign a player to a tryout lobby. (This will override the player's current lobby)",
+								)
+								.addStringOption((option) =>
+									option
+										.setName("stage-id")
+										.setDescription(
+											"The ID of the tryout stage to assign the player to.",
+										)
+										.setRequired(true),
+								)
+								.addStringOption((option) =>
+									option
+										.setName("lobby-id")
+										.setDescription(
+											"The ID of the lobby to assign the player to.",
+										)
+										.setRequired(true),
+								)
+								.addUserOption((option) =>
+									option
+										.setName("player")
+										.setDescription("The user to assign to the lobby.")
+										.setRequired(true),
+								),
 						),
 				),
 		);
@@ -416,7 +461,7 @@ export class LobbyCommand extends Subcommand {
 				stages: {
 					where: {
 						custom_id: stageId,
-					}
+					},
 				},
 			},
 		});
@@ -457,9 +502,9 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				stage: {
 					tryout_id: tryout.id,
-				}
-			}
-		})
+				},
+			},
+		});
 
 		const existingLobbies = lobbies.filter((lobby) =>
 			lobby.custom_id.startsWith(customIdPrefix),
@@ -1525,5 +1570,291 @@ export class LobbyCommand extends Subcommand {
 					}),
 			],
 		});
+	}
+
+	public async chatInputPlayerAssign(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const stageId = interaction.options
+			.getString("stage-id", true)
+			.toUpperCase();
+
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.toUpperCase();
+
+		const playerOption = interaction.options.getUser("player", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel!.id,
+					},
+					{
+						staff_channel_id: interaction.channel!.id,
+					},
+				],
+			},
+			include: {
+				stages: {
+					where: {
+						custom_id: stageId,
+					},
+					include: {
+						lobbies: {
+							where: {
+								OR: [
+									{
+										players: {
+											some: {
+												player: {
+													discord_id: playerOption.id,
+												},
+											},
+										},
+									},
+									{
+										custom_id: lobbyId,
+									},
+								],
+							},
+							include: {
+								players: {
+									where: {
+										player: {
+											discord_id: playerOption.id,
+										},
+									},
+								},
+								_count: {
+									select: {
+										players: true,
+									},
+								},
+							},
+						},
+					},
+				},
+				players: {
+					where: {
+						player: {
+							discord_id: playerOption.id,
+						},
+					},
+					include: {
+						player: {
+							include: {
+								tryout_lobbies: {
+									where: {
+										tryoutLobby: {
+											custom_id: lobbyId,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!isUserTryoutReferee(interaction, tryout) &&
+			!isUserTryoutAdmin(interaction, tryout)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Not a referee!")
+						.setDescription(
+							"You are not a referee for this tryout. Please contact an organizer if you believe this is a mistake.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.players.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No players!")
+						.setDescription(
+							"There are no players in this tryout that match the provided osu! ID.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const player = tryout.players[0];
+
+		if (tryout.stages.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No stages!")
+						.setDescription("There are no stages that match the provided ID."),
+				],
+			});
+
+			return;
+		}
+
+		const stage = tryout.stages[0];
+
+		const originLobby = stage.lobbies.find((lobby) => {
+			return lobby.custom_id !== lobbyId;
+		});
+
+		const destinationLobby = stage.lobbies.find((lobby) => {
+			return lobby.custom_id === lobbyId;
+		});
+
+		if (!destinationLobby) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid lobby!")
+						.setDescription(
+							"The lobby you are trying to assign to does not exist.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (destinationLobby.players.length > 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Already assigned!")
+						.setDescription(
+							`The player you are trying to assign is already in lobby \`${destinationLobby.custom_id}\`.`,
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (originLobby && originLobby.players[0].played) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Already played!")
+						.setDescription(
+							"You cannot assign a player that has already played a lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (destinationLobby._count.players >= destinationLobby.player_limit) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Lobby full!")
+						.setDescription(
+							"The lobby you are trying to assign to is already full.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			if (originLobby) {
+				await db.playersOnTryoutLobbies.update({
+					where: {
+						tryout_lobby_id_user_id: {
+							tryout_lobby_id: originLobby.id,
+							user_id: player.player.id,
+						},
+					},
+					data: {
+						tryout_lobby_id: destinationLobby.id,
+					},
+				});
+			} else {
+				await db.playersOnTryoutLobbies.create({
+					data: {
+						tryout_lobby_id: destinationLobby.id,
+						user_id: player.player.id,
+					},
+				});
+			}
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success!")
+						.setDescription(
+							`Successfully assigned <@${player.player.discord_id}> (\`${player.player.osu_username}\`) to lobby \`${destinationLobby.custom_id}\`.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Something went wrong!")
+						.setDescription(
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+						),
+				],
+			});
+
+			return;
+		}
 	}
 }
