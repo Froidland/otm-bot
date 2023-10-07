@@ -1,4 +1,8 @@
 {
+	"ts-node": {
+		"require": ["tsconfig-paths/register", "dotenv-safe/config"],
+		"files": true
+	},
 	"compilerOptions": {
 		/* Projects */
 		"incremental": true /* Save .tsbuildinfo files to allow for incremental compilation of projects. */,
@@ -99,8 +103,5 @@
 		/* Completeness */
 		// "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
 		"skipLibCheck": true /* Skip type checking all .d.ts files. */
-	},
-	"ts-node": {
-		"require": ["tsconfig-paths/register"]
 	}
 }
