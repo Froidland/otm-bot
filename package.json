@@ -4,12 +4,12 @@
 	"description": "osu! tournament manager bot",
 	"main": "/src/index.ts",
 	"scripts": {
-		"start": "ts-node --require dotenv-safe/config --files src/index.ts",
+		"start": "ts-node src/index.ts",
 		"start:prod": "npx prisma migrate deploy && ts-node src/index.ts",
 		"start:bun": "bun src/index.ts",
-		"dev": "cross-env NODE_ENV=development ts-node --require dotenv-safe/config --files src/index.ts",
-		"lint": "eslint .  --ext .ts",
-		"lint:fix": "eslint .  --ext .ts --fix"
+		"dev": "cross-env NODE_ENV=development ts-node src/index.ts",
+		"lint": "eslint . --ext .ts",
+		"lint:fix": "eslint . --ext .ts --fix"
 	},
 	"keywords": [
 		"discord.js",
