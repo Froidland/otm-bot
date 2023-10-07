@@ -232,14 +232,6 @@ export class LobbyCommand extends Subcommand {
 								)
 								.addStringOption((option) =>
 									option
-										.setName("stage-id")
-										.setDescription(
-											"The ID of the tryout stage to assign the player to.",
-										)
-										.setRequired(true),
-								)
-								.addStringOption((option) =>
-									option
 										.setName("lobby-id")
 										.setDescription(
 											"The ID of the lobby to assign the player to.",
@@ -1577,10 +1569,6 @@ export class LobbyCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
-		const stageId = interaction.options
-			.getString("stage-id", true)
-			.toUpperCase();
-
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
 			.toUpperCase();
@@ -1615,7 +1603,11 @@ export class LobbyCommand extends Subcommand {
 			include: {
 				stages: {
 					where: {
-						custom_id: stageId,
+						lobbies: {
+							some: {
+								custom_id: lobbyId,
+							},
+						},
 					},
 					include: {
 						lobbies: {
