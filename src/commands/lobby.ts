@@ -207,8 +207,10 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		if (startDate < DateTime.fromJSDate(stage.start_date as Date)
-		|| startDate > DateTime.fromJSDate(stage.end_date as Date)) {
+		if (
+			startDate < DateTime.fromJSDate(stage.start_date as Date) ||
+			startDate > DateTime.fromJSDate(stage.end_date as Date)
+		) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
