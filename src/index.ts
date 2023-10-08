@@ -24,6 +24,8 @@ const client = new SapphireClient({
 	},
 });
 
+// TODO: Rate limiting.
+// TODO: Graceful shutdown.
 async function bootstrap() {
 	try {
 		await auth.login(
@@ -56,6 +58,8 @@ async function bootstrap() {
 
 		await db.$connect();
 
+		// TODO: Use something like BullMQ to queue all the reminders and limit the concurrency.
+		// TODO: Consider registering the jobs once the discord client is ready.
 		scheduler.addSimpleIntervalJob(
 			new SimpleIntervalJob(
 				{

@@ -190,6 +190,7 @@ export class TeamCommand extends Subcommand {
 		}
 	}
 
+	// TODO: Check for existing team invites.
 	public async chatInputRunInvite(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {

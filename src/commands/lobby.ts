@@ -1346,6 +1346,7 @@ export class LobbyCommand extends Subcommand {
 		}
 	}
 
+	// TODO: Implement pagination.
 	public async chatInputListAll(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -1484,6 +1485,7 @@ export class LobbyCommand extends Subcommand {
 		});
 	}
 
+	// TODO: Implement pagination.
 	public async chatInputListJoined(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {

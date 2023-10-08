@@ -314,6 +314,7 @@ export class TryoutCommand extends Subcommand {
 		);
 	}
 
+	// TODO: Add the ability to set restrictions to the tryout, like only players with a certain role can join, or players from a specific country.
 	public async chatInputCreate(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -1248,6 +1249,10 @@ export class TryoutCommand extends Subcommand {
 		});
 	}
 
+	// TODO: Add an interactive message to confirm publication of the stage.
+	// TODO: Maybe add an option to send a message in a channel when the pool is published.
+	// TODO: Add an option to the above setting to ping players or not. (Default to no)
+	// TODO: Add checks for numbered picks (NM1, NM2, NM3...) in case a number is skipped and send a warning in the confirmation message (ex: NM1, NM3, NM4 | missing NM2)
 	public async chatInputStagePublish(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {

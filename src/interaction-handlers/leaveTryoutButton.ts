@@ -11,6 +11,7 @@ import {
 	GuildMemberRoleManager,
 } from "discord.js";
 
+// TODO: Check if player has registered for a lobby. Maybe unregister them and then remove their role?.
 @ApplyOptions<InteractionHandler.Options>({
 	interactionHandlerType: InteractionHandlerTypes.Button,
 })

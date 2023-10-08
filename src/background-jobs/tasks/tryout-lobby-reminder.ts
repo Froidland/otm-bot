@@ -4,6 +4,7 @@ import { DateTime, Duration } from "luxon";
 import { AsyncTask } from "toad-scheduler";
 import { container } from "@sapphire/framework";
 
+// TODO: Send a confirmation message to the referee to confirm his presence.
 // TODO: Needs a revisit cause this looks too convoluted.
 // TODO: Consider running these in a completely separate app/service.
 const tryoutLobbyReminderTask = new AsyncTask(
