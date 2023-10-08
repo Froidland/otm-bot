@@ -1,7 +1,7 @@
 import { Precondition } from "@sapphire/framework";
 import { ChatInputCommandInteraction, GuildMember } from "discord.js";
 
-export class AdminOnlyPrecondition extends Precondition {
+export class ServerAdminOnlyPrecondition extends Precondition {
 	public override chatInputRun(interaction: ChatInputCommandInteraction) {
 		if (!interaction.member) {
 			return this.error({ message: "User is not member." });
@@ -27,6 +27,6 @@ export class AdminOnlyPrecondition extends Precondition {
 
 declare module "@sapphire/framework" {
 	export interface Preconditions {
-		AdminOnly: never;
+		ServerAdminOnly: never;
 	}
 }
