@@ -39,6 +39,10 @@ function getPrismaClient() {
 					level: "warn",
 					emit: "event",
 				},
+				{
+					level: "error",
+					emit: "event",
+				},
 			],
 		});
 
