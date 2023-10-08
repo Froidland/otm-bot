@@ -1492,6 +1492,7 @@ export class LobbyCommand extends Subcommand {
 		});
 
 		const player = interaction.options.getUser("player", false);
+		let playerData = null;
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1554,6 +1555,29 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
+		if (player) {
+			playerData = await db.user.findFirst({
+				where: {
+					discord_id: player.id,
+				},
+			});
+
+			if (!playerData) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Invalid player!")
+							.setDescription(
+								"The player you provided does not have an account.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
 		const lobbies = await db.tryoutLobby.findMany({
 			where: {
 				players: {
@@ -1590,7 +1614,9 @@ export class LobbyCommand extends Subcommand {
 						.setColor("Red")
 						.setTitle("Not in any lobbies!")
 						.setDescription(
-							"You are not in any lobbies. Please join a lobby before using this command.",
+							player
+								? "This player is not in any lobbies."
+								: "You are not in any lobbies. Please join a lobby before using this command.",
 						),
 				],
 			});
@@ -1615,7 +1641,11 @@ export class LobbyCommand extends Subcommand {
 			embeds: [
 				new EmbedBuilder()
 					.setColor("Blue")
-					.setTitle("List of lobbies")
+					.setTitle(
+						player
+							? `Lobbies joined by ${playerData?.osu_username}`
+							: "List of lobbies",
+					)
 					.setDescription(embedDescription)
 					.setFooter({
 						text: "The times displayed are localized to your timezone.",
