@@ -37,20 +37,26 @@ import { v2 } from "osu-api-extended";
 					chatInputRun: "chatInputStageCreate",
 				},
 				{
-					name: "map-remove",
-					chatInputRun: "chatInputStageMapRemove",
-				},
-				{
-					name: "map-set",
-					chatInputRun: "chatInputStageMapSet",
-				},
-				{
 					name: "mappool",
 					chatInputRun: "chatInputStageMappool",
 				},
 				{
 					name: "publish",
 					chatInputRun: "chatInputStagePublish",
+				},
+			],
+		},
+		{
+			name: "map",
+			type: "group",
+			entries: [
+				{
+					name: "set",
+					chatInputRun: "chatInputMapSet",
+				},
+				{
+					name: "remove",
+					chatInputRun: "chatInputMapRemove",
 				},
 			],
 		},
@@ -204,7 +210,36 @@ export class TryoutCommand extends Subcommand {
 						)
 						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
 							builder
-								.setName("map-set")
+								.setName("mappool")
+								.setDescription("View the specified stage's mappool.")
+								.addStringOption((option) =>
+									option
+										.setName("stage-id")
+										.setDescription(
+											"The custom ID of the stage to view the mappool for.",
+										)
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
+							builder
+								.setName("publish")
+								.setDescription("Publishes the specified tryout stage.")
+								.addStringOption((option) =>
+									option
+										.setName("stage-id")
+										.setDescription("The custom ID of the stage to publish.")
+										.setRequired(true),
+								),
+						),
+				)
+				.addSubcommandGroup((builder) =>
+					builder
+						.setName("map")
+						.setDescription("Commands for managing tryout maps.")
+						.addSubcommand((builder) =>
+							builder
+								.setName("set")
 								.setDescription(
 									"Set a specific pick for the specified stage's mappool.",
 								)
@@ -233,10 +268,12 @@ export class TryoutCommand extends Subcommand {
 										.setRequired(true),
 								),
 						)
-						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
+						.addSubcommand((builder) =>
 							builder
-								.setName("map-remove")
-								.setDescription("Remove a pick from the stage's mappool.")
+								.setName("remove")
+								.setDescription(
+									"Remove a specific pick for the specified stage's mappool.",
+								)
 								.addStringOption((option) =>
 									option
 										.setName("stage-id")
@@ -249,30 +286,6 @@ export class TryoutCommand extends Subcommand {
 									option
 										.setName("pick")
 										.setDescription("The pick to remove. (Example: NM2)")
-										.setRequired(true),
-								),
-						)
-						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
-							builder
-								.setName("mappool")
-								.setDescription("View the specified stage's mappool.")
-								.addStringOption((option) =>
-									option
-										.setName("stage-id")
-										.setDescription(
-											"The custom ID of the stage to view the mappool for.",
-										)
-										.setRequired(true),
-								),
-						)
-						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
-							builder
-								.setName("publish")
-								.setDescription("Publishes the specified tryout stage.")
-								.addStringOption((option) =>
-									option
-										.setName("stage-id")
-										.setDescription("The custom ID of the stage to publish.")
 										.setRequired(true),
 								),
 						),
@@ -687,7 +700,7 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputStageMapRemove(
+	public async chatInputMapRemove(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -837,7 +850,7 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputStageMapSet(
+	public async chatInputMapSet(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
