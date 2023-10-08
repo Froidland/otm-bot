@@ -1230,7 +1230,9 @@ export class TryoutCommand extends Subcommand {
 					?.artist} - ${map.beatmap?.title} [${map.beatmap
 					?.version}] [${map.beatmap?.difficulty_rating.toFixed(
 					2,
-				)}★]](https://osu.ppy.sh/beatmaps/${map.beatmap_id})\n`;
+				)}★]](https://osu.ppy.sh/beatmaps/${map.beatmap_id}) \`#${
+					map.beatmap_id
+				}\`\n`;
 			}
 
 			embedDescription += "\n";
