@@ -41,12 +41,22 @@ import { DateTime } from "luxon";
 			chatInputRun: "chatInputLeave",
 		},
 		{
-			name: "list",
-			chatInputRun: "chatInputList",
-		},
-		{
 			name: "info",
 			chatInputRun: "chatInputInfo",
+		},
+		{
+			name: "list",
+			type: "group",
+			entries: [
+				{
+					name: "all",
+					chatInputRun: "chatInputListAll",
+				},
+				{
+					name: "joined",
+					chatInputRun: "chatInputListJoined",
+				},
+			],
 		},
 		{
 			name: "player",
@@ -202,13 +212,6 @@ export class LobbyCommand extends Subcommand {
 				)
 				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
 					builder
-						.setName("list")
-						.setDescription(
-							"List all the lobbies in the tryout. By default, this will only show the pending lobbies.",
-						),
-				)
-				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
-					builder
 						.setName("info")
 						.setDescription("Get information about a tryout lobby.")
 						.addStringOption((option) =>
@@ -218,6 +221,30 @@ export class LobbyCommand extends Subcommand {
 									"The custom ID of the lobby to get information about.",
 								)
 								.setRequired(true),
+						),
+				)
+				.addSubcommandGroup((builder) =>
+					builder
+						.setName("list")
+						.setDescription("Commands for listing tryout lobbies.")
+						.addSubcommand((builder) =>
+							builder
+								.setName("all")
+								.setDescription(
+									"List all the lobbies in the tryout. By default, this will only show the pending lobbies.",
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("joined")
+								.setDescription("List the lobbies that you have joined.")
+								.addUserOption((option) =>
+									option
+										.setName("player")
+										.setDescription(
+											"The user to list the lobbies that they have joined.",
+										),
+								),
 						),
 				)
 				.addSubcommandGroup((builder: SlashCommandSubcommandGroupBuilder) =>
@@ -1319,7 +1346,7 @@ export class LobbyCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputList(
+	public async chatInputListAll(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({
@@ -1442,6 +1469,146 @@ export class LobbyCommand extends Subcommand {
 			}
 
 			embedDescription += "\n";
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("List of lobbies")
+					.setDescription(embedDescription)
+					.setFooter({
+						text: "The times displayed are localized to your timezone.",
+					}),
+			],
+		});
+	}
+
+	public async chatInputListJoined(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({
+			ephemeral: true,
+		});
+
+		const player = interaction.options.getUser("player", false);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel!.id,
+					},
+					{
+						staff_channel_id: interaction.channel!.id,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			player &&
+			(!isUserTryoutReferee(interaction, tryout) ||
+				!isUserTryoutAdmin(interaction, tryout))
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Not allowed!")
+						.setDescription(
+							"You are not allowed to view the lobbies joined by other players.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const lobbies = await db.tryoutLobby.findMany({
+			where: {
+				players: {
+					some: {
+						player: player ? { discord_id: player.id } : { id: user.id },
+					},
+				},
+				stage: {
+					tryout: {
+						id: tryout.id,
+					},
+				},
+			},
+			include: {
+				stage: true,
+				referee: true,
+				players: {
+					where: {
+						user_id: user.id,
+					},
+				},
+				_count: {
+					select: {
+						players: true,
+					},
+				},
+			},
+		});
+
+		if (lobbies.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Not in any lobbies!")
+						.setDescription(
+							"You are not in any lobbies. Please join a lobby before using this command.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		let embedDescription = "";
+
+		for (const lobby of lobbies) {
+			embedDescription += `**Stage** \`${lobby.stage.name}\` (\`${lobby.stage.custom_id}\`)\n`;
+			embedDescription += `\\- \`${lobby.custom_id}\` (\`${
+				lobby._count.players
+			}/${lobby.player_limit}\`) <t:${lobby.schedule.getTime() / 1000}:R> | ${
+				lobby.referee
+					? `Referee: <@${lobby.referee.discord_id}>`
+					: "*No Referee*"
+			} | ${lobby.players[0].played ? "*Played*" : "*Not Played*"}\n\n`;
 		}
 
 		await interaction.editReply({
