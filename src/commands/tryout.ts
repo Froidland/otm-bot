@@ -1416,7 +1416,6 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
-	// TODO: This shouldn't be able to be executed by anyone.
 	public async chatInputEmbedSend(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -1450,6 +1449,19 @@ export class TryoutCommand extends Subcommand {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription("This channel is not a tryout staff channel."),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
 				],
 			});
 
