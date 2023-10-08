@@ -29,16 +29,16 @@ import { v2 } from "osu-api-extended";
 			preconditions: ["AdminOnly"],
 		},
 		{
+			name: "mappool",
+			chatInputRun: "chatInputMappool",
+		},
+		{
 			name: "stage",
 			type: "group",
 			entries: [
 				{
 					name: "create",
 					chatInputRun: "chatInputStageCreate",
-				},
-				{
-					name: "mappool",
-					chatInputRun: "chatInputStageMappool",
 				},
 				{
 					name: "publish",
@@ -183,6 +183,19 @@ export class TryoutCommand extends Subcommand {
 								.setRequired(false),
 						),
 				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("mappool")
+						.setDescription("View a tryout stage's mappool.")
+						.addStringOption((option) =>
+							option
+								.setName("stage-id")
+								.setDescription(
+									"The custom ID of the stage to view the mappool for.",
+								)
+								.setRequired(true),
+						),
+				)
 				.addSubcommandGroup((builder: SlashCommandSubcommandGroupBuilder) =>
 					builder
 						.setName("stage")
@@ -204,19 +217,6 @@ export class TryoutCommand extends Subcommand {
 										.setName("custom-id")
 										.setDescription(
 											'The custom ID of the tryout stage. (Example: "W1")',
-										)
-										.setRequired(true),
-								),
-						)
-						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
-							builder
-								.setName("mappool")
-								.setDescription("View the specified stage's mappool.")
-								.addStringOption((option) =>
-									option
-										.setName("stage-id")
-										.setDescription(
-											"The custom ID of the stage to view the mappool for.",
 										)
 										.setRequired(true),
 								),
@@ -1066,7 +1066,7 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputStageMappool(
+	public async chatInputMappool(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
