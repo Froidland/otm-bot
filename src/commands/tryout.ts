@@ -35,7 +35,6 @@ import { v2 } from "osu-api-extended";
 				{
 					name: "create",
 					chatInputRun: "chatInputStageCreate",
-					preconditions: ["AdminOnly"],
 				},
 				{
 					name: "map-remove",
@@ -604,6 +603,19 @@ export class TryoutCommand extends Subcommand {
 						.setDescription(
 							"This command needs to be run in a tryout staff channel.",
 						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
 				],
 			});
 
