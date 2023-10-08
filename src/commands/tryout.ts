@@ -26,7 +26,7 @@ import { v2 } from "osu-api-extended";
 		{
 			name: "create",
 			chatInputRun: "chatInputCreate",
-			preconditions: ["AdminOnly"],
+			preconditions: ["ServerAdminOnly"],
 		},
 		{
 			name: "mappool",
