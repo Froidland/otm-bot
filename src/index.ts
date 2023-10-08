@@ -48,6 +48,10 @@ async function bootstrap() {
 			db.$on("query", (e) => {
 				container.logger.debug(e.duration + "ms " + e.query);
 			});
+
+			db.$on("error", (e) => {
+				container.logger.error(e.message);
+			});
 		}
 
 		await db.$connect();
