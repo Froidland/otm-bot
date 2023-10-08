@@ -1,5 +1,5 @@
 import db from "@/db";
-import { InvalidDateTime, NoAccountEmbed } from "@/embeds";
+import { NoAccountEmbed } from "@/embeds";
 import { tryoutRegistration } from "@/embeds/osu/tryoutRegistration";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
@@ -199,22 +199,6 @@ export class TryoutCommand extends Subcommand {
 										.setName("custom-id")
 										.setDescription(
 											'The custom ID of the tryout stage. (Example: "W1")',
-										)
-										.setRequired(true),
-								)
-								.addStringOption((option) =>
-									option
-										.setName("start-date")
-										.setDescription(
-											"The start date of the tryout stage. (Format: YYYY-MM-DD HH:MM)",
-										)
-										.setRequired(true),
-								)
-								.addStringOption((option) =>
-									option
-										.setName("end-date")
-										.setDescription(
-											"The end date of the tryout stage. (Format: YYYY-MM-DD HH:MM)",
 										)
 										.setRequired(true),
 								),
@@ -584,21 +568,6 @@ export class TryoutCommand extends Subcommand {
 			.getString("custom-id", true)
 			.toUpperCase();
 
-		const startDate = DateTime.fromFormat(
-			interaction.options.getString("start-date", true),
-			"yyyy-MM-dd HH:mm",
-			{
-				zone: "utc",
-			},
-		);
-		const endDate = DateTime.fromFormat(
-			interaction.options.getString("end-date", true),
-			"yyyy-MM-dd HH:mm",
-			{
-				zone: "utc",
-			},
-		);
-
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
@@ -608,14 +577,6 @@ export class TryoutCommand extends Subcommand {
 		if (!user) {
 			await interaction.editReply({
 				embeds: [NoAccountEmbed],
-			});
-
-			return;
-		}
-
-		if (!startDate.isValid || !endDate.isValid) {
-			await interaction.editReply({
-				embeds: [InvalidDateTime],
 			});
 
 			return;
@@ -642,24 +603,6 @@ export class TryoutCommand extends Subcommand {
 						.setTitle("Invalid channel!")
 						.setDescription(
 							"This command needs to be run in a tryout staff channel.",
-						),
-				],
-			});
-
-			return;
-		}
-
-		if (
-			startDate.toJSDate() < tryout.start_date ||
-			endDate.toJSDate() > tryout.end_date
-		) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid dates!")
-						.setDescription(
-							"The dates provided for the stage cannot be outside the range provided for the tryout itself.",
 						),
 				],
 			});
@@ -694,15 +637,11 @@ export class TryoutCommand extends Subcommand {
 		let embedDescription = "**__Tryout stage info:__**\n";
 		embedDescription += `**Name:** \`${name}\`\n`;
 		embedDescription += `**Custom ID:** \`${customId}\`\n`;
-		embedDescription += `**Start date:** \`${startDate.toRFC2822()}\` <t:${startDate.toSeconds()}:R>\n`;
-		embedDescription += `**End date:** \`${endDate.toRFC2822()}\` <t:${endDate.toSeconds()}:R>\n`;
 
 		try {
 			await db.tryoutStage.create({
 				data: {
 					id,
-					start_date: startDate.toJSDate(),
-					end_date: endDate.toJSDate(),
 					custom_id: customId,
 					name,
 					tryout_id: tryout.id,

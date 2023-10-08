@@ -408,8 +408,8 @@ export class LobbyCommand extends Subcommand {
 		}
 
 		if (
-			startDate < DateTime.fromJSDate(stage.start_date as Date) ||
-			startDate > DateTime.fromJSDate(stage.end_date as Date)
+			startDate < DateTime.fromJSDate(stage.tryout.start_date as Date) ||
+			startDate > DateTime.fromJSDate(stage.tryout.end_date as Date)
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -578,7 +578,7 @@ export class LobbyCommand extends Subcommand {
 
 		const stage = tryout.stages[0];
 
-		if (startDate < DateTime.fromJSDate(stage.start_date as Date)) {
+		if (startDate < DateTime.fromJSDate(tryout.start_date as Date)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -657,7 +657,7 @@ export class LobbyCommand extends Subcommand {
 
 			if (
 				currentSchedule.day !== startDate.day ||
-				currentSchedule > DateTime.fromJSDate(stage.end_date as Date)
+				currentSchedule > DateTime.fromJSDate(tryout.end_date as Date)
 			) {
 				break;
 			}
