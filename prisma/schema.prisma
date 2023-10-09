@@ -212,6 +212,7 @@ enum TeamInviteStatus {
 model Tryout {
   id                String   @id
   name              String
+  acronym 			String
   staff_channel_id  String
   player_channel_id String
   embed_channel_id  String?
