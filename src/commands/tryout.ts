@@ -2229,7 +2229,7 @@ export class TryoutCommand extends Subcommand {
 			ephemeral: true,
 		});
 
-		const channel = interaction.options.getChannel("channel", true);
+		let channel = interaction.options.getChannel("channel");
 
 		const user = await db.user.findFirst({
 			where: {
@@ -2286,35 +2286,75 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		const overlappingTryout = await db.tryout.findFirst({
-			where: {
-				OR: [
-					{
-						staff_channel_id: channel.id,
+		if (channel) {
+			const overlappingTryout = await db.tryout.findFirst({
+				where: {
+					OR: [
+						{
+							staff_channel_id: channel.id,
+						},
+						{
+							player_channel_id: channel.id,
+						},
+					],
+					NOT: {
+						id: tryout.id,
 					},
-					{
-						player_channel_id: channel.id,
-					},
-				],
-				NOT: {
-					id: tryout.id,
 				},
-			},
-		});
-
-		if (overlappingTryout) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Channel already in use!")
-						.setDescription(
-							"The channel you specified is already in use by another tryout.",
-						),
-				],
 			});
 
-			return;
+			if (overlappingTryout) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Channel already in use!")
+							.setDescription(
+								"The channel you specified is already in use by another tryout.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (!channel) {
+			try {
+				channel = (await interaction.guild!.channels.create({
+					name: `${tryout.acronym}-staff`,
+					type: ChannelType.GuildText,
+					permissionOverwrites: [
+						{
+							id: interaction.guild!.roles.everyone.id,
+							deny: [PermissionFlagsBits.ViewChannel],
+						},
+						{
+							id: tryout.admin_role_id,
+							allow: [PermissionFlagsBits.ViewChannel],
+						},
+						{
+							id: tryout.referee_role_id,
+							allow: [PermissionFlagsBits.ViewChannel],
+						},
+					],
+				})) as GuildTextBasedChannel;
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"An error occurred while creating the staff channel.",
+							),
+					],
+				});
+
+				return;
+			}
 		}
 
 		try {
@@ -2358,7 +2398,7 @@ export class TryoutCommand extends Subcommand {
 			ephemeral: true,
 		});
 
-		const channel = interaction.options.getChannel("channel", true);
+		let channel = interaction.options.getChannel("channel");
 
 		const user = await db.user.findFirst({
 			where: {
@@ -2415,35 +2455,79 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		const overlappingTryout = await db.tryout.findFirst({
-			where: {
-				OR: [
-					{
-						staff_channel_id: channel.id,
+		if (channel) {
+			const overlappingTryout = await db.tryout.findFirst({
+				where: {
+					OR: [
+						{
+							staff_channel_id: channel.id,
+						},
+						{
+							player_channel_id: channel.id,
+						},
+					],
+					NOT: {
+						id: tryout.id,
 					},
-					{
-						player_channel_id: channel.id,
-					},
-				],
-				NOT: {
-					id: tryout.id,
 				},
-			},
-		});
-
-		if (overlappingTryout) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Channel already in use!")
-						.setDescription(
-							"The channel you specified is already in use by another tryout.",
-						),
-				],
 			});
 
-			return;
+			if (overlappingTryout) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Channel already in use!")
+							.setDescription(
+								"The channel you specified is already in use by another tryout.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (!channel) {
+			try {
+				channel = (await interaction.guild!.channels.create({
+					name: `${tryout.acronym}-players`,
+					type: ChannelType.GuildText,
+					permissionOverwrites: [
+						{
+							id: interaction.guild!.roles.everyone.id,
+							deny: [PermissionFlagsBits.ViewChannel],
+						},
+						{
+							id: tryout.player_role_id,
+							allow: [PermissionFlagsBits.ViewChannel],
+						},
+						{
+							id: tryout.admin_role_id,
+							allow: [PermissionFlagsBits.ViewChannel],
+						},
+						{
+							id: tryout.referee_role_id,
+							allow: [PermissionFlagsBits.ViewChannel],
+						},
+					],
+				})) as GuildTextBasedChannel;
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"An error occurred while creating the player channel.",
+							),
+					],
+				});
+
+				return;
+			}
 		}
 
 		try {
