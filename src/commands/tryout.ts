@@ -2225,7 +2225,130 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditStaffChannel(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply();
+		await interaction.deferReply({
+			ephemeral: true,
+		});
+
+		const channel = interaction.options.getChannel("channel", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		const overlappingTryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: channel.id,
+					},
+					{
+						player_channel_id: channel.id,
+					},
+				],
+				NOT: {
+					id: tryout.id,
+				},
+			},
+		});
+
+		if (overlappingTryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Channel already in use!")
+						.setDescription(
+							"The channel you specified is already in use by another tryout.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.tryout.update({
+				where: {
+					id: tryout.id,
+				},
+				data: {
+					staff_channel_id: channel.id,
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription("The staff channel has been updated."),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while updating the staff channel.",
+						),
+				],
+			});
+		}
 	}
 
 	public async chatInputEditPlayerChannel(
