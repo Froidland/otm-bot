@@ -29,6 +29,10 @@ import { v2 } from "osu-api-extended";
 			preconditions: ["ServerAdminOnly"],
 		},
 		{
+			name: "info",
+			chatInputRun: "chatInputInfo",
+		},
+		{
 			name: "mappool",
 			chatInputRun: "chatInputMappool",
 		},
@@ -233,6 +237,18 @@ export class TryoutCommand extends Subcommand {
 								)
 								.addChannelTypes(ChannelType.GuildCategory)
 								.setRequired(false),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder //
+						.setName("info")
+						.setDescription("View a tryout's info.")
+						.addStringOption((option) =>
+							option
+								.setName("unique-id")
+								.setDescription(
+									"The unique ID of the tryout to view the info for.",
+								),
 						),
 				)
 				.addSubcommand((builder) =>
@@ -793,6 +809,97 @@ export class TryoutCommand extends Subcommand {
 			if (adminRoleCreated) adminRole.delete();
 			if (refereeRoleCreated) refereeRole.delete();
 		}
+	}
+
+	public async chatInputInfo(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const uniqueId = interaction.options.getString("unique-id");
+
+		const tryout = await db.tryout.findFirst({
+			where: uniqueId
+				? {
+						id: uniqueId,
+				  }
+				: {
+						OR: [
+							{
+								player_channel_id: interaction.channelId,
+							},
+							{
+								staff_channel_id: interaction.channelId,
+							},
+						],
+				  },
+			include: {
+				stages: true,
+				creator: true,
+				_count: {
+					select: {
+						players: true,
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							uniqueId
+								? "No tryout with the provided unique ID was found."
+								: "This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		let embedDescription = `**Owner:** <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_id}\` - [osu! profile](https://osu.ppy.sh/users/${tryout.creator.osu_id}))\n`;
+		embedDescription += `**Server ID:** \`${tryout.server_id}\`\n`;
+		embedDescription += `**Date:** From \`${DateTime.fromJSDate(
+			tryout.start_date,
+			{
+				zone: "utc",
+			},
+		).toFormat("yyyy/MM/dd HH:mm")}\` to \`${DateTime.fromJSDate(
+			tryout.end_date,
+			{
+				zone: "utc",
+			},
+		).toFormat("yyyy/MM/dd HH:mm")}\`\n`;
+		embedDescription += "**Roles:**\n";
+		embedDescription += `\\- <@&${tryout.admin_role_id}> (Management)\n`;
+		embedDescription += `\\- <@&${tryout.referee_role_id}> (Referee)\n`;
+		embedDescription += `\\- <@&${tryout.player_role_id}> (Player)\n`;
+		embedDescription += "**Channels:**\n";
+		embedDescription += `\\- <#${tryout.staff_channel_id}> (Staff)\n`;
+		embedDescription += `\\- <#${tryout.player_channel_id}> (Player)\n`;
+		embedDescription += `\\- <#${tryout.embed_channel_id}> (Embed)\n`;
+		embedDescription += `**Registered players:** \`${tryout._count.players}\`\n`;
+		// TODO: Add lobby count and display pending and done lobbies.
+		embedDescription += "**Stages:**\n";
+		embedDescription += tryout.stages
+			.map((stage) => `\`${stage.name}\` (\`${stage.custom_id}\`)`)
+			.join("\n");
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle(`${tryout.name} (\`${tryout.acronym}\`)`)
+					.setDescription(embedDescription)
+					.setFooter({
+						text: `Unique ID: ${tryout.id}`,
+					}),
+			],
+		});
 	}
 
 	public async chatInputStageCreate(
