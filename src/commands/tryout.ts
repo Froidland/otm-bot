@@ -1394,7 +1394,6 @@ export class TryoutCommand extends Subcommand {
 			!tryout.stages[0].is_published &&
 			!isUserTryoutAdmin(interaction, tryout)
 		) {
-			console.log("no");
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
