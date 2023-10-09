@@ -2602,18 +2602,408 @@ export class TryoutCommand extends Subcommand {
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
+
+		let role = interaction.options.getRole("role");
+		const deletePrevious = interaction.options.getBoolean("delete-previous");
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (!role) {
+			try {
+				role = await interaction.guild!.roles.create({
+					name: `${tryout.acronym}: Player`,
+				});
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"An error occurred while creating the player role.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (deletePrevious && role.id !== tryout.player_role_id) {
+			const previousRole = await interaction.guild?.roles.fetch(
+				tryout.player_role_id,
+			);
+
+			if (previousRole) {
+				try {
+					await previousRole.delete();
+				} catch (error) {
+					this.container.logger.error(error);
+				}
+			}
+		}
+
+		try {
+			await db.tryout.update({
+				where: {
+					id: tryout.id,
+				},
+				data: {
+					player_role_id: role.id,
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription(
+							`The player role has been updated to <@&${role.id}>.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while updating the player role.",
+						),
+				],
+			});
+		}
 	}
 
 	public async chatInputEditManagementRole(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
+
+		let role = interaction.options.getRole("role");
+		const deletePrevious = interaction.options.getBoolean("delete-previous");
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (!role) {
+			try {
+				role = await interaction.guild!.roles.create({
+					name: `${tryout.acronym}: Management`,
+				});
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"An error occurred while creating the management role.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (deletePrevious && role.id !== tryout.admin_role_id) {
+			const previousRole = await interaction.guild?.roles.fetch(
+				tryout.admin_role_id,
+			);
+
+			if (previousRole) {
+				try {
+					await previousRole.delete();
+				} catch (error) {
+					this.container.logger.error(error);
+				}
+			}
+		}
+
+		try {
+			await db.tryout.update({
+				where: {
+					id: tryout.id,
+				},
+				data: {
+					admin_role_id: role.id,
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription(
+							`The management role has been updated to <@&${role.id}>.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while updating the management role.",
+						),
+				],
+			});
+		}
 	}
 
 	public async chatInputEditRefereeRole(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
+
+		let role = interaction.options.getRole("role");
+		const deletePrevious = interaction.options.getBoolean("delete-previous");
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (!role) {
+			try {
+				role = await interaction.guild!.roles.create({
+					name: `${tryout.acronym}: Referee`,
+				});
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"An error occurred while creating the referee role.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (deletePrevious && role.id !== tryout.referee_role_id) {
+			const previousRole = await interaction.guild?.roles.fetch(
+				tryout.referee_role_id,
+			);
+
+			if (previousRole) {
+				try {
+					await previousRole.delete();
+				} catch (error) {
+					this.container.logger.error(error);
+				}
+			}
+		}
+
+		try {
+			await db.tryout.update({
+				where: {
+					id: tryout.id,
+				},
+				data: {
+					referee_role_id: role.id,
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription(
+							`The referee role has been updated to <@&${role.id}>.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while updating the referee role.",
+						),
+				],
+			});
+		}
 	}
 
 	public async chatInputEditAllowStaff(
