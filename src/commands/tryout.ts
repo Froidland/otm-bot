@@ -2230,6 +2230,7 @@ export class TryoutCommand extends Subcommand {
 		});
 
 		let channel = interaction.options.getChannel("channel");
+		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
 		const user = await db.user.findFirst({
 			where: {
@@ -2357,6 +2358,20 @@ export class TryoutCommand extends Subcommand {
 			}
 		}
 
+		if (deletePrevious) {
+			const previousChannel = await interaction.guild?.channels.fetch(
+				tryout.staff_channel_id,
+			);
+
+			if (previousChannel) {
+				try {
+					await previousChannel.delete();
+				} catch (error) {
+					this.container.logger.error(error);
+				}
+			}
+		}
+
 		try {
 			await db.tryout.update({
 				where: {
@@ -2372,7 +2387,9 @@ export class TryoutCommand extends Subcommand {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Success")
-						.setDescription("The staff channel has been updated."),
+						.setDescription(
+							`The staff channel has been updated to <#${channel.id}>.`,
+						),
 				],
 			});
 		} catch (error) {
@@ -2399,6 +2416,7 @@ export class TryoutCommand extends Subcommand {
 		});
 
 		let channel = interaction.options.getChannel("channel");
+		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
 		const user = await db.user.findFirst({
 			where: {
@@ -2530,6 +2548,20 @@ export class TryoutCommand extends Subcommand {
 			}
 		}
 
+		if (deletePrevious) {
+			const previousChannel = await interaction.guild?.channels.fetch(
+				tryout.player_channel_id,
+			);
+
+			if (previousChannel) {
+				try {
+					await previousChannel.delete();
+				} catch (error) {
+					this.container.logger.error(error);
+				}
+			}
+		}
+
 		try {
 			await db.tryout.update({
 				where: {
@@ -2545,7 +2577,9 @@ export class TryoutCommand extends Subcommand {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Success")
-						.setDescription("The player channel has been updated."),
+						.setDescription(
+							`The player channel has been updated to <#${channel.id}>.`,
+						),
 				],
 			});
 		} catch (error) {
