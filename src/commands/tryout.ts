@@ -1743,9 +1743,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditName(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		const name = interaction.options.getString("value", true);
 
@@ -1843,9 +1841,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditAcronym(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		const acronym = interaction.options.getString("value", true).toUpperCase();
 
@@ -1943,9 +1939,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditStartDate(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		const date = DateTime.fromFormat(
 			interaction.options.getString("value", true),
@@ -2084,9 +2078,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditEndDate(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		const date = DateTime.fromFormat(
 			interaction.options.getString("value", true),
@@ -2225,9 +2217,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditStaffChannel(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		let channel = interaction.options.getChannel("channel");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
@@ -2411,9 +2401,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputEditPlayerChannel(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		let channel = interaction.options.getChannel("channel");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
