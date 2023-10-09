@@ -2348,7 +2348,7 @@ export class TryoutCommand extends Subcommand {
 			}
 		}
 
-		if (deletePrevious) {
+		if (deletePrevious && tryout.staff_channel_id !== channel.id) {
 			const previousChannel = await interaction.guild?.channels.fetch(
 				tryout.staff_channel_id,
 			);
@@ -2536,7 +2536,7 @@ export class TryoutCommand extends Subcommand {
 			}
 		}
 
-		if (deletePrevious) {
+		if (deletePrevious && tryout.player_channel_id !== channel.id) {
 			const previousChannel = await interaction.guild?.channels.fetch(
 				tryout.player_channel_id,
 			);
