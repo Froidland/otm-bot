@@ -729,6 +729,7 @@ export class TryoutCommand extends Subcommand {
 				data: {
 					id,
 					name,
+					acronym,
 					server_id: interaction.guildId!,
 					embed_channel_id: embedChannel?.id,
 					embed_message_id: embedMessage?.id,
