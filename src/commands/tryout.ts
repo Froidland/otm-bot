@@ -1837,7 +1837,7 @@ export class TryoutCommand extends Subcommand {
 			ephemeral: true,
 		});
 
-		const acronym = interaction.options.getString("value", true);
+		const acronym = interaction.options.getString("value", true).toUpperCase();
 
 		const user = await db.user.findFirst({
 			where: {
