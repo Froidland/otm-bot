@@ -2015,6 +2015,21 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
+		if (tryout.end_date < date.toJSDate()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							"The date you specified is after the tryout end date.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		try {
 			await db.tryout.update({
 				where: {
@@ -2134,6 +2149,21 @@ export class TryoutCommand extends Subcommand {
 						.setTitle("Invalid date!")
 						.setDescription(
 							"The date you specified is invalid. Please use the format `yyyy-MM-dd HH:mm`.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.start_date > date.toJSDate()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							"The date you specified is before the tryout start date.",
 						),
 				],
 			});
