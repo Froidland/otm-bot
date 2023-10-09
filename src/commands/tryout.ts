@@ -418,7 +418,9 @@ export class TryoutCommand extends Subcommand {
 						.addSubcommand((builder) =>
 							builder
 								.setName("staff-channel")
-								.setDescription("Edit the tryout staff channel.")
+								.setDescription(
+									"Edit the tryout staff channel. (Channel permissions are not updated)",
+								)
 								.addChannelOption((option) =>
 									option
 										.setName("channel")
@@ -438,7 +440,9 @@ export class TryoutCommand extends Subcommand {
 						.addSubcommand((builder) =>
 							builder
 								.setName("player-channel")
-								.setDescription("Edit the tryout player channel.")
+								.setDescription(
+									"Edit the tryout player channel. (Channel permissions are not updated)",
+								)
 								.addChannelOption((option) =>
 									option
 										.setName("channel")
@@ -458,7 +462,9 @@ export class TryoutCommand extends Subcommand {
 						.addSubcommand((builder) =>
 							builder
 								.setName("player-role")
-								.setDescription("Edit the tryout player role.")
+								.setDescription(
+									"Edit the tryout player role. (Channel permissions are not updated)",
+								)
 								.addRoleOption((option) =>
 									option
 										.setName("role")
@@ -477,7 +483,9 @@ export class TryoutCommand extends Subcommand {
 						.addSubcommand((builder) =>
 							builder
 								.setName("management-role")
-								.setDescription("Edit the tryout management role.")
+								.setDescription(
+									"Edit the tryout management role. (Channel permissions are not updated)",
+								)
 								.addRoleOption((option) =>
 									option
 										.setName("role")
@@ -496,7 +504,9 @@ export class TryoutCommand extends Subcommand {
 						.addSubcommand((builder) =>
 							builder
 								.setName("referee-role")
-								.setDescription("Edit the tryout referee role.")
+								.setDescription(
+									"Edit the tryout referee role. (Channel permissions are not updated)",
+								)
 								.addRoleOption((option) =>
 									option
 										.setName("role")
