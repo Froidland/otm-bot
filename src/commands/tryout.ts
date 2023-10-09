@@ -70,6 +70,58 @@ import { v2 } from "osu-api-extended";
 				},
 			],
 		},
+		{
+			name: "edit",
+			type: "group",
+			entries: [
+				{
+					name: "name",
+					chatInputRun: "chatInputEditName",
+				},
+				{
+					name: "acronym",
+					chatInputRun: "chatInputEditAcronym",
+				},
+				{
+					name: "start-date",
+					chatInputRun: "chatInputEditStartDate",
+				},
+				{
+					name: "end-date",
+					chatInputRun: "chatInputEditEndDate",
+				},
+				{
+					name: "staff-channel",
+					chatInputRun: "chatInputEditStaffChannel",
+					preconditions: ["ServerAdminOnly"],
+				},
+				{
+					name: "player-channel",
+					chatInputRun: "chatInputEditPlayerChannel",
+					preconditions: ["ServerAdminOnly"],
+				},
+				{
+					name: "player-role",
+					chatInputRun: "chatInputEditPlayerRole",
+					preconditions: ["ServerAdminOnly"],
+				},
+				{
+					name: "management-role",
+					chatInputRun: "chatInputEditManagementRole",
+					preconditions: ["ServerAdminOnly"],
+				},
+				{
+					name: "referee-role",
+					chatInputRun: "chatInputEditRefereeRole",
+					preconditions: ["ServerAdminOnly"],
+				},
+				{
+					name: "allow-staff",
+					chatInputRun: "chatInputEditAllowStaff",
+					preconditions: ["ServerAdminOnly"],
+				},
+			],
+		},
 	],
 })
 export class TryoutCommand extends Subcommand {
@@ -308,6 +360,169 @@ export class TryoutCommand extends Subcommand {
 										)
 										.setRequired(true)
 										.addChannelTypes(ChannelType.GuildText),
+								),
+						),
+				)
+				.addSubcommandGroup((builder) =>
+					builder
+						.setName("edit")
+						.setDescription("Commands for editing tryout data.")
+						.addSubcommand((builder) =>
+							builder
+								.setName("name")
+								.setDescription("Edit the tryout name.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription("The new tryout name.")
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("acronym")
+								.setDescription("Edit the tryout acronym.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription("The new tryout acronym.")
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("start-date")
+								.setDescription("Edit the tryout start date.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription(
+											"The new tryout start date. (Format: YYYY-MM-DD HH:MM)",
+										)
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("end-date")
+								.setDescription("Edit the tryout end date.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription(
+											"The new tryout end date. (Format: YYYY-MM-DD HH:MM)",
+										)
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("staff-channel")
+								.setDescription("Edit the tryout staff channel.")
+								.addChannelOption((option) =>
+									option
+										.setName("channel")
+										.setDescription(
+											"The new tryout staff channel. (Default: New Channel)",
+										)
+										.addChannelTypes(ChannelType.GuildText),
+								)
+								.addBooleanOption((option) =>
+									option
+										.setName("delete-previous")
+										.setDescription(
+											"Whether or not to delete the previous staff channel. (Default: false)",
+										),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("player-channel")
+								.setDescription("Edit the tryout player channel.")
+								.addChannelOption((option) =>
+									option
+										.setName("channel")
+										.setDescription(
+											"The new tryout player channel. (Default: New Channel)",
+										)
+										.addChannelTypes(ChannelType.GuildText),
+								)
+								.addBooleanOption((option) =>
+									option
+										.setName("delete-previous")
+										.setDescription(
+											"Whether or not to delete the previous player channel. (Default: false)",
+										),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("player-role")
+								.setDescription("Edit the tryout player role.")
+								.addRoleOption((option) =>
+									option
+										.setName("role")
+										.setDescription(
+											"The new tryout player role. (Default: New Role)",
+										),
+								)
+								.addBooleanOption((option) =>
+									option
+										.setName("delete-previous")
+										.setDescription(
+											"Whether or not to delete the previous player role. (Default: false)",
+										),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("management-role")
+								.setDescription("Edit the tryout management role.")
+								.addRoleOption((option) =>
+									option
+										.setName("role")
+										.setDescription(
+											"The new tryout management role. (Default: New Role)",
+										),
+								)
+								.addBooleanOption((option) =>
+									option
+										.setName("delete-previous")
+										.setDescription(
+											"Whether or not to delete the previous management role. (Default: false)",
+										),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("referee-role")
+								.setDescription("Edit the tryout referee role.")
+								.addRoleOption((option) =>
+									option
+										.setName("role")
+										.setDescription(
+											"The new tryout referee role. (Default: New Role)",
+										),
+								)
+								.addBooleanOption((option) =>
+									option
+										.setName("delete-previous")
+										.setDescription(
+											"Whether or not to delete the previous referee role. (Default: false)",
+										),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("allow-staff")
+								.setDescription("Edit whether or not staff can join.")
+								.addBooleanOption((option) =>
+									option
+										.setName("value")
+										.setDescription(
+											"Whether or not staff members can join the tryout.",
+										)
+										.setRequired(true),
 								),
 						),
 				),
@@ -1512,5 +1727,65 @@ export class TryoutCommand extends Subcommand {
 
 			return;
 		}
+	}
+
+	public async chatInputEditName(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditAcronym(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditStartDate(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditEndDate(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditStaffChannel(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditPlayerChannel(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditPlayerRole(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditManagementRole(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditRefereeRole(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+	}
+
+	public async chatInputEditAllowStaff(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
 	}
 }
