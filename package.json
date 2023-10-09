@@ -26,7 +26,7 @@
 	"dependencies": {
 		"@axiomhq/winston": "1.0.0-rc.1",
 		"@paralleldrive/cuid2": "^2.2.2",
-		"@prisma/client": "5.4.1",
+		"@prisma/client": "5.4.2",
 		"@sapphire/decorators": "^6.0.2",
 		"@sapphire/discord.js-utilities": "^7.0.2",
 		"@sapphire/framework": "^4.6.1",
@@ -43,16 +43,16 @@
 		"prettier": "^3.0.3",
 		"toad-scheduler": "^3.0.0",
 		"typescript": "^5.2.2",
-		"winston": "^3.10.0",
+		"winston": "^3.11.0",
 		"winston-daily-rotate-file": "^4.7.1",
 		"winston-loki": "^6.0.7"
 	},
 	"devDependencies": {
 		"@types/adm-zip": "^0.5.2",
 		"@types/luxon": "^3.3.2",
-		"@types/node": "^20.8.3",
-		"@typescript-eslint/eslint-plugin": "^6.7.4",
-		"@typescript-eslint/parser": "^6.7.4",
+		"@types/node": "^20.8.4",
+		"@typescript-eslint/eslint-plugin": "^6.7.5",
+		"@typescript-eslint/parser": "^6.7.5",
 		"cross-env": "^7.0.3",
 		"dotenv-safe": "^8.2.0",
 		"eslint": "^8.51.0",
@@ -60,7 +60,7 @@
 		"eslint-plugin-n": "^16.1.0",
 		"eslint-plugin-promise": "^6.1.1",
 		"nodemon": "^3.0.1",
-		"prisma": "^5.4.1",
+		"prisma": "^5.4.2",
 		"ts-node": "^10.9.1",
 		"tsconfig-paths": "^4.2.0"
 	},
