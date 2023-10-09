@@ -2033,6 +2033,9 @@ export class TryoutCommand extends Subcommand {
 						.setDescription(
 							`The tryout start date has been updated from \`${DateTime.fromJSDate(
 								tryout.start_date,
+								{
+									zone: "utc",
+								},
 							).toRFC2822()}\` to \`${date.toRFC2822()}\`.`,
 						),
 				],
@@ -2156,6 +2159,9 @@ export class TryoutCommand extends Subcommand {
 						.setDescription(
 							`The tryout end date has been updated from \`${DateTime.fromJSDate(
 								tryout.end_date,
+								{
+									zone: "utc",
+								},
 							).toRFC2822()}\` to \`${date.toRFC2822()}\`.`,
 						),
 				],
