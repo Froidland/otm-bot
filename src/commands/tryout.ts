@@ -881,7 +881,7 @@ export class TryoutCommand extends Subcommand {
 		embedDescription += "**Channels:**\n";
 		embedDescription += `\\- <#${tryout.staff_channel_id}> (Staff)\n`;
 		embedDescription += `\\- <#${tryout.player_channel_id}> (Player)\n`;
-		
+
 		if (tryout.embed_channel_id) {
 			embedDescription += `\\- <#${tryout.embed_channel_id}> (Embed)\n`;
 		}
@@ -889,6 +889,11 @@ export class TryoutCommand extends Subcommand {
 		embedDescription += `**Registered players:** \`${tryout._count.players}\`\n`;
 		// TODO: Add lobby count and display pending and done lobbies.
 		embedDescription += "**Stages:**\n";
+
+		if (tryout.stages.length === 0) {
+			embedDescription += "*No stages have been created yet.*";
+		}
+
 		embedDescription += tryout.stages
 			.map((stage) => `\`${stage.name}\` (\`${stage.custom_id}\`)`)
 			.join("\n");
