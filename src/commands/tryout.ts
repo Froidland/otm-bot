@@ -7,6 +7,7 @@ import {
 	APIEmbedField,
 	ChannelType,
 	EmbedBuilder,
+	GuildMember,
 	GuildTextBasedChannel,
 	Message,
 	PermissionFlagsBits,
@@ -123,6 +124,20 @@ import { v2 } from "osu-api-extended";
 					name: "allow-staff",
 					chatInputRun: "chatInputEditAllowStaff",
 					preconditions: ["ServerAdminOnly"],
+				},
+			],
+		},
+		{
+			name: "player",
+			type: "group",
+			entries: [
+				{
+					name: "add",
+					chatInputRun: "chatInputPlayerAdd",
+				},
+				{
+					name: "remove",
+					chatInputRun: "chatInputPlayerRemove",
 				},
 			],
 		},
@@ -548,6 +563,35 @@ export class TryoutCommand extends Subcommand {
 										.setDescription(
 											"Whether or not staff members can join the tryout.",
 										)
+										.setRequired(true),
+								),
+						),
+				)
+				.addSubcommandGroup((builder) =>
+					builder //
+						.setName("player")
+						.setDescription("Commands for managing tryout players.")
+						.addSubcommand((builder) =>
+							builder
+								.setName("add")
+								.setDescription(
+									"Manually add a player to the tryout. (Overrides restrictions)",
+								)
+								.addUserOption((option) =>
+									option
+										.setName("player")
+										.setDescription("The player to add to the tryout.")
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("remove")
+								.setDescription("Manually remove a player from the tryout.")
+								.addUserOption((option) =>
+									option
+										.setName("player")
+										.setDescription("The player to remove from the tryout.")
 										.setRequired(true),
 								),
 						),
@@ -3202,6 +3246,355 @@ export class TryoutCommand extends Subcommand {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription("An error occurred while updating the tryout."),
+				],
+			});
+		}
+	}
+
+	public async chatInputPlayerAdd(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const player = interaction.options.getMember(
+			"player",
+		) as GuildMember | null;
+
+		if (!player) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid player!")
+						.setDescription("The player you specified isn't in the server."),
+				],
+			});
+
+			return;
+		}
+
+		if (player.user.bot) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid player!")
+						.setDescription("You can't add bots to tryouts."),
+				],
+			});
+
+			return;
+		}
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		const playerData = await db.user.findFirst({
+			where: {
+				discord_id: player.id,
+			},
+			include: {
+				tryouts: {
+					where: {
+						tryout_id: tryout.id,
+					},
+				},
+			},
+		});
+
+		if (!playerData) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid player!")
+						.setDescription(
+							"The player you specified doesn't have an account.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (playerData.tryouts.length > 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid player!")
+						.setDescription(
+							"The player you specified is already in this tryout.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.tryout.update({
+				where: {
+					id: tryout.id,
+				},
+				data: {
+					players: {
+						connectOrCreate: {
+							where: {
+								tryout_id_user_id: {
+									tryout_id: tryout.id,
+									user_id: playerData.id,
+								},
+							},
+							create: {
+								user_id: playerData.id,
+							},
+						},
+					},
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Player added!")
+						.setDescription(`<@${player.id}> has been added to the tryout.`),
+				],
+			});
+
+			/* await player.send({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("You have been added to a tryout!")
+						.setDescription(
+							`You have been added to the \`${tryout.name}\` tryout by <@${interaction.user.id}>.`,
+						),
+				],
+			}); */
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while adding the player. Please try again later.",
+						),
+				],
+			});
+		}
+	}
+
+	public async chatInputPlayerRemove(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const player = interaction.options.getUser("player", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			if (interaction.user.id !== player.id) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Invalid permissions!")
+							.setDescription("You don't have permission to do this."),
+					],
+				});
+
+				return;
+			}
+		}
+
+		const playerData = await db.user.findFirst({
+			where: {
+				discord_id: player.id,
+			},
+			include: {
+				tryouts: {
+					where: {
+						tryout_id: tryout.id,
+					},
+				},
+			},
+		});
+
+		if (!playerData) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid player!")
+						.setDescription(
+							"The player you specified doesn't have an account.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (playerData.tryouts.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid player!")
+						.setDescription("The player you specified is not in this tryout."),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.tryout.update({
+				where: {
+					id: tryout.id,
+				},
+				data: {
+					players: {
+						delete: {
+							tryout_id_user_id: {
+								tryout_id: tryout.id,
+								user_id: playerData.id,
+							},
+						},
+					},
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Yellow")
+						.setTitle("Player removed!")
+						.setDescription(
+							`<@${player.id}> has been removed from the tryout.`,
+						),
+				],
+			});
+
+			await player.send({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("You have been removed from a tryout!")
+						.setDescription(
+							`You have been removed from the \`${tryout.name}\` tryout by <@${interaction.user.id}>.`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while removing the player. Please try again later.",
+						),
 				],
 			});
 		}
