@@ -3415,7 +3415,7 @@ export class TryoutCommand extends Subcommand {
 				],
 			});
 
-			/* await player.send({
+			await player.send({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Green")
@@ -3424,7 +3424,7 @@ export class TryoutCommand extends Subcommand {
 							`You have been added to the \`${tryout.name}\` tryout by <@${interaction.user.id}>.`,
 						),
 				],
-			}); */
+			});
 		} catch (error) {
 			this.container.logger.error(error);
 
