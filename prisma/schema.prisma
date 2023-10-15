@@ -267,6 +267,8 @@ model TryoutLobby {
   stage   TryoutStage @relation(fields: [stageId], references: [id])
   stageId String
 
+  status TryoutLobbyStatus @default(Pending)
+
   referee    User?   @relation(fields: [referee_id], references: [id])
   referee_id String?
 
@@ -406,4 +408,12 @@ enum TournamentType {
   OneVsOne
 
   @@map("tournament_type")
+}
+
+enum TryoutLobbyStatus {
+  Pending
+  Ongoing
+  Completed
+
+  @@map("tryout_lobby_status")
 }
