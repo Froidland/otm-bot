@@ -21,8 +21,8 @@ dependencies:
     specifier: ^7.0.2
     version: 7.0.2
   '@sapphire/framework':
-    specifier: ^4.6.1
-    version: 4.6.1
+    specifier: ^4.7.1
+    version: 4.7.1
   '@sapphire/plugin-hmr':
     specifier: ^2.0.2
     version: 2.0.2
@@ -551,8 +551,8 @@ packages:
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dev: false
 
-  /@sapphire/framework@4.6.1:
-    resolution: {integrity: sha512-ZNaYAYYvPcwrdY8Jyunn4xt0gdauctiOt6j7VCun+NXRu9DQcFpZgeVsWB/ftH1fD8o4F4Bl88Iu3q/YLGwVJw==}
+  /@sapphire/framework@4.7.1:
+    resolution: {integrity: sha512-UKn2kNVsQXjh70BLytSdDs+QckXjZRFALQiELt6BElmyo1m4ltHbVJAfjLNhVTfUZE9id634s0hqWh3rX+vKsw==}
     engines: {node: '>=16.6.0', npm: '>=7.0.0'}
     dependencies:
       '@discordjs/builders': 1.6.5
