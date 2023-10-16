@@ -282,7 +282,7 @@ export class TryoutCommand extends Subcommand {
 				.addSubcommandGroup((builder: SlashCommandSubcommandGroupBuilder) =>
 					builder
 						.setName("stage")
-						.setDescription("Commands for managing tryout stages.")
+						.setDescription("!")
 						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
 							builder
 								.setName("create")
@@ -319,7 +319,7 @@ export class TryoutCommand extends Subcommand {
 				.addSubcommandGroup((builder) =>
 					builder
 						.setName("map")
-						.setDescription("Commands for managing tryout maps.")
+						.setDescription("!")
 						.addSubcommand((builder) =>
 							builder
 								.setName("set")
@@ -376,7 +376,7 @@ export class TryoutCommand extends Subcommand {
 				.addSubcommandGroup((builder: SlashCommandSubcommandGroupBuilder) =>
 					builder
 						.setName("embed")
-						.setDescription("Commands for managing the tryout embed.")
+						.setDescription("!")
 						.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
 							builder
 								.setName("send")
@@ -397,7 +397,7 @@ export class TryoutCommand extends Subcommand {
 				.addSubcommandGroup((builder) =>
 					builder
 						.setName("edit")
-						.setDescription("Commands for editing tryout data.")
+						.setDescription("!")
 						.addSubcommand((builder) =>
 							builder
 								.setName("name")
@@ -570,7 +570,7 @@ export class TryoutCommand extends Subcommand {
 				.addSubcommandGroup((builder) =>
 					builder //
 						.setName("player")
-						.setDescription("Commands for managing tryout players.")
+						.setDescription("!")
 						.addSubcommand((builder) =>
 							builder
 								.setName("add")
