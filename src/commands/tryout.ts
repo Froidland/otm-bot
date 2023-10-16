@@ -63,6 +63,10 @@ import { v2 } from "osu-api-extended";
 					name: "remove",
 					chatInputRun: "chatInputMapRemove",
 				},
+				{
+					name: "order",
+					chatInputRun: "chatInputMapOrder",
+				},
 			],
 		},
 		{
@@ -369,6 +373,29 @@ export class TryoutCommand extends Subcommand {
 									option
 										.setName("pick")
 										.setDescription("The pick to remove. (Example: NM2)")
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("order")
+								.setDescription(
+									"Set the order of the specified stage's mappool.",
+								)
+								.addStringOption((option) =>
+									option
+										.setName("stage-id")
+										.setDescription(
+											"The custom ID of the stage to set the order for.",
+										)
+										.setRequired(true),
+								)
+								.addStringOption((option) =>
+									option
+										.setName("pattern")
+										.setDescription(
+											"The pattern of the order. Basically the picks separated by spaces. (Example: NM1 NM2 NM3 HD1 HD2 TB)",
+										)
 										.setRequired(true),
 								),
 						),
@@ -1087,6 +1114,7 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
+	// TODO: Remove map from mappool order when removing it from the mappool.
 	public async chatInputMapRemove(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -1447,6 +1475,169 @@ export class TryoutCommand extends Subcommand {
 						.setTitle("Error")
 						.setDescription(
 							`An error occurred while setting the pick. Please try again later.`,
+						),
+				],
+			});
+		}
+	}
+
+	public async chatInputMapOrder(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({
+			ephemeral: true,
+		});
+
+		const stageId = interaction.options
+			.getString("stage-id", true)
+			.toUpperCase();
+
+		const pattern = interaction.options
+			.getString("pattern", true)
+			.toUpperCase()
+			.split(" ");
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				staff_channel_id: interaction.channel?.id,
+			},
+			include: {
+				stages: {
+					where: {
+						custom_id: stageId,
+					},
+					include: {
+						mappool: {
+							include: {
+								beatmap: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!isUserTryoutAdmin(interaction, tryout)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.stages.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							`No stage with custom ID \`${stageId}\` was found.`,
+						),
+				],
+			});
+
+			return;
+		}
+
+		const stage = tryout.stages[0];
+
+		const missingPicks = stage.mappool.filter((pick) => {
+			return !pattern.includes(pick.pick_id);
+		});
+
+		if (missingPicks.length > 0) {
+			// TODO: Make this look better.
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid pattern!")
+						.setDescription(
+							`The following picks are missing from the pattern: \n${missingPicks
+								.map(
+									(pick) =>
+										`\\- \`${pick.pick_id}\` | [${pick.beatmap!.title} [${
+											pick.beatmap!.version
+										}]](https://osu.ppy.sh/beatmaps/${pick.beatmap!.id})`,
+								)
+								.join("\n")}`,
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.tryoutStage.update({
+				where: {
+					id: stage.id,
+				},
+				data: {
+					mappool_order: pattern.join(" "),
+				},
+			});
+
+			await interaction.editReply({
+				embeds: [
+					// TODO: Maybe display each pick's beatmap info.
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Map order set!")
+						.setDescription(
+							`The map order for stage \`${
+								stage.name
+							}\` has been set to:\n ${pattern
+								.map((pick) => "`" + pick + "`")
+								.join(" -> ")}`,
+						),
+				],
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while setting the map order. Please try again later.",
 						),
 				],
 			});

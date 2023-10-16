@@ -250,6 +250,7 @@ model TryoutStage {
   lobbies TryoutLobby[]
 
   mappool      TryoutMapPick[]
+  mappool_order String?
   is_published Boolean         @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
@@ -273,6 +274,9 @@ model TryoutLobby {
   referee_id String?
 
   players PlayersOnTryoutLobbies[]
+
+  bancho_id String?
+  last_pick String?
 
   is_reminder_sent Boolean @default(false)
 
@@ -413,6 +417,7 @@ enum TournamentType {
 enum TryoutLobbyStatus {
   Pending
   Ongoing
+  Override
   Completed
 
   @@map("tryout_lobby_status")
