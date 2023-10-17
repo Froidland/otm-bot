@@ -7,7 +7,7 @@ import db from "./db";
 import { auth } from "osu-api-extended";
 import { scheduler } from "./background-jobs";
 import { SimpleIntervalJob } from "toad-scheduler";
-import tryoutLobbyReminderTask from "./background-jobs/tasks/tryout-lobby-reminder";
+import tryoutLobbyReminderTask from "./background-jobs/tasks/tryoutLobbyReminder";
 
 const client = new SapphireClient({
 	intents: [
