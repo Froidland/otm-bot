@@ -1,6 +1,4 @@
-import "@sapphire/plugin-hmr/register";
 import "@sapphire/plugin-hmr";
-import "@sapphire/plugin-logger/register";
 import { LogLevel, SapphireClient, container } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import db from "./db";

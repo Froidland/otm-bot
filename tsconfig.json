@@ -1,6 +1,11 @@
 {
 	"ts-node": {
-		"require": ["tsconfig-paths/register", "dotenv-safe/config"],
+		"require": [
+			"tsconfig-paths/register",
+			"dotenv-safe/config",
+			"@sapphire/plugin-logger/register",
+			"@sapphire/plugin-hmr/register"
+		],
 		"files": true
 	},
 	"compilerOptions": {
