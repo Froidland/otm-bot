@@ -3,9 +3,11 @@ import { LogLevel, SapphireClient, container } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import db from "./db";
 import { auth } from "osu-api-extended";
-import { scheduler } from "./background-jobs";
-import { SimpleIntervalJob } from "toad-scheduler";
-import tryoutLobbyReminderTask from "./background-jobs/tasks/tryoutLobbyReminder";
+import {
+	initializeTryoutLobbyReminderScheduleWorker,
+	initializeTryoutLobbyReminderSendWorker,
+	tryoutLobbyReminderScheduleQueue,
+} from "./processing";
 
 const client = new SapphireClient({
 	intents: [
@@ -56,19 +58,20 @@ async function bootstrap() {
 
 		await db.$connect();
 
-		// TODO: Use something like BullMQ to queue all the reminders and limit the concurrency.
-		// TODO: Consider registering the jobs once the discord client is ready.
-		scheduler.addSimpleIntervalJob(
-			new SimpleIntervalJob(
-				{
-					minutes: 1,
+		await tryoutLobbyReminderScheduleQueue.add(
+			"tryoutLobbyReminderSchedule",
+			{
+				minutes: 15, // check for lobbies in the next 15 minutes
+			},
+			{
+				repeat: {
+					every: 1000 * 60, // 1 minute
 				},
-				tryoutLobbyReminderTask,
-				{
-					preventOverrun: true,
-				},
-			),
+			},
 		);
+
+		initializeTryoutLobbyReminderScheduleWorker();
+		initializeTryoutLobbyReminderSendWorker();
 
 		container.logger.info("Registered background jobs.");
 	} catch (error) {

@@ -278,7 +278,7 @@ model TryoutLobby {
   bancho_id String?
   last_pick String?
 
-  is_reminder_sent Boolean @default(false)
+  reminder_status ReminderStatus @default(Pending)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -421,4 +421,14 @@ enum TryoutLobbyStatus {
   Completed
 
   @@map("tryout_lobby_status")
+}
+
+enum ReminderStatus {
+  Pending
+  Error
+  Scheduled
+  Skipped
+  Sent
+
+  @@map("reminder_status")
 }
