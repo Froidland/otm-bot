@@ -112,7 +112,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				refereeRoleId: lobby.stage.tryout.referee_role_id,
 				staffChannelId: lobby.stage.tryout.staff_channel_id,
 				playerChannelId: lobby.stage.tryout.player_channel_id,
-				schedule: DateTime.fromJSDate(lobby.schedule).toString(),
+				schedule: lobby.schedule.toISOString(),
 			},
 		};
 	});

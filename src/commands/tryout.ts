@@ -1265,6 +1265,7 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
+	// TODO: Add support for mods.
 	public async chatInputMapSet(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {

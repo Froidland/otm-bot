@@ -1,0 +1,172 @@
+import type { AutoLobby } from "@/bancho/store";
+import { createTryoutLobby } from "@/bancho/utils";
+import db from "@/db";
+import { container } from "@sapphire/framework";
+import { Job, Worker, WorkerOptions } from "bullmq";
+import { DateTime } from "luxon";
+
+type JobData = {
+	minutes: number;
+};
+
+const workerOptions: WorkerOptions = {
+	connection: {
+		host: process.env.REDIS_HOST || "localhost",
+		port: +(process.env.REDIS_PORT || 6379),
+		password: process.env.REDIS_PASSWORD,
+	},
+	concurrency: 5,
+};
+
+export function initializeTryoutLobbyCreateWorker() {
+	const newWorker = new Worker<JobData>(
+		"tryoutLobbyCreate",
+		workerHandler,
+		workerOptions,
+	);
+
+	newWorker.on("error", (error) => {
+		container.logger.error(error);
+	});
+
+	return newWorker;
+}
+
+async function workerHandler(job: Job<JobData, void, string>) {
+	const data = job.data;
+
+	const currentDate = DateTime.now();
+	const dateThreshold = DateTime.now().plus({ minutes: data.minutes });
+
+	container.logger.debug("[AutoRef] Checking for tryout lobbies...");
+
+	const lobbies = await db.tryoutLobby.findMany({
+		where: {
+			schedule: {
+				gt: currentDate.toJSDate(),
+				lt: dateThreshold.toJSDate(),
+			},
+			auto_ref: true,
+			status: "Pending",
+		},
+		include: {
+			players: {
+				include: {
+					player: {
+						select: {
+							osu_id: true,
+							osu_username: true,
+							discord_id: true,
+						},
+					},
+				},
+			},
+			referee: {
+				select: {
+					osu_id: true,
+					osu_username: true,
+					discord_id: true,
+				},
+			},
+			stage: {
+				include: {
+					mappool: {
+						select: {
+							beatmap_id: true,
+							pick_id: true,
+						},
+					},
+					tryout: {
+						select: {
+							id: true,
+							acronym: true,
+							staff_channel_id: true,
+							player_channel_id: true,
+							referee_role_id: true,
+						},
+					},
+				},
+			},
+		},
+	});
+
+	if (lobbies.length === 0) {
+		container.logger.debug(
+			`[AutoRef] No tryout lobbies found in the next ${data.minutes} minutes. Skipping...`,
+		);
+
+		return;
+	}
+
+	container.logger.debug(
+		`[AutoRef] Found ${lobbies.length} tryout lobbies. Attempting to create...`,
+	);
+
+	let createdCount = 0;
+
+	for (const lobby of lobbies) {
+		const mappool = lobby.stage.mappool;
+		const mappoolOrder = lobby.stage.mappool_order?.split(" ");
+
+		if (!mappoolOrder) {
+			container.logger.error(
+				`[AutoRef] Could not find mappool order for lobby ${lobby.id}.`,
+			);
+
+			continue;
+		}
+
+		const tryout = lobby.stage.tryout;
+
+		const referee = lobby.referee;
+		const staffChannelId = tryout.staff_channel_id;
+		const playerChannelId = tryout.player_channel_id;
+
+		const players = lobby.players.map((p) => {
+			return {
+				osuId: p.player.osu_id,
+				osuUsername: p.player.osu_username,
+				discordId: p.player.discord_id,
+			};
+		});
+
+		const beatmaps = mappool.map((m) => {
+			return {
+				beatmapId: m.beatmap_id!,
+				pickId: m.pick_id,
+			};
+		});
+
+		const lobbyData: AutoLobby = {
+			id: lobby.id,
+			name: `${tryout.acronym}: (Lobby ${lobby.custom_id}) vs (Tryouts)`,
+			customId: lobby.custom_id,
+			banchoId: null,
+			players,
+			referee,
+			mappool: beatmaps,
+			mappoolQueue: mappoolOrder,
+			staffChannelId,
+			playerChannelId,
+			refereeRoleId: tryout.referee_role_id,
+			schedule: lobby.schedule.toISOString(),
+			lastPick: null,
+			state: "initializing",
+		};
+
+		container.logger.debug(`[AutoRef] Creating tryout lobby ${lobby.id}...`);
+
+		const success = await createTryoutLobby(lobbyData);
+
+		if (success) {
+			createdCount++;
+			continue;
+		}
+
+		break;
+	}
+
+	if (createdCount > 0) {
+		container.logger.debug(`[AutoRef] Created ${createdCount} tryout lobbies.`);
+	}
+}

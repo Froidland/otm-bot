@@ -115,6 +115,14 @@ export class LobbyCommand extends Subcommand {
 									.setDescription("The player limit of the lobby.")
 									.setRequired(true)
 									.setMaxValue(16), //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
+						)
+						.addBooleanOption((option) =>
+							option
+								.setName("auto")
+								.setDescription(
+									"Whether or not to automatically ref the lobby. (EXPERIMENTAL, defaults to false)",
+								)
+								.setRequired(false),
 						),
 				)
 				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
@@ -164,6 +172,14 @@ export class LobbyCommand extends Subcommand {
 									"The interval between each lobby. (Format: HH:MM)",
 								)
 								.setRequired(true),
+						)
+						.addBooleanOption((option) =>
+							option
+								.setName("auto")
+								.setDescription(
+									"Whether or not to automatically ref the lobbies. (EXPERIMENTAL, defaults to false)",
+								)
+								.setRequired(false),
 						),
 				)
 				.addSubcommand((builder: SlashCommandSubcommandBuilder) =>
@@ -357,6 +373,8 @@ export class LobbyCommand extends Subcommand {
 			},
 		);
 
+		const auto = interaction.options.getBoolean("auto", false) || false;
+
 		if (!startDate.isValid) {
 			await interaction.editReply({
 				embeds: [InvalidDateTime],
@@ -455,6 +473,7 @@ export class LobbyCommand extends Subcommand {
 		let embedDescription = "**__Tryout Lobby info:__**\n";
 		embedDescription += `**Lobby ID:** \`${customId}\`\n`;
 		embedDescription += `**Start Date:** \`${startDate.toRFC2822()}\` (<t:${startDate.toSeconds()}:R>)\n`;
+		embedDescription += `**Auto Ref:** \`${auto ? "Yes" : "No"}\`\n`;
 		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
 
 		try {
@@ -469,6 +488,7 @@ export class LobbyCommand extends Subcommand {
 							id: stage.id,
 						},
 					},
+					auto_ref: auto,
 				},
 			});
 
@@ -528,6 +548,7 @@ export class LobbyCommand extends Subcommand {
 		const playerLimit = interaction.options.getNumber("player-limit", true);
 		const count = interaction.options.getNumber("count", true);
 		const interval = interaction.options.getString("interval", true);
+		const auto = interaction.options.getBoolean("auto", false) || false;
 
 		const startDate = DateTime.fromFormat(startDateOption, "yyyy-MM-dd HH:mm", {
 			zone: "utc",
@@ -673,6 +694,7 @@ export class LobbyCommand extends Subcommand {
 					})
 					.toJSDate(),
 				stageId: stage.id,
+				auto_ref: auto,
 			});
 		}
 
@@ -1764,8 +1786,20 @@ export class LobbyCommand extends Subcommand {
 		let embedDescription = "**Details:**\n";
 		embedDescription += `\\- **Stage:** \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
 		embedDescription += `\\- **Lobby:** \`${lobby.custom_id}\`\n`;
+		embedDescription += `\\- **Auto-ref:** \`${
+			lobby.auto_ref ? "Yes" : "No"
+		}\`\n`;
 		embedDescription += `\\- **Referee:** ${
 			lobby.referee ? `<@${lobby.referee.discord_id}>` : "*No referee assigned*"
+		}\n`;
+		embedDescription += `\\- **Bancho ID:** ${
+			lobby.bancho_id
+				? "[" +
+				  lobby.bancho_id +
+				  "](https://osu.ppy.sh/community/matches/" +
+				  lobby.bancho_id +
+				  ")"
+				: "`None`"
 		}\n`;
 		embedDescription += `\\- **Schedule:** \`${DateTime.fromJSDate(
 			lobby.schedule as Date,

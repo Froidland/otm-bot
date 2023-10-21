@@ -277,6 +277,7 @@ model TryoutLobby {
 
   bancho_id String?
   last_pick String?
+  auto_ref Boolean @default(false)
 
   reminder_status ReminderStatus @default(Pending)
 
@@ -286,6 +287,8 @@ model TryoutLobby {
   @@map("tryout_lobbies")
 }
 
+// TODO: Instead of linking directly to the user, link to the PlayersOnTryout model.
+// ? This way we can drop records in case the the PlayersOnTryout record is deleted.
 model PlayersOnTryoutLobbies {
   tryout_lobby_id String
   user_id         String
@@ -366,6 +369,8 @@ model Beatmap {
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt
+
+  @@map("beatmaps")
 }
 
 enum MatchStatus {
@@ -418,6 +423,7 @@ enum TryoutLobbyStatus {
   Pending
   Ongoing
   Override
+  Failed
   Completed
 
   @@map("tryout_lobby_status")

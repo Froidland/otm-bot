@@ -1,15 +1,19 @@
 import "@sapphire/plugin-hmr";
+import "@sapphire/pieces";
 import { LogLevel, SapphireClient, container } from "@sapphire/framework";
 import { GatewayIntentBits } from "discord.js";
 import db from "./db";
 import { auth } from "osu-api-extended";
 import {
 	initializeTryoutLobbyReminderScheduleWorker,
-	initializeTryoutLobbyReminderSendWorker,
+	initializeTryoutLobbyCreateWorker,
 	tryoutLobbyReminderScheduleQueue,
 } from "./processing";
+import BanchoJs from "bancho.js";
+import { registerBanchoEvents } from "./bancho/events";
+import { tryoutLobbyCreateQueue } from "./processing/queues/tryoutLobbyCreateQueue";
 
-const client = new SapphireClient({
+const discordClient = new SapphireClient({
 	intents: [
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildMessages,
@@ -24,6 +28,12 @@ const client = new SapphireClient({
 	},
 });
 
+const banchoClient = new BanchoJs.BanchoClient({
+	username: process.env.BANCHO_USERNAME!,
+	password: process.env.BANCHO_PASSWORD!,
+	apiKey: process.env.BANCHO_API_KEY!,
+});
+
 // TODO: Rate limiting.
 // TODO: Graceful shutdown.
 async function bootstrap() {
@@ -34,7 +44,15 @@ async function bootstrap() {
 			["public"],
 		);
 
-		await client.login(process.env.BOT_TOKEN);
+		await discordClient.login(process.env.BOT_TOKEN);
+
+		await registerBanchoEvents(banchoClient);
+		await banchoClient.connect();
+		container.logger.info(
+			`Connected to Bancho as ${banchoClient.getSelf().ircUsername}.`,
+		);
+
+		container.bancho = banchoClient;
 
 		if (process.env.NODE_ENV === "development") {
 			container.logger.info("Using PrismaClient with logging enabled.");
@@ -70,8 +88,20 @@ async function bootstrap() {
 			},
 		);
 
+		await tryoutLobbyCreateQueue.add(
+			"tryoutLobbyCreate",
+			{
+				minutes: 10,
+			},
+			{
+				repeat: {
+					every: 1000 * 60, // 1 minute
+				},
+			},
+		);
+
 		initializeTryoutLobbyReminderScheduleWorker();
-		initializeTryoutLobbyReminderSendWorker();
+		initializeTryoutLobbyCreateWorker();
 
 		container.logger.info("Registered background jobs.");
 	} catch (error) {
@@ -80,6 +110,12 @@ async function bootstrap() {
 		);
 
 		process.exit(1);
+	}
+}
+
+declare module "@sapphire/pieces" {
+	interface Container {
+		bancho: BanchoJs.BanchoClient;
 	}
 }
 

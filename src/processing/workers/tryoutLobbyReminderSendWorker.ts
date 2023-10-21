@@ -4,6 +4,8 @@ import { Job, Worker, WorkerOptions } from "bullmq";
 import { EmbedBuilder } from "discord.js";
 import { DateTime } from "luxon";
 
+// TODO: Consider auto ref.
+
 type JobData = {
 	lobbyId: string;
 	customId: string;
