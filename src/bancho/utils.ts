@@ -138,7 +138,6 @@ export function getMissingPlayers(
 	const currentPlayers: string[] = [];
 	const expectedPlayers = lobby.players;
 
-	// TODO: Don't really know if channel.channelMembers is a list of the IRC users, aka. just the bot and BanchoBot or all the players in the lobby.
 	for (const playerName of channel.channelMembers.keys()) {
 		currentPlayers.push(playerName);
 	}
