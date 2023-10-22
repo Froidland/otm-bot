@@ -10,7 +10,6 @@ import { EmbedBuilder } from "discord.js";
  * @returns `true` if the lobby was created successfully, `false` otherwise.
  */
 export async function createTryoutLobby(lobby: AutoLobby) {
-	console.log("yes");
 	if (ongoingTryoutLobbies.length >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
 		return false;
 	}
