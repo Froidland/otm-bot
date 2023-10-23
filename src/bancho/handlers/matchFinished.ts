@@ -29,7 +29,7 @@ export const matchFinished: MultiplayerEventHandler = {
 			return;
 		}
 
-		const map = lobby.mappool.find((m) => (m.pickId = nextPick));
+		const map = lobby.mappool.find((m) => (m.pickId === nextPick));
 
 		if (!map) {
 			lobby.state = "errored";
