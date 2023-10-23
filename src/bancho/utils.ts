@@ -104,15 +104,15 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 	await newLobby.sendMessage(`!mp set 0 3 16`);
 	await newLobby.sendMessage(`!mp map ${map?.beatmapId}`);
 
-	if (lobby.referees.length > 0) {
-		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);
-	}
-
 	lobby.lastPick = {
 		beatmapId: map.beatmapId,
 		pickId: map.pickId,
 		startedAt: null,
 	};
+
+	if (lobby.referees.length > 0) {
+		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);
+	}
 
 	for (const player of lobby.players) {
 		await newLobby.sendMessage(`!mp invite #${player.osuId}`);
