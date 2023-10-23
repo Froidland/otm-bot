@@ -1,11 +1,8 @@
 import { Tournament, Tryout } from "@prisma/client";
-import {
-	ChatInputCommandInteraction,
-	GuildMemberRoleManager,
-} from "discord.js";
+import { GuildMemberRoleManager, Interaction } from "discord.js";
 
 export function isUserTournamentStaff(
-	interaction: ChatInputCommandInteraction,
+	interaction: Interaction,
 	tournament: Tournament,
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
@@ -14,7 +11,7 @@ export function isUserTournamentStaff(
 }
 
 export function isUserTournamentReferee(
-	interaction: ChatInputCommandInteraction,
+	interaction: Interaction,
 	tournament: Tournament,
 ) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
@@ -22,19 +19,13 @@ export function isUserTournamentReferee(
 	);
 }
 
-export function isUserTryoutReferee(
-	interaction: ChatInputCommandInteraction,
-	tryout: Tryout,
-) {
+export function isUserTryoutReferee(interaction: Interaction, tryout: Tryout) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
 		tryout.referee_role_id,
 	);
 }
 
-export function isUserTryoutAdmin(
-	interaction: ChatInputCommandInteraction,
-	tryout: Tryout,
-) {
+export function isUserTryoutAdmin(interaction: Interaction, tryout: Tryout) {
 	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
 		tryout.admin_role_id,
 	);
