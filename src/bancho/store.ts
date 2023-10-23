@@ -38,6 +38,7 @@ export type AutoLobby = {
 		| "aborted"
 		| "errored"
 		| "finished";
+	initialOvertime: boolean;
 };
 
 // TODO: Persist this in redis as fallback in case the bot crashes.

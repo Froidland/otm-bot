@@ -427,6 +427,7 @@ enum TryoutLobbyStatus {
   Ongoing
   Override
   Failed
+  Skipped
   Completed
 
   @@map("tryout_lobby_status")

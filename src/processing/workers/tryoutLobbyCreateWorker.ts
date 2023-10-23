@@ -160,6 +160,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			schedule: lobby.schedule.toISOString(),
 			lastPick: null,
 			state: "initializing",
+			initialOvertime: false,
 		};
 
 		container.logger.debug(`[AutoRef] Creating tryout lobby ${lobby.id}...`);

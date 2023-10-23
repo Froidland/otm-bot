@@ -1,3 +1,4 @@
+import db from "@/db";
 import { MultiplayerEventHandler } from ".";
 import { /* endLobby, */ getMissingPlayers } from "../utils";
 
@@ -9,6 +10,24 @@ export const timerEnd: MultiplayerEventHandler = {
 		switch (lobby.state) {
 			case "initializing": {
 				if (missingPlayers.length > 0) {
+					if (
+						missingPlayers.length === lobby.players.length &&
+						lobby.initialOvertime
+					) {
+						await event.channel.sendMessage("!mp close");
+
+						await db.tryoutLobby.update({
+							where: {
+								id: lobby.id,
+							},
+							data: {
+								status: "Skipped",
+							},
+						});
+
+						break;
+					}
+
 					for (const player of missingPlayers) {
 						const banchoUser = client.getUser(player.osuUsername);
 
@@ -22,7 +41,9 @@ export const timerEnd: MultiplayerEventHandler = {
 					await event.channel.sendMessage(
 						"Waiting 3 more minutes for players to join...",
 					);
+
 					lobby.state = "overtime";
+					lobby.initialOvertime = true;
 
 					break;
 				}
