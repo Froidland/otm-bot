@@ -16,6 +16,12 @@ export const playerJoined: MultiplayerEventHandler = {
 			return;
 		}
 
+		const referee = lobby.referees.find((r) => r.osuUsername === username);
+
+		if (referee) {
+			return;
+		}
+
 		await event.channel.sendMessage(`!mp kick ${username}`);
 	},
 };
