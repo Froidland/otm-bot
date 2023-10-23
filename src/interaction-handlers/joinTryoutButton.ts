@@ -1,9 +1,9 @@
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
-import { ApplyOptions } from "@sapphire/decorators";
 import {
 	InteractionHandler,
 	InteractionHandlerTypes,
+	PieceContext,
 } from "@sapphire/framework";
 import {
 	EmbedBuilder,
@@ -11,10 +11,22 @@ import {
 	GuildMemberRoleManager,
 } from "discord.js";
 
-@ApplyOptions<InteractionHandler.Options>({
-	interactionHandlerType: InteractionHandlerTypes.Button,
-})
 export class JoinTryoutButtonHandler extends InteractionHandler {
+	public constructor(context: PieceContext) {
+		super(context, {
+			name: "joinTryoutButton",
+			interactionHandlerType: InteractionHandlerTypes.Button,
+		});
+	}
+
+	public override parse(interaction: ButtonInteraction) {
+		if (interaction.customId !== "joinTryoutButton") {
+			return this.none();
+		}
+
+		return this.some();
+	}
+
 	public async run(interaction: ButtonInteraction) {
 		await interaction.deferReply({
 			ephemeral: true,
@@ -120,11 +132,5 @@ export class JoinTryoutButtonHandler extends InteractionHandler {
 				],
 			});
 		}
-	}
-
-	public override parse(interaction: ButtonInteraction) {
-		if (interaction.customId !== "joinTryoutButton") return this.none();
-
-		return this.some();
 	}
 }

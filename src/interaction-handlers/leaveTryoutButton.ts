@@ -1,9 +1,9 @@
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
-import { ApplyOptions } from "@sapphire/decorators";
 import {
 	InteractionHandler,
 	InteractionHandlerTypes,
+	PieceContext,
 } from "@sapphire/framework";
 import {
 	EmbedBuilder,
@@ -12,10 +12,20 @@ import {
 } from "discord.js";
 
 // TODO: Check if player has registered for a lobby. Maybe unregister them and then remove their role?.
-@ApplyOptions<InteractionHandler.Options>({
-	interactionHandlerType: InteractionHandlerTypes.Button,
-})
 export class LeaveTryoutButtonHandler extends InteractionHandler {
+	public constructor(context: PieceContext) {
+		super(context, {
+			name: "leaveTryoutButton",
+			interactionHandlerType: InteractionHandlerTypes.Button,
+		});
+	}
+
+	public override parse(interaction: ButtonInteraction) {
+		if (interaction.customId !== "leaveTryoutButton") return this.none();
+
+		return this.some();
+	}
+
 	public async run(interaction: ButtonInteraction) {
 		await interaction.deferReply({
 			ephemeral: true,
@@ -153,11 +163,5 @@ export class LeaveTryoutButtonHandler extends InteractionHandler {
 
 			return;
 		}
-	}
-
-	public override parse(interaction: ButtonInteraction) {
-		if (interaction.customId !== "leaveTryoutButton") return this.none();
-
-		return this.some();
 	}
 }
