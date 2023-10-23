@@ -98,7 +98,10 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 	// TODO: Add button to invite.
 
 	const scheduledTime = DateTime.fromISO(lobby.schedule);
-	const timer = scheduledTime.toSeconds() - DateTime.now().toSeconds();
+	const timer = Math.max(
+		scheduledTime.toSeconds() - DateTime.now().toSeconds(),
+		300,
+	);
 
 	await newLobby.sendMessage(`!mp timer ${timer}`);
 	await newLobby.sendMessage(`!mp set 0 3 16`);
