@@ -7,13 +7,44 @@ import {
 	playerAutoTryoutLobbyEmbed,
 	staffAutoTryoutLobbyEmbed,
 } from "@/embeds";
+import { EmbedBuilder } from "discord.js";
 
-// TODO: Send message to staff and player channel when lobby is created with buttons to addref and invite respectively.
 /**
  * @returns `true` if the lobby was created successfully, `false` otherwise.
  */
 export async function createTryoutLobby(lobby: AutoLobby) {
 	if (ongoingTryoutLobbies.length >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
+		container.logger.warn(
+			`[AutoRef] Could not create lobby ${lobby.id} because there are too many ongoing lobbies.`,
+		);
+
+		await db.tryoutLobby.update({
+			where: {
+				id: lobby.id,
+			},
+			data: {
+				status: "Failed",
+			},
+		});
+
+		const staffChannel = await container.client.channels.fetch(
+			lobby.staffChannelId,
+		);
+
+		if (staffChannel && staffChannel.isTextBased()) {
+			await staffChannel.send({
+				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle(`Unable to create lobby \`${lobby.customId}\``)
+						.setDescription(
+							"There are too many ongoing lobbies right now. Please create the lobby manually.",
+						),
+				],
+			});
+		}
+
 		return false;
 	}
 
@@ -37,7 +68,23 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 			},
 		});
 
-		// TODO: Send message to staff and player channel that the lobby failed to create.
+		const staffChannel = await container.client.channels.fetch(
+			lobby.staffChannelId,
+		);
+
+		if (staffChannel && staffChannel.isTextBased()) {
+			await staffChannel.send({
+				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle(`Unable to create lobby \`${lobby.customId}\``)
+						.setDescription(
+							"Could not find first map in mappool. Please create the lobby manually.",
+						),
+				],
+			});
+		}
 
 		return false;
 	}
@@ -58,7 +105,23 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 			},
 		});
 
-		// TODO: Send message to staff and player channel that the lobby failed to create.
+		const staffChannel = await container.client.channels.fetch(
+			lobby.staffChannelId,
+		);
+
+		if (staffChannel && staffChannel.isTextBased()) {
+			await staffChannel.send({
+				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle(`Unable to create lobby \`${lobby.customId}\``)
+						.setDescription(
+							"Could not find first map in mappool. Please create the lobby manually.",
+						),
+				],
+			});
+		}
 
 		return false;
 	}
@@ -94,8 +157,6 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 			playerAutoTryoutLobbyEmbed(lobby),
 		);
 	}
-	// TODO: Add embed for player channel.
-	// TODO: Add button to invite.
 
 	const scheduledTime = DateTime.fromISO(lobby.schedule);
 	const timer = Math.max(
