@@ -210,7 +210,7 @@ export class TryoutCommand extends Subcommand {
 							option
 								.setName("management-role")
 								.setDescription(
-									"The role that staff members need to have to be able to manage the tryout. (Default: New Role)",
+									"The role required to manage the tryout data. (Default: New Role)",
 								)
 								.setRequired(false),
 						)
@@ -218,7 +218,7 @@ export class TryoutCommand extends Subcommand {
 							option
 								.setName("referee-role")
 								.setDescription(
-									"The role that referees need to have to be able to claim lobbies. (Default: New Role)",
+									"The role required to claim lobbies among other things. (Default: New Role)",
 								)
 								.setRequired(false),
 						)
@@ -226,7 +226,7 @@ export class TryoutCommand extends Subcommand {
 							option
 								.setName("player-role")
 								.setDescription(
-									"The role that players need to have to be able to execute the schedule commands. (Default: New Role)",
+									"The role required to execute player commands. (Default: New Role)",
 								)
 								.setRequired(false),
 						)
@@ -252,7 +252,7 @@ export class TryoutCommand extends Subcommand {
 							option
 								.setName("parent-category")
 								.setDescription(
-									"The parent category where the tryout channels will be created. (Default: None)",
+									"The parent category for all the created channels. (Default: None)",
 								)
 								.addChannelTypes(ChannelType.GuildCategory)
 								.setRequired(false),
