@@ -12,8 +12,10 @@ export const playerJoined: MultiplayerEventHandler = {
 
 		const player = lobby.players.find((p) => p.osuUsername === username);
 
-		if (!player) {
-			await event.channel.sendMessage(`!mp kick ${username}`);
+		if (player) {
+			return;
 		}
+
+		await event.channel.sendMessage(`!mp kick ${username}`);
 	},
 };

@@ -273,6 +273,9 @@ model TryoutLobby {
   referee    User?   @relation(fields: [referee_id], references: [id])
   referee_id String?
 
+  staff_embed_message_id String? //? Used for the interactive embed.
+  player_embed_message_id String? //? Used for the interactive embed.
+
   players PlayersOnTryoutLobbies[]
 
   bancho_id String?

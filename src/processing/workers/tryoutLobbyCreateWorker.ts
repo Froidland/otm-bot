@@ -118,7 +118,16 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const tryout = lobby.stage.tryout;
 
-		const referee = lobby.referee;
+		let referee = null;
+
+		if (lobby.referee) {
+			referee = {
+				osuId: lobby.referee.osu_id,
+				osuUsername: lobby.referee.osu_username,
+				discordId: lobby.referee.discord_id,
+			};
+		}
+
 		const staffChannelId = tryout.staff_channel_id;
 		const playerChannelId = tryout.player_channel_id;
 
@@ -143,7 +152,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			customId: lobby.custom_id,
 			banchoId: null,
 			players,
-			referee,
+			referees: referee ? [referee] : [],
 			mappool: beatmaps,
 			mappoolQueue: mappoolOrder,
 			staffChannelId,

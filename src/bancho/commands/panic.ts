@@ -1,6 +1,7 @@
 import { container } from "@sapphire/pieces";
 import { BanchoCommand } from ".";
 import { ongoingTryoutLobbies } from "../store";
+import { EmbedBuilder } from "discord.js";
 
 export const panic: BanchoCommand = {
 	name: "panic",
@@ -25,36 +26,39 @@ export const panic: BanchoCommand = {
 		);
 
 		if (!player) {
-			await event.channel.sendMessage(
-				"You are not a part of this lobby.",
-			);
+			await event.channel.sendMessage("You are not a part of this lobby.");
 
 			return;
 		}
 
-		if (!lobby.referee) {
-			await event.channel.sendMessage(
-				"No referee is assigned to this lobby. Pinging all referees...",
-			);
-
-			const staffDiscordChannel = await container.client.channels.fetch(
-				lobby.staffChannelId,
-			);
-
-			if (!staffDiscordChannel || !staffDiscordChannel.isTextBased()) {
-				await event.channel.sendMessage("Could not find the staff channel.");
-
-				return;
-			}
-
-			// TODO: Ping the referee role with an embed containing the lobby info.
-			await staffDiscordChannel.send("");
-
-			return;
-		}
-
-		await event.channel.sendMessage(
-			`Pinging ${lobby.referee?.osu_username}...`,
+		const staffDiscordChannel = await container.client.channels.fetch(
+			lobby.staffChannelId,
 		);
+
+		if (!staffDiscordChannel || !staffDiscordChannel.isTextBased()) {
+			await event.channel.sendMessage(
+				"No staff channel was found. Please contact a staff member manually.",
+			);
+
+			return;
+		}
+
+		const mention = //? If there are no referees, ping the referee role.
+			lobby.referees.length < 1
+				? `<@&${lobby.refereeRoleId}>`
+				: lobby.referees.map((r) => `<@${r.discordId}>`).join(" ");
+
+		await event.channel.sendMessage(`Pinging referee...`);
+		await staffDiscordChannel.send({
+			content: mention,
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Red")
+					.setTitle("Panic button pressed!")
+					.setDescription(
+						`Player <@${player.discordId}> (\`${player.osuUsername}\` - \`#${player.osuId}\`) is requesting help in lobby \`${lobby.customId}\`.`,
+					),
+			],
+		});
 	},
 };

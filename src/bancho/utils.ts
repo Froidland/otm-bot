@@ -3,7 +3,10 @@ import { AutoLobby, ongoingTryoutLobbies } from "./store";
 import { container } from "@sapphire/pieces";
 import { DateTime } from "luxon";
 import db from "@/db";
-import { EmbedBuilder } from "discord.js";
+import {
+	playerAutoTryoutLobbyEmbed,
+	staffAutoTryoutLobbyEmbed,
+} from "@/embeds";
 
 // TODO: Send message to staff and player channel when lobby is created with buttons to addref and invite respectively.
 /**
@@ -15,42 +18,8 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 	}
 
 	let newLobby = null;
-
-	try {
-		newLobby = await container.bancho.createLobby(lobby.name);
-	} catch (error) {
-		console.log(error);
-
-		return false;
-	}
-
-	const banchoId = newLobby.name.split("_")[1];
-
-	lobby.banchoId = banchoId;
-
-	const discordStaffChannel = await container.client.channels.fetch(
-		lobby.staffChannelId,
-	);
-
-	// TODO: Add button to addref.
-	if (discordStaffChannel && discordStaffChannel.isTextBased()) {
-		let embedDescription = "**Details:**\n";
-		embedDescription += `\\- **Lobby name:** \`${lobby.name}\`\n`;
-		embedDescription += `\\- **Lobby ID:** \`${lobby.id}\`\n`;
-		embedDescription += `\\- **Bancho ID:** [${banchoId}](https://osu.ppy.sh/community/matches/${banchoId})`;
-
-		await discordStaffChannel.send({
-			embeds: [
-				new EmbedBuilder()
-					.setColor("Blue")
-					.setTitle("New auto-ref lobby created!")
-					.setDescription(embedDescription),
-			],
-		});
-	}
-
-	// TODO: Add embed for player channel.
-	// TODO: Add button to invite.
+	let staffMessage = null;
+	let playerMessage = null;
 
 	const firstPick = lobby.mappoolQueue.shift();
 
@@ -94,12 +63,50 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 		return false;
 	}
 
+	try {
+		newLobby = await container.bancho.createLobby(lobby.name);
+	} catch (error) {
+		console.log(error);
+
+		return false;
+	}
+
+	const banchoId = newLobby.name.split("_")[1];
+
+	lobby.banchoId = banchoId;
+
+	const discordStaffChannel = await container.client.channels.fetch(
+		lobby.staffChannelId,
+	);
+
+	const discordPlayerChannel = await container.client.channels.fetch(
+		lobby.playerChannelId,
+	);
+
+	if (discordStaffChannel && discordStaffChannel.isTextBased()) {
+		staffMessage = await discordStaffChannel.send(
+			staffAutoTryoutLobbyEmbed(lobby),
+		);
+	}
+
+	if (discordPlayerChannel && discordPlayerChannel.isTextBased()) {
+		playerMessage = await discordPlayerChannel.send(
+			playerAutoTryoutLobbyEmbed(lobby),
+		);
+	}
+	// TODO: Add embed for player channel.
+	// TODO: Add button to invite.
+
 	const scheduledTime = DateTime.fromISO(lobby.schedule);
 	const timer = scheduledTime.toSeconds() - DateTime.now().toSeconds();
 
 	await newLobby.sendMessage(`!mp timer ${timer}`);
 	await newLobby.sendMessage(`!mp set 0 3 16`);
 	await newLobby.sendMessage(`!mp map ${map?.beatmapId}`);
+
+	if (lobby.referees.length > 0) {
+		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);
+	}
 
 	lobby.lastPick = {
 		beatmapId: map.beatmapId,
@@ -120,6 +127,8 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 		data: {
 			bancho_id: banchoId,
 			status: "Ongoing",
+			staff_embed_message_id: staffMessage?.id || null,
+			player_embed_message_id: playerMessage?.id || null,
 		},
 	});
 

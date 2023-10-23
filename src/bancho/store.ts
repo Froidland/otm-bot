@@ -8,11 +8,11 @@ export type AutoLobby = {
 		osuUsername: string;
 		discordId: string | null;
 	}[];
-	referee: {
-		osu_id: string;
-		osu_username: string;
-		discord_id: string | null;
-	} | null;
+	referees: {
+		osuId: string;
+		osuUsername: string;
+		discordId: string | null;
+	}[];
 	// TODO: Add support for mods.
 	mappool: {
 		beatmapId: number;
