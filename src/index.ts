@@ -91,7 +91,7 @@ async function bootstrap() {
 		await tryoutLobbyCreateQueue.add(
 			"tryoutLobbyCreate",
 			{
-				minutes: 10,
+				minutes: 5,
 			},
 			{
 				repeat: {
