@@ -15,7 +15,6 @@ const workerOptions: WorkerOptions = {
 		port: +(process.env.REDIS_PORT || 6379),
 		password: process.env.REDIS_PASSWORD,
 	},
-	concurrency: 5,
 };
 
 export function initializeTryoutLobbyCreateWorker() {
