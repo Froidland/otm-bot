@@ -10,6 +10,7 @@ import {
 import { EmbedBuilder } from "discord.js";
 
 /**
+ * Creates a lobby in bancho linked to the given lobby, stores it in memory and handles all the necessary setup and events.
  * @returns `true` if the lobby was created successfully, `false` otherwise.
  */
 export async function createTryoutLobby(lobby: AutoLobby) {
@@ -166,11 +167,13 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 
 	await newLobby.sendMessage(`!mp timer ${timer}`);
 	await newLobby.sendMessage(`!mp set 0 3 16`);
-	await newLobby.sendMessage(`!mp map ${map?.beatmapId}`);
+	await newLobby.sendMessage(`!mp map ${map.beatmapId}`);
+	await newLobby.sendMessage(`!mp mods ${getModsString(map.mods)}`);
 
 	lobby.lastPick = {
 		beatmapId: map.beatmapId,
 		pickId: map.pickId,
+		mods: map.mods,
 		startedAt: null,
 	};
 
@@ -203,6 +206,12 @@ export async function createTryoutLobby(lobby: AutoLobby) {
 	
 } */
 
+/**
+ * Compares the list of players in the given channel with the expected list of players in the given lobby and returns an array of players that are missing.
+ * @param channel BanchoChannel instance to get the current list of players from.
+ * @param lobby AutoLobby instance to get the expected list of players from.
+ * @returns An array of players that are expected to be in the lobby but are not.
+ */
 export function getMissingPlayers(
 	channel: BanchoJs.BanchoChannel,
 	lobby: AutoLobby,
@@ -219,4 +228,35 @@ export function getMissingPlayers(
 	);
 
 	return missingPlayers;
+}
+
+/**
+ * Takes an unformatted string of mods and transforms it into a string usable by BanchoBot.
+ * @param mods An unformatted string of mods.
+ * @returns A formatted string of mods compatible with the command `!mp mods`.
+ */
+export function getModsString(mods: string) {
+	const result: string[] = [];
+
+	if (mods === "NM") {
+		return ["NF"];
+	}
+
+	if (!mods.startsWith("FM")) {
+		result.push("NF");
+	}
+
+	for (let i = 0; i < mods.length; i += 2) {
+		const substring = mods.slice(i, i + 2);
+
+		if (substring === "FM") {
+			result.push("FreeMod");
+
+			continue;
+		}
+
+		result.push(substring);
+	}
+
+	return result.join(" ");
 }

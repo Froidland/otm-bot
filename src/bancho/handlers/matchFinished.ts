@@ -1,5 +1,6 @@
 import db from "@/db";
 import { MultiplayerEventHandler } from ".";
+import { getModsString } from "../utils";
 
 export const matchFinished: MultiplayerEventHandler = {
 	regex: /^The match has finished!$/,
@@ -29,7 +30,7 @@ export const matchFinished: MultiplayerEventHandler = {
 			return;
 		}
 
-		const map = lobby.mappool.find((m) => (m.pickId === nextPick));
+		const map = lobby.mappool.find((m) => m.pickId === nextPick);
 
 		if (!map) {
 			lobby.state = "errored";
@@ -42,10 +43,12 @@ export const matchFinished: MultiplayerEventHandler = {
 
 		lobby.state = "waiting";
 		await event.channel.sendMessage(`!mp map ${map.beatmapId}`);
+		await event.channel.sendMessage(`!mp mods ${getModsString(map.mods)}`);
 
 		lobby.lastPick = {
 			beatmapId: map.beatmapId,
 			pickId: map.pickId,
+			mods: map.mods,
 			startedAt: null,
 		};
 

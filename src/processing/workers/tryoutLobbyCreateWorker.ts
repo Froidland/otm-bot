@@ -73,6 +73,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 						select: {
 							beatmap_id: true,
 							pick_id: true,
+							mods: true,
 						},
 					},
 					tryout: {
@@ -142,6 +143,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			return {
 				beatmapId: m.beatmap_id!,
 				pickId: m.pick_id,
+				mods: m.mods,
 			};
 		});
 

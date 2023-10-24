@@ -13,10 +13,10 @@ export type AutoLobby = {
 		osuUsername: string;
 		discordId: string | null;
 	}[];
-	// TODO: Add support for mods.
 	mappool: {
 		beatmapId: number;
 		pickId: string;
+		mods: string;
 	}[];
 	mappoolQueue: string[]; //? Just an array of pickIds. Gets shifted when a map is picked.
 	refereeRoleId: string;
@@ -27,6 +27,7 @@ export type AutoLobby = {
 	lastPick: {
 		beatmapId: number;
 		pickId: string;
+		mods: string;
 		startedAt: string | null; //? Used in the threshold check for the !abort command.
 	} | null;
 	state:

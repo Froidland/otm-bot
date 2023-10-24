@@ -20,6 +20,40 @@ import { createId } from "@paralleldrive/cuid2";
 import { isUserTryoutAdmin } from "@/utils";
 import { v2 } from "osu-api-extended";
 
+// TODO: Revise this, it doesn't really convince me.
+const modCombinations = [
+	"HD",
+	"HR",
+	"DT",
+	"FL",
+	"EZ",
+	"HT",
+	"HDHR",
+	"HDDT",
+	"DTHR",
+	"HDDTHR",
+	"FLHD",
+	"FLHR",
+	"FLDT",
+	"FLHDHR",
+	"FLHDDT",
+	"FLHDDTHR",
+	"EZHD",
+	"EZDT",
+	"EZHDDT",
+	"EZFLHDDT",
+	"HTHD",
+	"HTHR",
+	"HTHDHR",
+	"HTEZ",
+	"HTFL",
+	"HTEZFL",
+	"HTEZFLHD",
+	"FM",
+	"FMDT",
+	"FMHT",
+];
+
 @ApplyOptions<Subcommand.Options>({
 	description: "Tryout management commands.",
 	preconditions: ["GuildOnly"],
@@ -353,6 +387,14 @@ export class TryoutCommand extends Subcommand {
 											"The beatmap ID of the map to set. (Not to be confused with the beatmapset ID)",
 										)
 										.setRequired(true),
+								)
+								.addStringOption((option) =>
+									option
+										.setName("mods")
+										.setDescription(
+											"The mods to set the map for. (Example: HD, NF is always enforced)",
+										)
+										.setRequired(false),
 								),
 						)
 						.addSubcommand((builder) =>
@@ -1265,7 +1307,6 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
-	// TODO: Add support for mods.
 	public async chatInputMapSet(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -1275,6 +1316,7 @@ export class TryoutCommand extends Subcommand {
 			.getString("stage-id", true)
 			.toUpperCase();
 		const pick = interaction.options.getString("pick", true).toUpperCase();
+		const mods = (interaction.options.getString("mods") || "NM").toUpperCase();
 		const beatmapId = interaction.options.getNumber("beatmap-id", true);
 
 		const user = await db.user.findFirst({
@@ -1286,6 +1328,23 @@ export class TryoutCommand extends Subcommand {
 		if (!user) {
 			await interaction.editReply({
 				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		if (!modCombinations.includes(mods)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid mods!")
+						.setDescription(
+							`The mods you provided are invalid. Valid combinations are: ${modCombinations
+								.map((m) => `\`${m}\``)
+								.join(", ")}.`,
+						),
+				],
 			});
 
 			return;
@@ -1446,9 +1505,11 @@ export class TryoutCommand extends Subcommand {
 							},
 							create: {
 								pick_id: pick,
+								mods,
 								beatmap_id: beatmap.id,
 							},
 							update: {
+								mods,
 								beatmap_id: beatmap.id,
 							},
 						},

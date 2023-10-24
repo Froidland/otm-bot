@@ -344,6 +344,8 @@ model TryoutMapPick {
   stage    TryoutStage @relation(fields: [stage_id], references: [id])
   stage_id String
 
+  mods String @default("NM")
+
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
 
