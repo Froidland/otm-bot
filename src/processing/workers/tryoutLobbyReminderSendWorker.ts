@@ -96,15 +96,18 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(
-						`Lobby ${data.customId} starts ${DateTime.fromJSDate(schedule)
+						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(schedule)
 							.setLocale("en-US")
 							.toRelative()}!`,
 					)
 					.setDescription(
 						data.referee
-							? `The referee <@${data.referee.discord_id}> will make the lobby soon, make sure you are in-game to receive your invite.`
+							? `The referee <@${data.referee.discord_id}> (\`${data.referee.osu_username}\` - #\`${data.referee.osu_id}\`) will make the lobby soon, make sure you are in-game to receive your invite.`
 							: "The lobby will be made soon, make sure you are in-game to receive your invite.",
-					),
+					)
+					.setFooter({
+						text: `Unique ID: ${data.lobbyId}`,
+					}),
 			],
 		});
 	}
@@ -118,11 +121,14 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				new EmbedBuilder()
 					.setColor(data.referee ? "Blue" : "Red")
 					.setTitle(
-						`Lobby ${data.customId} starts ${DateTime.fromJSDate(schedule)
+						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(schedule)
 							.setLocale("en-US")
 							.toRelative()}` + (data.referee ? "!" : " and has no referee!"),
 					)
-					.setDescription(staffMessageDescription),
+					.setDescription(staffMessageDescription)
+					.setFooter({
+						text: `Unique ID: ${data.lobbyId}`,
+					}),
 			],
 		});
 	}

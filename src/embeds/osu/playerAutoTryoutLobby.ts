@@ -22,11 +22,13 @@ export const playerAutoTryoutLobbyEmbed = (
 ): MessageCreateOptions => {
 	let embedDescription = "**Details:**\n";
 	embedDescription += `\\- **Lobby name:** \`${lobby.name}\`\n`;
-	embedDescription += `\\- **Lobby ID:** \`${lobby.id}\`\n`;
 
-	if (lobby.referees.length > 0) {
-		embedDescription += `\\- **Referee:** <@${lobby.referees[0].discordId}>\n`;
-	}
+	// prettier-ignore
+	embedDescription += `\\- **Referee:** ${
+		lobby.referees.length > 0
+			? "<@" + lobby.referees[0].discordId + "> (`" + lobby.referees[0].osuUsername + "` - `#" + lobby.referees[0].osuId + "`)"
+			: "*None*"
+	}\n`;
 
 	embedDescription += `\\- **MP Link:** [${lobby.banchoId}](https://osu.ppy.sh/community/matches/${lobby.banchoId})\n`;
 	embedDescription += `\\- **Schedule:** \`${DateTime.fromJSDate(
@@ -44,8 +46,11 @@ export const playerAutoTryoutLobbyEmbed = (
 		embeds: [
 			new EmbedBuilder()
 				.setColor("Blue")
-				.setTitle(`Lobby \`${lobby.customId}\` has been created.`)
-				.setDescription(embedDescription),
+				.setTitle(`Auto lobby \`${lobby.customId}\` has been created.`)
+				.setDescription(embedDescription)
+				.setFooter({
+					text: `Unique ID: ${lobby.id}`,
+				}),
 		],
 		components: [actionRow],
 	};
