@@ -324,8 +324,8 @@ enum TeamInviteStatus {
 
 model Tryout {
   id                String   @id
-  name              String
-  acronym 			String
+  name              String   @db.VarChar(255)
+  acronym           String   @db.VarChar(64)
   staff_channel_id  String
   player_channel_id String
   embed_channel_id  String?
@@ -334,7 +334,7 @@ model Tryout {
   referee_role_id   String
   player_role_id    String
   server_id         String
-  allow_staff Boolean @default(false)
+  allow_staff       Boolean  @default(false)
   start_date        DateTime @db.Timestamp(6)
   end_date          DateTime @db.Timestamp(6)
 
@@ -354,17 +354,17 @@ model Tryout {
 
 model TryoutStage {
   id        String @id
-  name      String
-  custom_id String
+  name      String @db.VarChar(255)
+  custom_id String @db.VarChar(16)
 
   tryout    Tryout @relation(fields: [tryout_id], references: [id])
   tryout_id String
 
   lobbies TryoutLobby[]
 
-  mappool      TryoutMapPick[]
+  mappool       TryoutMapPick[]
   mappool_order String?
-  is_published Boolean         @default(false)
+  is_published  Boolean         @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -374,7 +374,7 @@ model TryoutStage {
 
 model TryoutLobby {
   id           String   @id
-  custom_id    String
+  custom_id    String   @db.VarChar(16)
   player_limit Int
   schedule     DateTime @db.Timestamp(6)
 
@@ -386,14 +386,13 @@ model TryoutLobby {
   referee    User?   @relation(fields: [referee_id], references: [id])
   referee_id String?
 
-  staff_embed_message_id String? //? Used for the interactive embed.
+  staff_embed_message_id  String? //? Used for the interactive embed.
   player_embed_message_id String? //? Used for the interactive embed.
 
   players PlayersOnTryoutLobbies[]
 
   bancho_id String?
-  last_pick String?
-  auto_ref Boolean @default(false)
+  auto_ref  Boolean @default(false)
 
   reminder_status ReminderStatus @default(Pending)
 
@@ -453,7 +452,7 @@ model TryoutMapPick {
   beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id])
   beatmap_id Int?
 
-  pick_id  String
+  pick_id  String      @db.VarChar(16)
   stage    TryoutStage @relation(fields: [stage_id], references: [id])
   stage_id String
 
@@ -469,8 +468,8 @@ model Beatmap {
   id Int @id
 
   beatmapset_id     Int
-  artist            String
-  title             String
+  artist            String @db.VarChar(255)
+  title             String @db.VarChar(255)
   difficulty_rating Float
   circle_size       Float
   hp_drain          Float
