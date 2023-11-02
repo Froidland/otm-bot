@@ -36,7 +36,7 @@ export const staffAutoTryoutLobbyEmbed = (
 		{
 			zone: "utc",
 		},
-	).toRFC2822()}\`\n\n`;
+	).toFormat("ccc, LL LLL yyyy HH:mm")}\`\n\n`;
 
 	embedDescription += "**Players:** \n";
 

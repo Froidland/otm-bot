@@ -36,7 +36,7 @@ export const playerAutoTryoutLobbyEmbed = (
 		{
 			zone: "utc",
 		},
-	).toRFC2822()}\``;
+	).toFormat("ccc, LL LLL yyyy HH:mm")}\``;
 
 	return {
 		content:

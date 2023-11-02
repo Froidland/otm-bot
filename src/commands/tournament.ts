@@ -593,11 +593,17 @@ export class TournamentCommand extends Subcommand {
 		settingsField += `In lobby team size: \`${inLobbyTeamSize}\`\n`;
 		settingsField += `Has qualifiers: \`${hasQualifiers ? "Yes" : "No"}\`\n`;
 
-		let datesField = `Start date: \`${startDate.toRFC2822()}\`\n`;
-		datesField += `Registration end date: \`${registrationEndDate.toRFC2822()}\`\n`;
+		let datesField = `Start date: \`${startDate.toFormat(
+			"ccc, LL LLL yyyy HH:mm",
+		)}\`\n`;
+		datesField += `Registration end date: \`${registrationEndDate.toFormat(
+			"ccc, LL LLL yyyy HH:mm",
+		)}\`\n`;
 
 		if (hasQualifiers && qualifiersDeadline) {
-			datesField += `Qualifiers deadline: \`${qualifiersDeadline.toRFC2822()}\`\n`;
+			datesField += `Qualifiers deadline: \`${qualifiersDeadline.toFormat(
+				"ccc, LL LLL yyyy HH:mm",
+			)}\`\n`;
 		}
 
 		let channelsField = `Staff channel: <#${staffChannel.id}>\n`;

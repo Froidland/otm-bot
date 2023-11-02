@@ -472,7 +472,7 @@ export class LobbyCommand extends Subcommand {
 
 		let embedDescription = "**__Tryout Lobby info:__**\n";
 		embedDescription += `**Lobby ID:** \`${customId}\`\n`;
-		embedDescription += `**Start Date:** \`${startDate.toRFC2822()}\` (<t:${startDate.toSeconds()}:R>)\n`;
+		embedDescription += `**Start Date:** \`${startDate.toFormat("ccc, LL LLL yyyy HH:mm")}\` (<t:${startDate.toSeconds()}:R>)\n`;
 		embedDescription += `**Auto Ref:** \`${auto ? "Yes" : "No"}\`\n`;
 		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
 
@@ -712,7 +712,7 @@ export class LobbyCommand extends Subcommand {
 				{
 					zone: "utc",
 				},
-			).toRFC2822()}\` (<t:${DateTime.fromJSDate(
+			).toFormat("ccc, LL LLL yyyy HH:mm")}\` (<t:${DateTime.fromJSDate(
 				lobby.schedule as Date,
 			).toSeconds()}:R>)\n`;
 			embedDescription += `\\- Player Limit: \`${lobby.player_limit}\`\n`;
@@ -1806,7 +1806,7 @@ export class LobbyCommand extends Subcommand {
 			{
 				zone: "utc",
 			},
-		).toRFC2822()}\` (<t:${DateTime.fromJSDate(
+		).toFormat("ccc, LL LLL yyyy HH:mm")}\` (<t:${DateTime.fromJSDate(
 			lobby.schedule as Date,
 		).toSeconds()}:R>)\n\n`;
 		embedDescription += `**Players (${lobby._count.players}/${lobby.player_limit}):**\n`;
