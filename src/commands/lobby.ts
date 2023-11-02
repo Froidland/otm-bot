@@ -1,6 +1,6 @@
 import db from "@/db";
 import { InvalidDateTime, NoAccountEmbed } from "@/embeds";
-import { isUserTryoutAdmin, isUserTryoutReferee } from "@/utils";
+import { hasTryoutAdminRole, hasTryoutRefereeRole } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import { Prisma } from "@prisma/client";
 import { ApplyOptions } from "@sapphire/decorators";
@@ -410,7 +410,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, stage.tryout)) {
+		if (!hasTryoutAdminRole(interaction, stage.tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -582,7 +582,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -811,7 +811,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutReferee(interaction, tryout)) {
+		if (!hasTryoutRefereeRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -970,7 +970,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutReferee(interaction, tryout)) {
+		if (!hasTryoutRefereeRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -1125,8 +1125,8 @@ export class LobbyCommand extends Subcommand {
 
 		if (
 			!tryout.allow_staff &&
-			(isUserTryoutReferee(interaction, tryout) ||
-				isUserTryoutAdmin(interaction, tryout))
+			(hasTryoutRefereeRole(interaction, tryout) ||
+				hasTryoutAdminRole(interaction, tryout))
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -1562,8 +1562,8 @@ export class LobbyCommand extends Subcommand {
 
 		if (
 			player &&
-			(!isUserTryoutReferee(interaction, tryout) ||
-				!isUserTryoutAdmin(interaction, tryout))
+			(!hasTryoutRefereeRole(interaction, tryout) ||
+				!hasTryoutAdminRole(interaction, tryout))
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -1953,8 +1953,8 @@ export class LobbyCommand extends Subcommand {
 		}
 
 		if (
-			!isUserTryoutReferee(interaction, tryout) &&
-			!isUserTryoutAdmin(interaction, tryout)
+			!hasTryoutRefereeRole(interaction, tryout) &&
+			!hasTryoutAdminRole(interaction, tryout)
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -2221,8 +2221,8 @@ export class LobbyCommand extends Subcommand {
 		}
 
 		if (
-			!isUserTryoutReferee(interaction, tryout) &&
-			!isUserTryoutAdmin(interaction, tryout)
+			!hasTryoutRefereeRole(interaction, tryout) &&
+			!hasTryoutAdminRole(interaction, tryout)
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -2404,8 +2404,8 @@ export class LobbyCommand extends Subcommand {
 		}
 
 		if (
-			!isUserTryoutReferee(interaction, tryout) &&
-			!isUserTryoutAdmin(interaction, tryout)
+			!hasTryoutRefereeRole(interaction, tryout) &&
+			!hasTryoutAdminRole(interaction, tryout)
 		) {
 			await interaction.editReply({
 				embeds: [

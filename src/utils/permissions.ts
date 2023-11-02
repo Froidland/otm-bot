@@ -1,32 +1,61 @@
 import { Tournament, Tryout } from "@prisma/client";
 import { GuildMemberRoleManager, Interaction } from "discord.js";
 
-export function isUserTournamentStaff(
+export function hasTournamentStaffRole(
 	interaction: Interaction,
 	tournament: Tournament,
 ) {
-	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+	if (!interaction.member) {
+		return false;
+	}
+
+	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
 		tournament.staff_role_id,
 	);
 }
 
-export function isUserTournamentReferee(
+export function hasTournamentMappoolerRole(
 	interaction: Interaction,
 	tournament: Tournament,
 ) {
-	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+	if (!interaction.member) {
+		return false;
+	}
+
+	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
+		tournament.mappooler_role_id,
+	);
+}
+
+export function hasTournamentRefereeRole(
+	interaction: Interaction,
+	tournament: Tournament,
+) {
+	if (!interaction.member) {
+		return false;
+	}
+
+	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
 		tournament.referee_role_id,
 	);
 }
 
-export function isUserTryoutReferee(interaction: Interaction, tryout: Tryout) {
-	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+export function hasTryoutRefereeRole(interaction: Interaction, tryout: Tryout) {
+	if (!interaction.member) {
+		return false;
+	}
+
+	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
 		tryout.referee_role_id,
 	);
 }
 
-export function isUserTryoutAdmin(interaction: Interaction, tryout: Tryout) {
-	return (interaction.member!.roles as GuildMemberRoleManager).cache.has(
+export function hasTryoutAdminRole(interaction: Interaction, tryout: Tryout) {
+	if (!interaction.member) {
+		return false;
+	}
+
+	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
 		tryout.admin_role_id,
 	);
 }

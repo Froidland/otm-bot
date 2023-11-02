@@ -1,7 +1,7 @@
 import { ongoingTryoutLobbies } from "@/bancho/store";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
-import { isUserTryoutReferee } from "@/utils";
+import { hasTryoutRefereeRole } from "@/utils";
 import {
 	InteractionHandler,
 	InteractionHandlerTypes,
@@ -72,7 +72,7 @@ export class AddRefTryoutLobbyButtonHandler extends InteractionHandler {
 			return;
 		}
 
-		if (!isUserTryoutReferee(interaction, lobby.stage.tryout)) {
+		if (!hasTryoutRefereeRole(interaction, lobby.stage.tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()

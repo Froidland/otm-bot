@@ -17,7 +17,7 @@ import {
 } from "discord.js";
 import { DateTime } from "luxon";
 import { createId } from "@paralleldrive/cuid2";
-import { isUserTryoutAdmin } from "@/utils";
+import { hasTryoutAdminRole } from "@/utils";
 import { v2 } from "osu-api-extended";
 
 // TODO: Revise this, it doesn't really convince me.
@@ -1080,7 +1080,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -1220,7 +1220,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -1378,7 +1378,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -1610,7 +1610,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -1790,7 +1790,7 @@ export class TryoutCommand extends Subcommand {
 
 		if (
 			interaction.channel?.id === tryout.staff_channel_id &&
-			!isUserTryoutAdmin(interaction, tryout)
+			!hasTryoutAdminRole(interaction, tryout)
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -1807,7 +1807,7 @@ export class TryoutCommand extends Subcommand {
 		if (
 			interaction.channel?.id === tryout.player_channel_id &&
 			!tryout.stages[0].is_published &&
-			!isUserTryoutAdmin(interaction, tryout)
+			!hasTryoutAdminRole(interaction, tryout)
 		) {
 			await interaction.editReply({
 				embeds: [
@@ -1951,7 +1951,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2066,7 +2066,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2203,7 +2203,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2301,7 +2301,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2405,7 +2405,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2546,7 +2546,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2682,7 +2682,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2866,7 +2866,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -3054,7 +3054,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -3190,7 +3190,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -3326,7 +3326,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -3461,7 +3461,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -3587,7 +3587,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -3749,7 +3749,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		if (!isUserTryoutAdmin(interaction, tryout)) {
+		if (!hasTryoutAdminRole(interaction, tryout)) {
 			if (interaction.user.id !== player.id) {
 				await interaction.editReply({
 					embeds: [
