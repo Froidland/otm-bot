@@ -109,6 +109,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 						text: `Unique ID: ${data.lobbyId}`,
 					}),
 			],
+			nonce: "1",
 		});
 	}
 
@@ -130,14 +131,15 @@ async function workerHandler(job: Job<JobData, void, string>) {
 						text: `Unique ID: ${data.lobbyId}`,
 					}),
 			],
+			nonce: "1",
 		});
 	}
 
 	if (
 		playerMessage &&
-		!playerMessage.nonce &&
+		playerMessage.nonce !== "1" &&
 		staffMessage &&
-		!staffMessage.nonce
+		staffMessage.nonce !== "1"
 	) {
 		await db.tryoutLobby.update({
 			where: {
