@@ -106,9 +106,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 	for (const lobby of lobbies) {
 		const mappool = lobby.stage.mappool;
-		const mappoolOrder = lobby.stage.mappool_order?.split(" ");
+		const mappoolOrder = lobby.stage.mappool_order.split(" ");
 
-		if (!mappoolOrder) {
+		if (mappoolOrder.length === 0) {
 			container.logger.error(
 				`[AutoRef] Could not find mappool order for lobby ${lobby.id}.`,
 			);
