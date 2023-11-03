@@ -148,7 +148,7 @@ model TournamentStage {
   tournament_id String
 
   mappool       TournamentMapPick[]
-  mappool_order String?
+  mappool_order String @default("")
   is_published  Boolean             @default(false)
 
   matches Match[]
@@ -163,7 +163,7 @@ model TournamentQualifier {
   id String @id
 
   mappool       QualifierMapPick[]
-  mappool_order String?
+  mappool_order String @default("")
 
   lobbies TournamentQualifierLobby[]
 

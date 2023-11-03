@@ -1,6 +1,19 @@
 import { Tournament, Tryout } from "@prisma/client";
 import { GuildMemberRoleManager, Interaction } from "discord.js";
 
+export function hasTournamentOrganizerRole(
+	interaction: Interaction,
+	tournament: Tournament,
+) {
+	if (!interaction.member) {
+		return false;
+	}
+
+	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
+		tournament.organizer_role_id,
+	);
+}
+
 export function hasTournamentStaffRole(
 	interaction: Interaction,
 	tournament: Tournament,
