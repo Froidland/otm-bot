@@ -138,7 +138,7 @@ export class QualifiersCommand extends Subcommand {
 		);
 	}
 
-	public async chatInputRunMapSet(
+	public async chatInputMapSet(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -394,7 +394,7 @@ export class QualifiersCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunMapRemove(
+	public async chatInputMapRemove(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -552,7 +552,7 @@ export class QualifiersCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunMapOrder(
+	public async chatInputMapOrder(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
