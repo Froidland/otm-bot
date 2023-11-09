@@ -1,7 +1,7 @@
 import { container } from "@sapphire/framework";
 import BanchoJs from "bancho.js";
 import commands, { CommandError } from "./commands";
-import { ongoingTryoutLobbies } from "./store";
+import { banchoLobbies } from "./store";
 import { multiplayerEventHandlers } from "./handlers";
 
 export async function registerBanchoEvents(client: BanchoJs.BanchoClient) {
@@ -105,21 +105,21 @@ async function handleMultiplayerEvent(
 	}
 
 	const banchoId = event.channel.name.split("_")[1];
-	const tryoutLobby = ongoingTryoutLobbies.find((l) => l.banchoId === banchoId);
+	const lobby = banchoLobbies.find((l) => l.banchoId === banchoId);
 
-	if (tryoutLobby) {
-		console.log(tryoutLobby);
-
-		if (tryoutLobby.state === "override" || tryoutLobby.state === "errored") {
+	if (lobby) {
+		if (
+			lobby.state === "override" ||
+			lobby.state === "errored" ||
+			lobby.state === "panicked"
+		) {
 			return;
 		}
 
 		for (const eventHandler of multiplayerEventHandlers) {
 			if (eventHandler.regex.test(event.content)) {
-				eventHandler.execute(client, event, tryoutLobby);
+				eventHandler.execute(client, event, lobby);
 			}
 		}
-
-		return;
 	}
 }

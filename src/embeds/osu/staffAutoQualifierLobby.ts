@@ -1,4 +1,4 @@
-import { TryoutLobby } from "@/bancho/store";
+import { QualifierLobby } from "@/bancho/store";
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
@@ -17,8 +17,8 @@ const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 	addRefButton,
 );
 
-export const staffAutoTryoutLobbyEmbed = (
-	lobby: TryoutLobby,
+export const staffAutoQualifierLobbyEmbed = (
+	lobby: QualifierLobby,
 ): MessageCreateOptions => {
 	let embedDescription = "**Details:**\n";
 	embedDescription += `\\- **Lobby name:** \`${lobby.name}\`\n`;
@@ -52,7 +52,7 @@ export const staffAutoTryoutLobbyEmbed = (
 		embeds: [
 			new EmbedBuilder()
 				.setColor("Blue")
-				.setTitle(`Auto tryout lobby \`${lobby.customId}\` has been created.`)
+				.setTitle(`Auto qualifiers lobby for team \`${lobby.teamName}\` has been created.`)
 				.setDescription(embedDescription)
 				.setFooter({
 					text: `Unique ID: ${lobby.id}`,

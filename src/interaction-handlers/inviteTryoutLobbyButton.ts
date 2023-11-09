@@ -1,4 +1,4 @@
-import { ongoingTryoutLobbies } from "@/bancho/store";
+import { banchoLobbies } from "@/bancho/store";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import {
@@ -71,7 +71,7 @@ export class InviteTryoutLobbyButtonHandler extends InteractionHandler {
 			return;
 		}
 
-		const ongoingLobby = ongoingTryoutLobbies.find((l) => l.id === lobby.id);
+		const ongoingLobby = banchoLobbies.find((l) => l.id === lobby.id);
 
 		if (!ongoingLobby) {
 			await interaction.editReply({

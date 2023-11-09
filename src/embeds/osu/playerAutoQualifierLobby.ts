@@ -1,24 +1,24 @@
-import { TryoutLobby } from "@/bancho/store";
+import { QualifierLobby } from "@/bancho/store";
 import {
 	ActionRowBuilder,
-	ButtonBuilder,
 	ButtonStyle,
 	EmbedBuilder,
 	MessageCreateOptions,
 } from "discord.js";
+import { ButtonBuilder } from "discord.js";
 import { DateTime } from "luxon";
 
-const addRefButton = new ButtonBuilder()
-	.setCustomId("addRefTryoutLobbyButton")
-	.setLabel("Add ref")
+const inviteButton = new ButtonBuilder()
+	.setCustomId("inviteTryoutLobbyButton")
+	.setLabel("Invite")
 	.setStyle(ButtonStyle.Primary);
 
 const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-	addRefButton,
+	inviteButton,
 );
 
-export const staffAutoTryoutLobbyEmbed = (
-	lobby: TryoutLobby,
+export const playerAutoQualifierLobbyEmbed = (
+	lobby: QualifierLobby,
 ): MessageCreateOptions => {
 	let embedDescription = "**Details:**\n";
 	embedDescription += `\\- **Lobby name:** \`${lobby.name}\`\n`;
@@ -36,23 +36,17 @@ export const staffAutoTryoutLobbyEmbed = (
 		{
 			zone: "utc",
 		},
-	).toFormat("ccc, LL LLL yyyy HH:mm")}\`\n\n`;
-
-	embedDescription += "**Players:** \n";
-
-	for (const player of lobby.players) {
-		embedDescription += `\\- <@${player.discordId}> (\`${player.osuUsername}\` - \`#${player.osuId}\`)\n`;
-	}
+	).toFormat("ccc, LL LLL yyyy HH:mm")}\``;
 
 	return {
 		content:
-			lobby.referees.length > 0
-				? `<@${lobby.referees[0].discordId}>`
+			lobby.players.length > 0
+				? lobby.players.map((p) => `<@${p.discordId}>`).join(", ")
 				: undefined,
 		embeds: [
 			new EmbedBuilder()
 				.setColor("Blue")
-				.setTitle(`Auto tryout lobby \`${lobby.customId}\` has been created.`)
+				.setTitle(`Auto qualifiers lobby for team \`${lobby.teamName}\` has been created.`)
 				.setDescription(embedDescription)
 				.setFooter({
 					text: `Unique ID: ${lobby.id}`,

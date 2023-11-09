@@ -1,13 +1,23 @@
 import { MultiplayerEventHandler } from ".";
-import { getMissingPlayers } from "../utils";
+import { getCurrentPlayers, getMissingPlayers } from "../utils";
 
 export const playersReady: MultiplayerEventHandler = {
 	regex: /^All players are ready$/,
 	execute: async (client, event, lobby) => {
-		const missingPlayers = getMissingPlayers(event.channel, lobby);
+		if (lobby.type === "tryout") {
+			const missingPlayers = getMissingPlayers(event.channel, lobby);
 
-		if (missingPlayers.length > 0) {
-			return;
+			if (missingPlayers.length > 0) {
+				return;
+			}
+		}
+
+		if (lobby.type === "qualifier") {
+			const players = getCurrentPlayers(event.channel, lobby);
+
+			if (players.length !== lobby.inLobbyPlayerCount) {
+				return;
+			}
 		}
 
 		if (lobby.state === "finished") {

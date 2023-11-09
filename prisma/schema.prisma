@@ -148,7 +148,7 @@ model TournamentStage {
   tournament_id String
 
   mappool       TournamentMapPick[]
-  mappool_order String @default("")
+  mappool_order String              @default("")
   is_published  Boolean             @default(false)
 
   matches Match[]
@@ -163,7 +163,7 @@ model TournamentQualifier {
   id String @id
 
   mappool       QualifierMapPick[]
-  mappool_order String @default("")
+  mappool_order String             @default("")
 
   lobbies TournamentQualifierLobby[]
 
@@ -175,8 +175,6 @@ model TournamentQualifier {
 
 model TournamentQualifierLobby {
   id           String   @id
-  custom_id    String   @db.VarChar(16)
-  player_limit Int
   schedule     DateTime @db.Timestamp(6)
 
   tournament_qualifier    TournamentQualifier @relation(fields: [tournament_qualifier_id], references: [id])
@@ -190,7 +188,8 @@ model TournamentQualifierLobby {
   staff_embed_message_id  String? //? Used for the interactive embed.
   player_embed_message_id String? //? Used for the interactive embed.
 
-  teams Team[]
+  team Team @relation(fields: [team_id], references: [id])
+  team_id String @unique
 
   bancho_id String?
   auto_ref  Boolean @default(false)
@@ -286,8 +285,9 @@ model Team {
 
   one_player_team Boolean @default(false)
 
-  qualifier_lobby    TournamentQualifierLobby? @relation(fields: [qualifier_lobby_id], references: [id])
-  qualifier_lobby_id String?
+  qualifier_lobby    TournamentQualifierLobby? 
+  qualifier_lobby_id String? @unique
+  qualifier_played   Boolean                   @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -363,7 +363,7 @@ model TryoutStage {
   lobbies TryoutLobby[]
 
   mappool       TryoutMapPick[]
-  mappool_order String @default("")
+  mappool_order String          @default("")
   is_published  Boolean         @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)

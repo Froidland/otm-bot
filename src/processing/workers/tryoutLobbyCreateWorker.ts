@@ -1,4 +1,4 @@
-import type { AutoLobby } from "@/bancho/store";
+import type { TryoutLobby } from "@/bancho/store";
 import { createTryoutLobby } from "@/bancho/utils";
 import db from "@/db";
 import { container } from "@sapphire/framework";
@@ -148,8 +148,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			};
 		});
 
-		const lobbyData: AutoLobby = {
+		const lobbyData: TryoutLobby = {
 			id: lobby.id,
+			type: "tryout",
 			name: `${tryout.acronym}: (Lobby ${lobby.custom_id}) vs (Tryouts)`,
 			customId: lobby.custom_id,
 			banchoId: null,
@@ -157,8 +158,8 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			referees: referee ? [referee] : [],
 			mappool: beatmaps,
 			mappoolQueue: mappoolOrder,
-			staffChannelId,
-			playerChannelId,
+			staffNotifChannelId: staffChannelId,
+			playerNotifChannelId: playerChannelId,
 			refereeRoleId: tryout.referee_role_id,
 			schedule: lobby.schedule.toISOString(),
 			lastPick: null,

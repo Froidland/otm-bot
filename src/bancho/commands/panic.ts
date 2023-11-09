@@ -1,6 +1,6 @@
 import { container } from "@sapphire/pieces";
 import { BanchoCommand } from ".";
-import { ongoingTryoutLobbies } from "../store";
+import { banchoLobbies } from "../store";
 import { EmbedBuilder } from "discord.js";
 
 export const panic: BanchoCommand = {
@@ -11,7 +11,7 @@ export const panic: BanchoCommand = {
 	executeCM: async (client, event) => {
 		const banchoId = event.channel.name.split("_")[1];
 
-		const lobby = ongoingTryoutLobbies.find((l) => l.banchoId === banchoId);
+		const lobby = banchoLobbies.find((l) => l.banchoId === banchoId);
 
 		if (!lobby) {
 			await event.channel.sendMessage(
@@ -31,11 +31,13 @@ export const panic: BanchoCommand = {
 			return;
 		}
 
-		const staffDiscordChannel = await container.client.channels.fetch(
-			lobby.staffChannelId,
+		lobby.state = "panicked";
+
+		const notificationChannel = await container.client.channels.fetch(
+			lobby.staffNotifChannelId,
 		);
 
-		if (!staffDiscordChannel || !staffDiscordChannel.isTextBased()) {
+		if (!notificationChannel || !notificationChannel.isTextBased()) {
 			await event.channel.sendMessage(
 				"No staff channel was found. Please contact a staff member manually.",
 			);
@@ -48,17 +50,40 @@ export const panic: BanchoCommand = {
 				? `<@&${lobby.refereeRoleId}>`
 				: lobby.referees.map((r) => `<@${r.discordId}>`).join(" ");
 
-		await event.channel.sendMessage(`Pinging referee...`);
-		await staffDiscordChannel.send({
-			content: mention,
-			embeds: [
-				new EmbedBuilder()
-					.setColor("Red")
-					.setTitle("Panic button pressed!")
-					.setDescription(
-						`Player <@${player.discordId}> (\`${player.osuUsername}\` - \`#${player.osuId}\`) is requesting help in lobby \`${lobby.customId}\`.`,
-					),
-			],
-		});
+		try {
+			if (lobby.type === "tryout") {
+				await notificationChannel.send({
+					content: mention,
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Panic button pressed!")
+							.setDescription(
+								`Player <@${player.discordId}> (\`${player.osuUsername}\` - \`#${player.osuId}\`) is requesting help in lobby \`${lobby.customId}\` (\`#mp_${lobby.banchoId}\`).`,
+							),
+					],
+				});
+			}
+
+			if (lobby.type === "qualifier") {
+				await notificationChannel.send({
+					content: mention,
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Panic button pressed!")
+							.setDescription(
+								`Player <@${player.discordId}> (\`${player.osuUsername}\` - \`#${player.osuId}\`) is requesting help in the qualifier for team \`${lobby.teamName}\` (\`#mp_${lobby.banchoId}\`).`,
+							),
+					],
+				});
+			}
+		} catch (error) {
+			container.logger.error(error);
+
+			await event.channel.sendMessage(
+				"An error ocurred while panicking. Please contact a staff member manually.",
+			);
+		}
 	},
 };

@@ -1,6 +1,8 @@
 import db from "@/db";
 import { MultiplayerEventHandler } from ".";
 import { getModsString } from "../utils";
+import { container } from "@sapphire/pieces";
+import { EmbedBuilder } from "discord.js";
 
 export const matchFinished: MultiplayerEventHandler = {
 	regex: /^The match has finished!$/,
@@ -12,14 +14,27 @@ export const matchFinished: MultiplayerEventHandler = {
 		if (!nextPick) {
 			lobby.state = "finished";
 
-			await db.tryoutLobby.update({
-				where: {
-					id: lobby.id,
-				},
-				data: {
-					status: "Completed",
-				},
-			});
+			if (lobby.type === "tryout") {
+				await db.tryoutLobby.update({
+					where: {
+						id: lobby.id,
+					},
+					data: {
+						status: "Completed",
+					},
+				});
+			}
+
+			if (lobby.type === "qualifier") {
+				await db.tournamentQualifierLobby.update({
+					where: {
+						id: lobby.id,
+					},
+					data: {
+						status: "Completed",
+					},
+				});
+			}
 
 			await event.channel.sendMessage(
 				"You have finished the mappool, you are now free to leave the lobby. The lobby will close in 2 minutes.",
@@ -34,6 +49,44 @@ export const matchFinished: MultiplayerEventHandler = {
 
 		if (!map) {
 			lobby.state = "errored";
+
+			container.logger.error(
+				`Failed to find next map in mappool for lobby ${lobby.id} (#mp_${lobby.banchoId}).`,
+			);
+
+			const notificationChannel = await container.client.channels.fetch(
+				lobby.staffNotifChannelId,
+			);
+
+			if (notificationChannel && notificationChannel.isTextBased()) {
+				let embedDescription = "Could not find next map in mappool.\n";
+				embedDescription += `**Bancho channel:** \`#mp_${lobby.banchoId}\`\n`;
+				embedDescription += `**MP Link:** (${lobby.banchoId})[https://osu.ppy.sh/community/matches/${lobby.banchoId}]`;
+
+				try {
+					await notificationChannel.send({
+						embeds: [
+							new EmbedBuilder()
+								.setColor("Red")
+								.setTitle(
+									lobby.type === "tryout"
+										? `Error in tryout lobby \`${lobby.customId}\``
+										: `Error in qualifier lobby for team \`${lobby.teamName}\``,
+								)
+								.setDescription(embedDescription),
+						],
+					});
+				} catch (error) {
+					container.logger.error(error);
+
+					await event.channel.sendMessage(
+						"Failed to find next map in mappool. Please contact a staff member.",
+					);
+
+					return;
+				}
+			}
+
 			await event.channel.sendMessage(
 				"Failed to find next map in mappool. The referee has been notified.",
 			);
@@ -41,7 +94,6 @@ export const matchFinished: MultiplayerEventHandler = {
 			return;
 		}
 
-		lobby.state = "waiting";
 		await event.channel.sendMessage(`!mp map ${map.beatmapId}`);
 		await event.channel.sendMessage(`!mp mods ${getModsString(map.mods)}`);
 
@@ -49,9 +101,9 @@ export const matchFinished: MultiplayerEventHandler = {
 			beatmapId: map.beatmapId,
 			pickId: map.pickId,
 			mods: map.mods,
-			startedAt: null,
 		};
 
 		await event.channel.sendMessage("!mp timer 120");
+		lobby.state = "waiting";
 	},
 };
