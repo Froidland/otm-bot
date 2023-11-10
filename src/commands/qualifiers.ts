@@ -4,9 +4,11 @@ import {
 	hasTournamentMappoolerRole,
 	hasTournamentOrganizerRole,
 } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import { APIEmbedField, EmbedBuilder } from "discord.js";
+import { DateTime } from "luxon";
 import { v2 } from "osu-api-extended";
 
 const modCombinations = [
@@ -62,6 +64,10 @@ const modCombinations = [
 					chatInputRun: "chatInputMapOrder",
 				},
 			],
+		},
+		{
+			name: "schedule",
+			chatInputRun: "chatInputSchedule",
 		},
 	],
 })
@@ -130,6 +136,21 @@ export class QualifiersCommand extends Subcommand {
 										.setName("pattern")
 										.setDescription(
 											"The pattern of the order. Basically the picks separated by spaces. (Example: NM1 NM2 NM3 HD1 HD2 TB)",
+										)
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("schedule")
+								.setDescription(
+									"Shchedule a qualifiers lobby for you or your team.",
+								)
+								.addStringOption((option) =>
+									option
+										.setName("date")
+										.setDescription(
+											"The date to schedule the lobby for in UTC. (Format: YYYY-MM-DD HH:MM)",
 										)
 										.setRequired(true),
 								),
@@ -708,6 +729,231 @@ export class QualifiersCommand extends Subcommand {
 							.map((pick) => "`" + pick + "`")
 							.join(" -> ")}`,
 					),
+			],
+		});
+	}
+
+	public async chatInputSchedule(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const id = createId();
+		const dateString = interaction.options.getString("date", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				player_channel_id: interaction.channelId,
+			},
+			include: {
+				teams: {
+					where: {
+						OR: [
+							{
+								players: {
+									some: {
+										user_id: user.id,
+									},
+								},
+							},
+							{
+								creator_id: user.id,
+							},
+						],
+					},
+				},
+				qualifier: true,
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be executed in a tournament player channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!tournament.qualifier) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tournament has no qualifiers."),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.teams.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You are not in a team for this tournament."),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		if (team.creator_id !== user.id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"Only the team captain can schedule a lobby for the team.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (team.qualifier_played) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"Your team has already played their qualifier lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const date = DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm", {
+			zone: "utc",
+		});
+
+		if (!date.isValid) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							`The date you provided is invalid. Please use the following format: \`YYYY-MM-DD HH:MM\``,
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (date < DateTime.now().plus({ minutes: 5 })) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							`The date you provided is invalid. The lobby must be scheduled at least 5 minutes in the future.`,
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (date.toJSDate() > tournament.qualifier.deadline) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							`The date you provided is invalid. The deadline for scheduling a lobby is \`${DateTime.fromJSDate(
+								tournament.qualifier.deadline,
+							).toFormat("ccc, LL LLL yyyy HH:mm")}\`.`,
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.team.update({
+				where: {
+					id: team.id,
+				},
+				data: {
+					qualifier_lobby: {
+						upsert: {
+							create: {
+								id,
+								schedule: date.toJSDate(),
+								tournament_qualifier_id: tournament.qualifier.id,
+							},
+							update: {
+								schedule: date.toJSDate(),
+							},
+						},
+					},
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while scheduling the lobby. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`Your qualifier lobby has been scheduled for \`${date.toFormat(
+							"ccc, LL LLL yyyy HH:mm",
+						)}\`.`,
+					)
+					.setFooter({
+						text: `Unique ID: ${id}`,
+					}),
 			],
 		});
 	}
