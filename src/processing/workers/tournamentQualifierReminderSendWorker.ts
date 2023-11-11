@@ -1,14 +1,12 @@
 import db from "@/db";
-import { container } from "@sapphire/framework";
-import { Job, Worker, WorkerOptions } from "bullmq";
+import { container } from "@sapphire/pieces";
+import { WorkerOptions, Worker, Job } from "bullmq";
 import { EmbedBuilder } from "discord.js";
 import { DateTime } from "luxon";
 
-// TODO: Consider auto ref.
-
 type JobData = {
 	lobbyId: string;
-	customId: string;
+	teamName: string;
 	players: {
 		osuId: string;
 		osuUsername: string;
@@ -35,14 +33,16 @@ const workerOptions: WorkerOptions = {
 	concurrency: 5,
 };
 
-export function initializeTryoutLobbyReminderSendWorker() {
+export function initializeTournamentQualifierReminderSendWorker() {
 	const newWorker = new Worker<JobData>(
-		"tryoutLobbyReminderSend",
+		"tournamentQualifierReminderSend",
 		workerHandler,
 		workerOptions,
 	);
 
-	container.logger.info("Initialized tryout lobby reminder send worker.");
+	container.logger.info(
+		"Initialized tournament qualifier reminder send worker.",
+	);
 
 	newWorker.on("error", (error) => {
 		container.logger.error(error);
@@ -56,7 +56,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 	const schedule = new Date(data.schedule);
 
 	if (schedule.getTime() < Date.now()) {
-		await db.tryoutLobby.update({
+		await db.tournamentQualifierLobby.update({
 			where: {
 				id: data.lobbyId,
 			},
@@ -70,10 +70,10 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 	if (data.players.length === 0) {
 		container.logger.debug(
-			`[Reminders] Tryout lobby ${data.lobbyId} has no players, skipping...`,
+			`[Reminders] Tournament qualifier ${data.lobbyId} has no players, skipping...`,
 		);
 
-		await db.tryoutLobby.update({
+		await db.tournamentQualifierLobby.update({
 			where: {
 				id: data.lobbyId,
 			},
@@ -89,7 +89,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 	let staffMessage = null;
 
 	const staffMessageDescription =
-		"The following players are registered for this lobby:\n\n" +
+		"The team consists of the following players:\n\n" +
 		data.players.map(
 			(player) =>
 				`• <@${player.discordId}> | \`${player.osuUsername}\` - \`!mp invite #${player.osuId}\``,
@@ -110,9 +110,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(
-						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(schedule)
-							.setLocale("en-US")
-							.toRelative()}!`,
+						`Qualifier lobby for  team \`${data.teamName}\` is starting soon!`,
 					)
 					.setDescription(
 						"The lobby will be made soon, make sure you are in-game to receive your invite." +
@@ -137,7 +135,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				new EmbedBuilder()
 					.setColor(data.referee ? "Blue" : "Yellow")
 					.setTitle(
-						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(schedule)
+						`Lobby for team \`${data.teamName}\` starts ${DateTime.fromJSDate(
+							schedule,
+						)
 							.setLocale("en-US")
 							.toRelative()}` + (data.referee ? "!" : " and has no referee!"),
 					)
@@ -157,10 +157,10 @@ async function workerHandler(job: Job<JobData, void, string>) {
 		staffMessage.nonce !== "1"
 	) {
 		container.logger.error(
-			`[Reminders] Failed to send reminder for tryout lobby ${data.lobbyId}`,
+			`[Reminders] Failed to send reminder for qualifier lobby ${data.lobbyId}`,
 		);
 
-		await db.tryoutLobby.update({
+		await db.tournamentQualifierLobby.update({
 			where: {
 				id: data.lobbyId,
 			},
@@ -172,7 +172,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 		return;
 	}
 
-	await db.tryoutLobby.update({
+	await db.tournamentQualifierLobby.update({
 		where: {
 			id: data.lobbyId,
 		},

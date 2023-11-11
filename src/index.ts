@@ -8,11 +8,17 @@ import {
 	initializeTryoutLobbyReminderScheduleWorker,
 	initializeTryoutLobbyCreateWorker,
 	tryoutLobbyReminderScheduleQueue,
+	tournamentQualifierReminderScheduleQueue,
+	tournamentQualifierCreateQueue,
+	initializeTryoutLobbyReminderSendWorker,
 } from "./processing";
 import BanchoJs from "bancho.js";
 import { registerBanchoEvents } from "./bancho/events";
 import { tryoutLobbyCreateQueue } from "./processing/queues/tryoutLobbyCreateQueue";
+import { initializeTournamentQualifierReminderSendWorker } from "./processing/workers/tournamentQualifierReminderSendWorker";
+import { initializeTournamentQualifierCreateWorker } from "./processing/workers/tournamentQualifierCreateWorker";
 
+// Discord client setup
 const discordClient = new SapphireClient({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -27,33 +33,46 @@ const discordClient = new SapphireClient({
 			process.env.NODE_ENV === "development" ? LogLevel.Debug : LogLevel.Info,
 	},
 });
+// ---------------------------
 
+// Bancho client setup
 const banchoClient = new BanchoJs.BanchoClient({
 	username: process.env.BANCHO_USERNAME!,
 	password: process.env.BANCHO_PASSWORD!,
 	apiKey: process.env.BANCHO_API_KEY!,
 });
+// ---------------------------
 
 // TODO: Rate limiting.
 // TODO: Graceful shutdown.
 async function bootstrap() {
 	try {
+		// osu! API setup
 		await auth.login(
 			+process.env.OSU_CLIENT_ID!,
 			process.env.OSU_CLIENT_SECRET!,
 			["public"],
 		);
+		container.logger.info("Logged in to osu! API.");
+		// ---------------------------
 
+		container.logger.info("Logging in to Discord and Bancho...");
+
+		// Discord connection
 		await discordClient.login(process.env.BOT_TOKEN);
+		// ---------------------------
 
+		// Bancho connection
 		await registerBanchoEvents(banchoClient);
 		await banchoClient.connect();
+		container.bancho = banchoClient;
+
 		container.logger.info(
 			`Connected to Bancho as ${banchoClient.getSelf().ircUsername}.`,
 		);
+		// ---------------------------
 
-		container.bancho = banchoClient;
-
+		// Database setup
 		if (process.env.NODE_ENV === "development") {
 			container.logger.info("Using PrismaClient with logging enabled.");
 
@@ -75,7 +94,10 @@ async function bootstrap() {
 		}
 
 		await db.$connect();
+		// ---------------------------
 
+		container.logger.info("Registering background jobs...");
+		// Tryout lobby queues
 		await tryoutLobbyReminderScheduleQueue.add(
 			"tryoutLobbyReminderSchedule",
 			{
@@ -91,7 +113,21 @@ async function bootstrap() {
 		await tryoutLobbyCreateQueue.add(
 			"tryoutLobbyCreate",
 			{
-				minutes: 5,
+				minutes: 5, // check for lobbies in the next 5 minutes
+			},
+			{
+				repeat: {
+					every: 1000 * 60, // 1 minute
+				},
+			},
+		);
+		// ---------------------------
+
+		// Tournament qualifier queues
+		await tournamentQualifierReminderScheduleQueue.add(
+			"tournamentQualifierReminderSchedule",
+			{
+				minutes: 15, // check for lobbies in the next 15 minutes
 			},
 			{
 				repeat: {
@@ -100,10 +136,33 @@ async function bootstrap() {
 			},
 		);
 
+		await tournamentQualifierCreateQueue.add(
+			"tournamentQualifierCreate",
+			{
+				minutes: 5, // check for lobbies in the next 5 minutes
+			},
+			{
+				repeat: {
+					every: 1000 * 60, // 1 minute
+				},
+			},
+		);
+		// ---------------------------
+		container.logger.info("Successfully registered background jobs.");
+
+		container.logger.info("Starting background workers...");
+		// Tryout lobby workers
+		initializeTryoutLobbyReminderSendWorker();
 		initializeTryoutLobbyReminderScheduleWorker();
 		initializeTryoutLobbyCreateWorker();
+		// --------------------
 
-		container.logger.info("Registered background jobs.");
+		// Tournament qualifier workers
+		initializeTournamentQualifierReminderSendWorker();
+		initializeTryoutLobbyReminderScheduleWorker();
+		initializeTournamentQualifierCreateWorker();
+		// ----------------------------
+		container.logger.info("Successfully started background workers.");
 	} catch (error) {
 		container.logger.error(
 			`There was an error while trying to start the bot. Reason: ${error}`,

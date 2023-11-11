@@ -1,8 +1,8 @@
 import db from "@/db";
-import { container } from "@sapphire/framework";
-import { Job, Worker, WorkerOptions } from "bullmq";
-import { DateTime, Duration } from "luxon";
-import { tryoutLobbyReminderSendQueue } from "../queues";
+import { container } from "@sapphire/pieces";
+import { WorkerOptions, Worker, Job } from "bullmq";
+import { DateTime } from "luxon";
+import { tournamentQualifierReminderSendQueue } from "../queues";
 
 type JobData = {
 	minutes: number;
@@ -17,14 +17,16 @@ const workerOptions: WorkerOptions = {
 	},
 };
 
-export function initializeTryoutLobbyReminderScheduleWorker() {
+export function initializeTournamentQualifierReminderScheduleWorker() {
 	const newWorker = new Worker<JobData>(
 		"tournamentQualifierReminderSchedule",
 		workerHandler,
 		workerOptions,
 	);
 
-	container.logger.info("Initialized tryout lobby reminder schedule worker.");
+	container.logger.info(
+		"Initialized tournament qualifier reminder schedule worker.",
+	);
 
 	newWorker.on("error", (error) => {
 		container.logger.error(error);
@@ -36,16 +38,16 @@ export function initializeTryoutLobbyReminderScheduleWorker() {
 async function workerHandler(job: Job<JobData, void, string>) {
 	const data = job.data;
 
-	container.logger.debug("[Reminders] Scheduling tryout lobby reminders...");
-
-	const currentDate = DateTime.now();
-	const dateThreshold = currentDate.plus(
-		Duration.fromObject({
-			minutes: data.minutes,
-		}),
+	container.logger.debug(
+		"[Reminders] Scheduling tournament qualifier reminders...",
 	);
 
-	const lobbies = await db.tryoutLobby.findMany({
+	const currentDate = DateTime.now();
+	const dateThreshold = currentDate.plus({
+		minutes: data.minutes,
+	});
+
+	const lobbies = await db.tournamentQualifierLobby.findMany({
 		where: {
 			schedule: {
 				gt: currentDate.toJSDate(),
@@ -54,20 +56,18 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			reminder_status: "Pending",
 		},
 		include: {
-			players: {
-				select: {
-					player: {
-						select: {
-							osu_username: true,
-							osu_id: true,
-							discord_id: true,
+			team: {
+				include: {
+					players: {
+						include: {
+							player: true,
 						},
 					},
 				},
 			},
-			stage: {
+			tournament_qualifier: {
 				include: {
-					tryout: {
+					tournament: {
 						select: {
 							staff_channel_id: true,
 							referee_role_id: true,
@@ -83,47 +83,43 @@ async function workerHandler(job: Job<JobData, void, string>) {
 					discord_id: true,
 				},
 			},
-			_count: {
-				select: {
-					players: true,
-				},
-			},
 		},
 	});
 
 	if (lobbies.length === 0) {
 		container.logger.debug(
-			"[Reminders] No tryout lobby reminders to schedule.",
+			"[Reminders] No tournament qualifier lobby reminders to schedule.",
 		);
 
 		return;
 	}
 
 	const reminderJobs = lobbies.map((lobby) => {
-		const players = lobby.players.map((player) => {
+		const players = lobby.team.players.map((player) => {
 			return {
-				osuId: player.player.osu_id,
-				osuUsername: player.player.osu_username,
-				discordId: player.player.discord_id,
+				osu_id: player.player.osu_id,
+				osu_username: player.player.osu_username,
+				discord_id: player.player.discord_id,
 			};
 		});
 
 		return {
-			name: "tryoutLobbyReminderSend",
+			name: "tournamentQualifierReminder",
 			data: {
 				lobbyId: lobby.id,
-				customId: lobby.custom_id,
+				teamName: lobby.team.name,
 				players,
 				referee: lobby.referee,
-				refereeRoleId: lobby.stage.tryout.referee_role_id,
-				staffChannelId: lobby.stage.tryout.staff_channel_id,
-				playerChannelId: lobby.stage.tryout.player_channel_id,
+				refereeRoleId: lobby.tournament_qualifier.tournament.referee_role_id,
+				staffChannelId: lobby.tournament_qualifier.tournament.staff_channel_id,
+				playerChannelId:
+					lobby.tournament_qualifier.tournament.player_channel_id,
 				schedule: lobby.schedule.toISOString(),
 			},
 		};
 	});
 
-	await db.tryoutLobby.updateMany({
+	await db.tournamentQualifierLobby.updateMany({
 		where: {
 			id: {
 				in: lobbies.map((lobby) => lobby.id),
@@ -134,9 +130,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 		},
 	});
 
-	await tryoutLobbyReminderSendQueue.addBulk(reminderJobs);
+	await tournamentQualifierReminderSendQueue.addBulk(reminderJobs);
 
-	container.logger.info(
-		`[Reminders] Scheduled ${reminderJobs.length} tryout lobby reminders.`,
+	container.logger.debug(
+		`[Reminders] Scheduled ${reminderJobs.length} tournament qualifier lobby reminders.`,
 	);
 }

@@ -1,8 +1,8 @@
-import type { TryoutLobby } from "@/bancho/store";
-import { createTryoutLobby } from "@/bancho/utils";
+import { QualifierLobby } from "@/bancho/store";
+import { createQualifierLobby } from "@/bancho/utils";
 import db from "@/db";
-import { container } from "@sapphire/framework";
-import { Job, Worker, WorkerOptions } from "bullmq";
+import { container } from "@sapphire/pieces";
+import { WorkerOptions, Worker, Job } from "bullmq";
 import { DateTime } from "luxon";
 
 type JobData = {
@@ -18,14 +18,14 @@ const workerOptions: WorkerOptions = {
 	},
 };
 
-export function initializeTryoutLobbyCreateWorker() {
+export function initializeTournamentQualifierCreateWorker() {
 	const newWorker = new Worker<JobData>(
-		"tryoutLobbyCreate",
+		"tournamentQualifierCreate",
 		workerHandler,
 		workerOptions,
 	);
 
-	container.logger.info("Initialized tryout lobby create worker.");
+	container.logger.info("Initialized tournament qualifier create worker.");
 
 	newWorker.on("error", (error) => {
 		container.logger.error(error);
@@ -40,9 +40,11 @@ async function workerHandler(job: Job<JobData, void, string>) {
 	const currentDate = DateTime.now();
 	const dateThreshold = DateTime.now().plus({ minutes: data.minutes });
 
-	container.logger.debug("[AutoRef] Checking for tryout lobbies...");
+	container.logger.debug(
+		"[AutoRef] Checking for tournament qualifier lobbies...",
+	);
 
-	const lobbies = await db.tryoutLobby.findMany({
+	const lobbies = await db.tournamentQualifierLobby.findMany({
 		where: {
 			schedule: {
 				gt: currentDate.toJSDate(),
@@ -52,9 +54,20 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			status: "Pending",
 		},
 		include: {
-			players: {
+			team: {
 				include: {
-					player: {
+					players: {
+						include: {
+							player: {
+								select: {
+									osu_id: true,
+									osu_username: true,
+									discord_id: true,
+								},
+							},
+						},
+					},
+					creator: {
 						select: {
 							osu_id: true,
 							osu_username: true,
@@ -70,7 +83,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 					discord_id: true,
 				},
 			},
-			stage: {
+			tournament_qualifier: {
 				include: {
 					mappool: {
 						select: {
@@ -79,13 +92,14 @@ async function workerHandler(job: Job<JobData, void, string>) {
 							mods: true,
 						},
 					},
-					tryout: {
+					tournament: {
 						select: {
 							id: true,
 							acronym: true,
 							staff_channel_id: true,
 							player_channel_id: true,
 							referee_role_id: true,
+							lobby_team_size: true,
 						},
 					},
 				},
@@ -95,31 +109,31 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 	if (lobbies.length === 0) {
 		container.logger.debug(
-			`[AutoRef] No tryout lobbies found in the next ${data.minutes} minutes. Skipping...`,
+			`[AutoRef] No tournament qualifier lobbies found in the next ${data.minutes} minutes. Skipping...`,
 		);
 
 		return;
 	}
 
 	container.logger.debug(
-		`[AutoRef] Found ${lobbies.length} tryout lobbies. Attempting to create...`,
+		`[AutoRef] Found ${lobbies.length} tournament qualifier lobbies. Attempting to create...`,
 	);
 
 	let createdCount = 0;
 
 	for (const lobby of lobbies) {
-		const mappool = lobby.stage.mappool;
-		const mappoolOrder = lobby.stage.mappool_order.split(" ");
+		const mappool = lobby.tournament_qualifier.mappool;
+		const mappoolOrder = lobby.tournament_qualifier.mappool_order.split(" ");
 
 		if (mappoolOrder.length === 0) {
-			container.logger.error(
-				`[AutoRef] Could not find mappool order for lobby ${lobby.id}.`,
+			container.logger.warn(
+				`[AutoRef] Tournament qualifier lobby ${lobby.id} has no mappool order set. Skipping...`,
 			);
 
 			continue;
 		}
 
-		const tryout = lobby.stage.tryout;
+		const tournament = lobby.tournament_qualifier.tournament;
 
 		const referee = lobby.referee
 			? {
@@ -129,14 +143,20 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			  }
 			: null;
 
-		const staffChannelId = tryout.staff_channel_id;
-		const playerChannelId = tryout.player_channel_id;
+		const staffChannelId = tournament.staff_channel_id;
+		const playerChannelId = tournament.player_channel_id;
 
-		const players = lobby.players.map((p) => {
+		const captain = {
+			osuId: lobby.team.creator.osu_id,
+			osuUsername: lobby.team.creator.osu_username,
+			discordId: lobby.team.creator.discord_id,
+		};
+
+		const players = lobby.team.players.map((player) => {
 			return {
-				osuId: p.player.osu_id,
-				osuUsername: p.player.osu_username,
-				discordId: p.player.discord_id,
+				osuId: player.player.osu_id,
+				osuUsername: player.player.osu_username,
+				discordId: player.player.discord_id,
 			};
 		});
 
@@ -148,28 +168,32 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			};
 		});
 
-		const lobbyData: TryoutLobby = {
+		const lobbyData: QualifierLobby = {
 			id: lobby.id,
-			type: "tryout",
-			name: `${tryout.acronym}: (Lobby ${lobby.custom_id}) vs (Tryouts)`,
-			customId: lobby.custom_id,
+			type: "qualifier",
+			name: `${tournament.acronym}: (${lobby.team.name}) vs (Qualifiers)`,
+			teamName: lobby.team.name,
 			banchoId: null,
+			captain,
 			players,
 			referees: referee ? [referee] : [],
 			mappool: beatmaps,
 			mappoolQueue: mappoolOrder,
 			staffNotifChannelId: staffChannelId,
 			playerNotifChannelId: playerChannelId,
-			refereeRoleId: tryout.referee_role_id,
+			refereeRoleId: tournament.referee_role_id,
 			schedule: lobby.schedule.toISOString(),
 			lastPick: null,
 			state: "initializing",
 			initialOvertime: false,
+			inLobbyPlayerCount: tournament.lobby_team_size,
 		};
 
-		container.logger.debug(`[AutoRef] Creating tryout lobby ${lobby.id}...`);
+		container.logger.debug(
+			`[AutoRef] Creating tournament qualifier lobby ${lobby.id}...`,
+		);
 
-		const success = await createTryoutLobby(lobbyData);
+		const success = await createQualifierLobby(lobbyData);
 
 		if (success) {
 			createdCount++;
@@ -180,6 +204,8 @@ async function workerHandler(job: Job<JobData, void, string>) {
 	}
 
 	if (createdCount > 0) {
-		container.logger.debug(`[AutoRef] Created ${createdCount} tryout lobbies.`);
+		container.logger.info(
+			`[AutoRef] Created ${createdCount} tournament qualifier lobbies.`,
+		);
 	}
 }
