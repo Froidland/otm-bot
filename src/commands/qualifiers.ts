@@ -139,21 +139,21 @@ export class QualifiersCommand extends Subcommand {
 										)
 										.setRequired(true),
 								),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("schedule")
+						.setDescription(
+							"Shchedule a qualifiers lobby for you or your team.",
 						)
-						.addSubcommand((builder) =>
-							builder
-								.setName("schedule")
+						.addStringOption((option) =>
+							option
+								.setName("date")
 								.setDescription(
-									"Shchedule a qualifiers lobby for you or your team.",
+									"The date to schedule the lobby for in UTC. (Format: YYYY-MM-DD HH:MM)",
 								)
-								.addStringOption((option) =>
-									option
-										.setName("date")
-										.setDescription(
-											"The date to schedule the lobby for in UTC. (Format: YYYY-MM-DD HH:MM)",
-										)
-										.setRequired(true),
-								),
+								.setRequired(true),
 						),
 				),
 		);
