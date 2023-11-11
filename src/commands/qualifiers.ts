@@ -379,9 +379,11 @@ export class QualifiersCommand extends Subcommand {
 							create: {
 								pick_id: pick,
 								beatmap_id: beatmap.id,
+								mods,
 							},
 							update: {
 								beatmap_id: beatmap.id,
+								mods,
 							},
 						},
 					},
