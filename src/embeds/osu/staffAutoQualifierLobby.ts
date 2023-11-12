@@ -9,7 +9,7 @@ import {
 import { DateTime } from "luxon";
 
 const addRefButton = new ButtonBuilder()
-	.setCustomId("addRefTryoutLobbyButton")
+	.setCustomId("addRefQualifiersLobbyButton")
 	.setLabel("Add ref")
 	.setStyle(ButtonStyle.Primary);
 
@@ -52,7 +52,9 @@ export const staffAutoQualifierLobbyEmbed = (
 		embeds: [
 			new EmbedBuilder()
 				.setColor("Blue")
-				.setTitle(`Auto qualifiers lobby for team \`${lobby.teamName}\` has been created.`)
+				.setTitle(
+					`Auto qualifiers lobby for team \`${lobby.teamName}\` has been created.`,
+				)
 				.setDescription(embedDescription)
 				.setFooter({
 					text: `Unique ID: ${lobby.id}`,

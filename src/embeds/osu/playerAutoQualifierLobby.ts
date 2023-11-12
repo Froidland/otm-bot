@@ -9,7 +9,7 @@ import { ButtonBuilder } from "discord.js";
 import { DateTime } from "luxon";
 
 const inviteButton = new ButtonBuilder()
-	.setCustomId("inviteTryoutLobbyButton")
+	.setCustomId("inviteQualifierLobbyButton")
 	.setLabel("Invite")
 	.setStyle(ButtonStyle.Primary);
 
@@ -46,7 +46,9 @@ export const playerAutoQualifierLobbyEmbed = (
 		embeds: [
 			new EmbedBuilder()
 				.setColor("Blue")
-				.setTitle(`Auto qualifiers lobby for team \`${lobby.teamName}\` has been created.`)
+				.setTitle(
+					`Auto qualifiers lobby for team \`${lobby.teamName}\` has been created.`,
+				)
 				.setDescription(embedDescription)
 				.setFooter({
 					text: `Unique ID: ${lobby.id}`,
