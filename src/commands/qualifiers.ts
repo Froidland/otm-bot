@@ -932,19 +932,42 @@ export class QualifiersCommand extends Subcommand {
 			return;
 		}
 
-		if (date < DateTime.now().plus({ minutes: 5 })) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Invalid date!")
-						.setDescription(
-							`The date you provided is invalid. The lobby must be scheduled at least 5 minutes in the future.`,
-						),
-				],
-			});
+		if (team.qualifier_lobby) {
+			const date = DateTime.fromJSDate(team.qualifier_lobby.schedule);
+			const difference = date.diffNow("minutes").minutes;
 
-			return;
+			if (difference < 30 && difference > -5) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Too late!")
+							.setDescription(
+								"You can't reschedule a lobby less than 30 minutes from the lobby you already scheduled.",
+							),
+					],
+				});
+
+				return;
+			}
+
+			if (
+				team.qualifier_lobby.status !== "Pending" &&
+				team.qualifier_lobby.status !== "Skipped"
+			) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"You can't reschedule a lobby that has already been played or is ongoing.",
+							),
+					],
+				});
+
+				return;
+			}
 		}
 
 		if (date.toJSDate() > tournament.qualifier.deadline) {
