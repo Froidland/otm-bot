@@ -434,7 +434,6 @@ export class TournamentCommand extends Subcommand {
 		let staffChannel,
 			mappoolerChannel,
 			refereeChannel,
-			scheduleChannel,
 			playerChannel,
 			tournamentCategory;
 
@@ -504,30 +503,6 @@ export class TournamentCommand extends Subcommand {
 				],
 			});
 
-			scheduleChannel = await interaction.guild.channels.create({
-				name: `${prefix}schedule`,
-				type: ChannelType.GuildText,
-				parent: tournamentCategory,
-				permissionOverwrites: [
-					{
-						id: interaction.guild.roles.everyone,
-						deny: "ViewChannel",
-					},
-					{
-						id: organizerRole,
-						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
-					},
-					{
-						id: staffRole,
-						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
-					},
-					{
-						id: playerRole,
-						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
-					},
-				],
-			});
-
 			playerChannel = await interaction.guild.channels.create({
 				name: `${prefix}players`,
 				type: ChannelType.GuildText,
@@ -557,7 +532,6 @@ export class TournamentCommand extends Subcommand {
 			if (staffChannel) await staffChannel.delete();
 			if (mappoolerChannel) await mappoolerChannel.delete();
 			if (refereeChannel) await refereeChannel.delete();
-			if (scheduleChannel) await scheduleChannel.delete();
 			if (playerChannel) await playerChannel.delete();
 			if (tournamentCategory) await tournamentCategory.delete();
 
@@ -607,7 +581,6 @@ export class TournamentCommand extends Subcommand {
 		let channelsField = `Staff channel: <#${staffChannel.id}>\n`;
 		channelsField += `Mappooler channel: <#${mappoolerChannel.id}>\n`;
 		channelsField += `Referee channel: <#${refereeChannel.id}>\n`;
-		channelsField += `Schedule channel: <#${scheduleChannel.id}>\n`;
 		channelsField += `Player channel: <#${playerChannel.id}>\n`;
 
 		let rolesField = `Organizer role: <@&${organizerRole.id}>\n`;
@@ -635,7 +608,6 @@ export class TournamentCommand extends Subcommand {
 					staff_channel_id: staffChannel.id,
 					mappooler_channel_id: mappoolerChannel.id,
 					referee_channel_id: refereeChannel.id,
-					schedule_channel_id: scheduleChannel.id,
 					player_channel_id: playerChannel.id,
 					organizer_role_id: organizerRole.id,
 					staff_role_id: staffRole.id,

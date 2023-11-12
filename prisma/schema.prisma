@@ -103,7 +103,6 @@ model Tournament {
   staff_channel_id     String
   mappooler_channel_id String
   referee_channel_id   String
-  schedule_channel_id  String
   player_channel_id    String
 
   embed_channel_id String?
