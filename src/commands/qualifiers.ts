@@ -3,6 +3,7 @@ import { NoAccountEmbed } from "@/embeds";
 import {
 	hasTournamentMappoolerRole,
 	hasTournamentOrganizerRole,
+	hasTournamentRefereeRole,
 } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import { ApplyOptions } from "@sapphire/decorators";
@@ -68,6 +69,10 @@ const modCombinations = [
 		{
 			name: "schedule",
 			chatInputRun: "chatInputSchedule",
+		},
+		{
+			name: "list",
+			chatInputRun: "chatInputList",
 		},
 	],
 })
@@ -155,6 +160,35 @@ export class QualifiersCommand extends Subcommand {
 								)
 								.setRequired(true),
 						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("list")
+						.setDescription("List all qualifiers lobbies.")
+						.addBooleanOption((option) =>
+							option
+								.setName("future")
+								.setDescription("Only show future qualifiers lobbies.")
+								.setRequired(false),
+						)
+						.addStringOption((option) =>
+							option
+								.setName("format")
+								.setDescription("The format to list the lobbies in.")
+								.addChoices(
+									{
+										name: "Message",
+										value: "message",
+									},
+									// TODO: Add CSV support.
+									/* {
+										name: "CSV",
+										value: "csv",
+									}, */
+								)
+								.setRequired(false),
+						),
+				)
 				),
 		);
 	}
@@ -956,6 +990,152 @@ export class QualifiersCommand extends Subcommand {
 					.setFooter({
 						text: `Unique ID: ${id}`,
 					}),
+			],
+		});
+	}
+
+	// TODO: Add pagination.
+	// TODO: Add CSV support.
+	public async chatInputList(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const onlyFuture = interaction.options.getBoolean("future", false) || false;
+		// const format = interaction.options.getString("format", false) || "message";
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				qualifier: {
+					include: {
+						lobbies: {
+							where: onlyFuture ? { schedule: { gt: new Date() } } : undefined,
+							include: {
+								team: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be executed in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!tournament.qualifier) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tournament has no qualifiers."),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!hasTournamentRefereeRole(interaction, tournament) &&
+			!hasTournamentOrganizerRole(interaction, tournament)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do that."),
+				],
+			});
+
+			return;
+		}
+
+		const lobbies = tournament.qualifier.lobbies;
+
+		if (lobbies.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No lobbies scheduled")
+						.setDescription(
+							onlyFuture
+								? "There are no lobbies scheduled in the future."
+								: "There are no lobbies scheduled yet.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		let embedDescription = "";
+
+		for (const lobby of lobbies) {
+			const date = DateTime.fromJSDate(lobby.schedule, { zone: "utc" });
+			const statusMessage =
+				lobby.status === "Completed" || lobby.status === "Ongoing"
+					? "[" +
+					  lobby.status +
+					  "](https://osu.ppy.sh/community/matches/" +
+					  lobby.bancho_id +
+					  ")"
+					: " | **" + lobby.status + "**";
+
+			embedDescription += `\\- \`${lobby.team.name}\` | \`${date.toFormat(
+				"DDDD T",
+			)}\` <t:${date.toSeconds()}:R> | ${statusMessage}\n`;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Lobbies")
+					.setDescription(embedDescription),
 			],
 		});
 	}
