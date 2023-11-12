@@ -17,6 +17,7 @@ import { registerBanchoEvents } from "./bancho/events";
 import { tryoutLobbyCreateQueue } from "./processing/queues/tryoutLobbyCreateQueue";
 import { initializeTournamentQualifierReminderSendWorker } from "./processing/workers/tournamentQualifierReminderSendWorker";
 import { initializeTournamentQualifierCreateWorker } from "./processing/workers/tournamentQualifierCreateWorker";
+import { Settings } from "luxon";
 
 // Discord client setup
 const discordClient = new SapphireClient({
@@ -46,6 +47,10 @@ const banchoClient = new BanchoJs.BanchoClient({
 // TODO: Rate limiting.
 // TODO: Graceful shutdown.
 async function bootstrap() {
+	// Luxon settings
+	// Settings.defaultZone = "utc";
+	Settings.defaultLocale = "en-US";
+
 	try {
 		// osu! API setup
 		await auth.login(
