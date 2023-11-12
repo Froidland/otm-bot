@@ -868,6 +868,21 @@ export class QualifiersCommand extends Subcommand {
 			return;
 		}
 
+		if (!tournament.qualifier.is_published) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Yellow")
+						.setTitle("Warning")
+						.setDescription(
+							"The qualifiers mappool has not been published yet.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (tournament.teams.length === 0) {
 			await interaction.editReply({
 				embeds: [
