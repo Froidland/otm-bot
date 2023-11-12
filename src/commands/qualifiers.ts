@@ -1068,12 +1068,12 @@ export class QualifiersCommand extends Subcommand {
 					.setColor("Green")
 					.setTitle("Success")
 					.setDescription(
-						`Your qualifier lobby has been scheduled for \`${date.toFormat(
-							"ccc, LL LLL yyyy HH:mm",
-						)}\`.`,
+						`Your qualifier lobby has been ${
+							team.qualifier_lobby ? "rescheduled" : "scheduled"
+						} for \`${date.toFormat("DDDD T")}\`.`,
 					)
 					.setFooter({
-						text: `Unique ID: ${id}`,
+						text: `Unique ID: ${team.qualifier_lobby?.id || id}`,
 					}),
 			],
 		});
