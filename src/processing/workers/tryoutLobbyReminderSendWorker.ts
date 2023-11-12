@@ -117,7 +117,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 					.setDescription(
 						"The lobby will be made soon, make sure you are in-game to receive your invite." +
 							(data.referee
-								? ` In case you need any help, your referee is <@${data.referee.discord_id}> (\`${data.referee.osu_username}\` - #\`${data.referee.osu_id}\`)`
+								? ` In case you need any help, your referee is <@${data.referee.discord_id}> (\`${data.referee.osu_username}\` - \`#${data.referee.osu_id}\`)`
 								: ""),
 					)
 					.setFooter({
