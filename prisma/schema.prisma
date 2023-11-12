@@ -163,6 +163,7 @@ model TournamentQualifier {
 
   mappool       QualifierMapPick[]
   mappool_order String             @default("")
+  is_published  Boolean            @default(false)
 
   lobbies TournamentQualifierLobby[]
 

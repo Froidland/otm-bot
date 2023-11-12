@@ -74,6 +74,10 @@ const modCombinations = [
 			name: "list",
 			chatInputRun: "chatInputList",
 		},
+		{
+			name: "mappool",
+			chatInputRun: "chatInputMappool",
+		},
 	],
 })
 export class QualifiersCommand extends Subcommand {
@@ -188,6 +192,11 @@ export class QualifiersCommand extends Subcommand {
 								)
 								.setRequired(false),
 						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("mappool")
+						.setDescription("View the qualifiers mappool."),
 				)
 				),
 		);
@@ -1135,6 +1144,168 @@ export class QualifiersCommand extends Subcommand {
 				new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle("Lobbies")
+					.setDescription(embedDescription),
+			],
+		});
+	}
+
+	public async chatInputMappool(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				qualifier: {
+					include: {
+						mappool: {
+							include: {
+								beatmap: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be executed in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!tournament.qualifier) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tournament has no qualifiers."),
+				],
+			});
+
+			return;
+		}
+
+		if (!tournament.qualifier.is_published) {
+			if (
+				!hasTournamentOrganizerRole(interaction, tournament) &&
+				!hasTournamentMappoolerRole(interaction, tournament)
+			) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription("You don't have permission to do that."),
+					],
+				});
+
+				return;
+			}
+		}
+
+		const qualifier = tournament.qualifier;
+
+		// TODO: Same as in the tryout mappool command.
+		const mappoolObject = {
+			NM: qualifier.mappool
+				.filter((pick) => pick.pick_id.startsWith("NM"))
+				.sort(),
+			HD: qualifier.mappool
+				.filter((pick) => pick.pick_id.startsWith("HD"))
+				.sort(),
+			HR: qualifier.mappool
+				.filter((pick) => pick.pick_id.startsWith("HR"))
+				.sort(),
+			DT: qualifier.mappool
+				.filter((pick) => pick.pick_id.startsWith("DT"))
+				.sort(),
+			FM: qualifier.mappool
+				.filter((pick) => pick.pick_id.startsWith("FM"))
+				.sort(),
+			Extra: qualifier.mappool
+				.filter((pick) => {
+					const pickText = pick.pick_id.slice(0, 2);
+
+					if (["NM", "HD", "HR", "DT", "FM", "TB"].includes(pickText)) {
+						return false;
+					}
+
+					return true;
+				})
+				.sort(),
+			TB: qualifier.mappool
+				.filter((pick) => pick.pick_id.startsWith("TB"))
+				.sort(),
+		};
+
+		let embedDescription = "";
+
+		for (const [mod, maps] of Object.entries(mappoolObject)) {
+			if (maps.length === 0) {
+				continue;
+			}
+
+			embedDescription += `**${mod}** pool:\n`;
+
+			for (const map of maps) {
+				embedDescription += `\\- \`${map.pick_id}\` | [${map.beatmap
+					?.artist} - ${map.beatmap?.title} [${map.beatmap
+					?.version}] [${map.beatmap?.difficulty_rating.toFixed(
+					2,
+				)}★]](https://osu.ppy.sh/beatmaps/${map.beatmap_id}) \`#${
+					map.beatmap_id
+				}\`\n`;
+			}
+
+			embedDescription += "\n";
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Qualifiers Mappool")
 					.setDescription(embedDescription),
 			],
 		});
