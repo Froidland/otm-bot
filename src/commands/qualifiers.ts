@@ -78,6 +78,10 @@ const modCombinations = [
 			name: "mappool",
 			chatInputRun: "chatInputMappool",
 		},
+		{
+			name: "publish",
+			chatInputRun: "chatInputPublish",
+		},
 	],
 })
 export class QualifiersCommand extends Subcommand {
@@ -198,6 +202,10 @@ export class QualifiersCommand extends Subcommand {
 						.setName("mappool")
 						.setDescription("View the qualifiers mappool."),
 				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("publish")
+						.setDescription("Publish the qualifiers mappool."),
 				),
 		);
 	}
@@ -1307,6 +1315,154 @@ export class QualifiersCommand extends Subcommand {
 					.setColor("Green")
 					.setTitle("Qualifiers Mappool")
 					.setDescription(embedDescription),
+			],
+		});
+	}
+
+	public async chatInputPublish(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				qualifier: {
+					include: {
+						mappool: true,
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be executed in a tournament staff or mappooler channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTournamentOrganizerRole(interaction, tournament)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do that."),
+				],
+			});
+
+			return;
+		}
+
+		if (!tournament.qualifier) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tournament has no qualifiers."),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.qualifier.is_published) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Already published!")
+						.setDescription(
+							"The qualifiers mappool has already been published.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const qualifier = tournament.qualifier;
+
+		if (qualifier.mappool.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Empty mappool!")
+						.setDescription(
+							"The qualifiers mappool is empty. Please add some maps before publishing.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.tournamentQualifier.update({
+				where: {
+					id: qualifier.id,
+				},
+				data: {
+					is_published: true,
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while publishing the mappool. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription("The qualifiers mappool has been published."),
 			],
 		});
 	}
