@@ -898,7 +898,7 @@ export class QualifiersCommand extends Subcommand {
 						.setDescription(
 							`The date you provided is invalid. The deadline for scheduling a lobby is \`${DateTime.fromJSDate(
 								tournament.qualifier.deadline,
-							).toFormat("ccc, LL LLL yyyy HH:mm")}\`.`,
+							).toFormat("DDDD T")}\`.`,
 						),
 				],
 			});

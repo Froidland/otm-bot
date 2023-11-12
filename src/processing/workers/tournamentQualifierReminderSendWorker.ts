@@ -137,9 +137,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 					.setTitle(
 						`Lobby for team \`${data.teamName}\` starts ${DateTime.fromJSDate(
 							schedule,
-						)
-							.setLocale("en-US")
-							.toRelative()}` + (data.referee ? "!" : " and has no referee!"),
+						).toRelative()}` + (data.referee ? "!" : " and has no referee!"),
 					)
 					.setDescription(staffMessageDescription)
 					.setFooter({

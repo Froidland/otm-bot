@@ -110,9 +110,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle(
-						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(schedule)
-							.setLocale("en-US")
-							.toRelative()}!`,
+						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(
+							schedule,
+						).toRelative()}!`,
 					)
 					.setDescription(
 						"The lobby will be made soon, make sure you are in-game to receive your invite." +
@@ -137,9 +137,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				new EmbedBuilder()
 					.setColor(data.referee ? "Blue" : "Yellow")
 					.setTitle(
-						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(schedule)
-							.setLocale("en-US")
-							.toRelative()}` + (data.referee ? "!" : " and has no referee!"),
+						`Lobby \`${data.customId}\` starts ${DateTime.fromJSDate(
+							schedule,
+						).toRelative()}` + (data.referee ? "!" : " and has no referee!"),
 					)
 					.setDescription(staffMessageDescription)
 					.setFooter({

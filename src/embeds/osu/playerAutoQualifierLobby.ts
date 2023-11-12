@@ -36,7 +36,7 @@ export const playerAutoQualifierLobbyEmbed = (
 		{
 			zone: "utc",
 		},
-	).toFormat("ccc, LL LLL yyyy HH:mm")}\``;
+	).toFormat("DDDD T")}\``;
 
 	return {
 		content:

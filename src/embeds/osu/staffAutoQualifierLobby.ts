@@ -36,7 +36,7 @@ export const staffAutoQualifierLobbyEmbed = (
 		{
 			zone: "utc",
 		},
-	).toFormat("ccc, LL LLL yyyy HH:mm")}\`\n\n`;
+	).toFormat("DDDD T")}\`\n\n`;
 
 	embedDescription += "**Players:** \n";
 

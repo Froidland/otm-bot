@@ -128,7 +128,7 @@ export class ProfileCommand extends Command {
 			.setFooter({
 				text: `Joined osu! on ${DateTime.fromISO(
 					userDetails.join_date,
-				).toFormat("ccc, LL LLL yyyy HH:mm")}`,
+				).toFormat("DDDD T")}`,
 			})
 			.setThumbnail(userDetails.avatar_url);
 

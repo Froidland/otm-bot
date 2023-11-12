@@ -593,16 +593,14 @@ export class TournamentCommand extends Subcommand {
 		settingsField += `In lobby team size: \`${inLobbyTeamSize}\`\n`;
 		settingsField += `Has qualifiers: \`${hasQualifiers ? "Yes" : "No"}\`\n`;
 
-		let datesField = `Start date: \`${startDate.toFormat(
-			"ccc, LL LLL yyyy HH:mm",
-		)}\`\n`;
+		let datesField = `Start date: \`${startDate.toFormat("DDDD T")}\`\n`;
 		datesField += `Registration end date: \`${registrationEndDate.toFormat(
-			"ccc, LL LLL yyyy HH:mm",
+			"DDDD T",
 		)}\`\n`;
 
 		if (hasQualifiers && qualifiersDeadline) {
 			datesField += `Qualifiers deadline: \`${qualifiersDeadline.toFormat(
-				"ccc, LL LLL yyyy HH:mm",
+				"DDDD T",
 			)}\`\n`;
 		}
 

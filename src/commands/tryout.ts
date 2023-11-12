@@ -983,12 +983,9 @@ export class TryoutCommand extends Subcommand {
 			{
 				zone: "utc",
 			},
-		).toFormat("ccc, LL LLL yyyy HH:mm")}\` to \`${DateTime.fromJSDate(
-			tryout.end_date,
-			{
-				zone: "utc",
-			},
-		).toFormat("ccc, LL LLL yyyy HH:mm")}\`\n`;
+		).toFormat("DDDD T")}\` to \`${DateTime.fromJSDate(tryout.end_date, {
+			zone: "utc",
+		}).toFormat("DDDD T")}\`\n`;
 		embedDescription += "**Roles:**\n";
 		embedDescription += `\\- <@&${tryout.admin_role_id}> (Management)\n`;
 		embedDescription += `\\- <@&${tryout.referee_role_id}> (Referee)\n`;
@@ -2469,9 +2466,7 @@ export class TryoutCommand extends Subcommand {
 								{
 									zone: "utc",
 								},
-							).toFormat("ccc, LL LLL yyyy HH:mm")}\` to \`${date.toFormat(
-								"ccc, LL LLL yyyy HH:mm",
-							)}\`.`,
+							).toFormat("DDDD T")}\`.`,
 						),
 				],
 			});
@@ -2610,9 +2605,7 @@ export class TryoutCommand extends Subcommand {
 								{
 									zone: "utc",
 								},
-							).toFormat("ccc, LL LLL yyyy HH:mm")}\` to \`${date.toFormat(
-								"ccc, LL LLL yyyy HH:mm",
-							)}\`.`,
+							).toFormat("DDDD T")}\` to \`${date.toFormat("DDDD T")}\`.`,
 						),
 				],
 			});
