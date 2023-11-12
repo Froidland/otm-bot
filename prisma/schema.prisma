@@ -286,7 +286,6 @@ model Team {
   one_player_team Boolean @default(false)
 
   qualifier_lobby    TournamentQualifierLobby? 
-  qualifier_lobby_id String? @unique
   qualifier_played   Boolean                   @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
