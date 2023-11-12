@@ -116,6 +116,11 @@ export class AddRefTryoutLobbyButtonHandler extends InteractionHandler {
 		const banchoChannel = this.container.bancho.getChannel(
 			`#mp_${ongoingLobby.banchoId}}`,
 		);
+		ongoingLobby.referees.push({
+			osuId: user.osu_id,
+			osuUsername: user.osu_username,
+			discordId: user.discord_id,
+		});
 
 		await banchoChannel.sendMessage(`!mp addref #${user.osu_id}`);
 
