@@ -1,5 +1,5 @@
 import db from "@/db";
-import { NoAccountEmbed } from "@/embeds";
+import { NoAccountEmbed, staffQualifierLobbyScheduleEmbed } from "@/embeds";
 import {
 	hasTournamentMappoolerRole,
 	hasTournamentOrganizerRole,
@@ -828,6 +828,13 @@ export class QualifiersCommand extends Subcommand {
 							},
 						],
 					},
+					include: {
+						qualifier_lobby: {
+							include: {
+								referee: true,
+							},
+						},
+					},
 				},
 				qualifier: true,
 			},
@@ -957,7 +964,39 @@ export class QualifiersCommand extends Subcommand {
 			return;
 		}
 
+		let staffScheduleMessage = null;
+
 		try {
+			const refereeChannel = await this.container.client.channels.fetch(
+				tournament.referee_channel_id,
+			);
+
+			// TODO: This whole thing feels wrong?
+
+			if (!refereeChannel || !refereeChannel.isTextBased()) {
+				throw new Error(
+					`Referee channel for schedule not found. Team ID ${team.id}`,
+				);
+			}
+
+			staffScheduleMessage = await refereeChannel.send(
+				staffQualifierLobbyScheduleEmbed({
+					id: team.qualifier_lobby?.id || id,
+					teamName: team.name,
+					schedule: date,
+					refereeId: team.qualifier_lobby?.referee
+						? team.qualifier_lobby.referee.discord_id
+						: null,
+					reschedule: team.qualifier_lobby ? true : false,
+				}),
+			);
+
+			if (staffScheduleMessage.nonce !== "1") {
+				throw new Error(
+					`Schedule message nonce doesn't match. Team ID: ${team.id}`,
+				);
+			}
+
 			await db.team.update({
 				where: {
 					id: team.id,
@@ -969,9 +1008,11 @@ export class QualifiersCommand extends Subcommand {
 								id,
 								schedule: date.toJSDate(),
 								tournament_qualifier_id: tournament.qualifier.id,
+								schedule_embed_message_id: staffScheduleMessage.id,
 							},
 							update: {
 								schedule: date.toJSDate(),
+								schedule_embed_message_id: staffScheduleMessage.id,
 							},
 						},
 					},
@@ -979,6 +1020,10 @@ export class QualifiersCommand extends Subcommand {
 			});
 		} catch (error) {
 			this.container.logger.error(error);
+
+			if (staffScheduleMessage) {
+				await staffScheduleMessage.delete();
+			}
 
 			await interaction.editReply({
 				embeds: [

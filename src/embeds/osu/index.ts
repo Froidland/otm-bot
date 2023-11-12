@@ -5,3 +5,4 @@ export * from "./staffAutoQualifierLobby";
 export * from "./playerAutoQualifierLobby";
 export * from "./tournamentRegistration";
 export * from "./tournamentTeamInvite";
+export * from "./staffQualifierLobbySchedule";

@@ -187,6 +187,7 @@ model TournamentQualifierLobby {
 
   staff_embed_message_id  String? //? Used for the interactive embed.
   player_embed_message_id String? //? Used for the interactive embed.
+  schedule_embed_message_id String? //? Used for the interactive embed.
 
   team Team @relation(fields: [team_id], references: [id])
   team_id String @unique
