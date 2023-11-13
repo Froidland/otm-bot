@@ -128,7 +128,7 @@ model Tournament {
   stages    TournamentStage[]
   teams     Team[]
 
-  creator    User   @relation(fields: [creator_id], references: [id])
+  creator    User   @relation(fields: [creator_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   creator_id String
 
   created_at            DateTime @default(now()) @db.Timestamp(6)
@@ -143,7 +143,7 @@ model TournamentStage {
   name      String @db.VarChar(255)
   custom_id String @db.VarChar(16)
 
-  tournament    Tournament @relation(fields: [tournament_id], references: [id])
+  tournament    Tournament @relation(fields: [tournament_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   tournament_id String
 
   mappool       TournamentMapPick[]
@@ -169,27 +169,27 @@ model TournamentQualifier {
 
   deadline DateTime @db.Timestamp(6)
 
-  tournament    Tournament @relation(fields: [tournament_id], references: [id])
+  tournament    Tournament @relation(fields: [tournament_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   tournament_id String     @unique
 }
 
 model TournamentQualifierLobby {
-  id           String   @id
-  schedule     DateTime @db.Timestamp(6)
+  id       String   @id
+  schedule DateTime @db.Timestamp(6)
 
-  tournament_qualifier    TournamentQualifier @relation(fields: [tournament_qualifier_id], references: [id])
+  tournament_qualifier    TournamentQualifier @relation(fields: [tournament_qualifier_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   tournament_qualifier_id String
 
   status TryoutLobbyStatus @default(Pending)
 
-  referee    User?   @relation(fields: [referee_id], references: [id])
+  referee    User?   @relation(fields: [referee_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   referee_id String?
 
-  staff_embed_message_id  String? //? Used for the interactive embed.
-  player_embed_message_id String? //? Used for the interactive embed.
+  staff_embed_message_id    String? //? Used for the interactive embed.
+  player_embed_message_id   String? //? Used for the interactive embed.
   schedule_embed_message_id String? //? Used for the interactive embed.
 
-  team Team @relation(fields: [team_id], references: [id])
+  team    Team   @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   team_id String @unique
 
   bancho_id String?
@@ -204,11 +204,11 @@ model TournamentQualifierLobby {
 }
 
 model QualifierMapPick {
-  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id])
+  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   beatmap_id Int?
 
   pick_id      String              @db.VarChar(16)
-  qualifier    TournamentQualifier @relation(fields: [qualifier_id], references: [id])
+  qualifier    TournamentQualifier @relation(fields: [qualifier_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   qualifier_id String
 
   mods String @default("NM")
@@ -220,11 +220,11 @@ model QualifierMapPick {
 }
 
 model TournamentMapPick {
-  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id])
+  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   beatmap_id Int?
 
   pick_id  String          @db.VarChar(16)
-  stage    TournamentStage @relation(fields: [stage_id], references: [id])
+  stage    TournamentStage @relation(fields: [stage_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   stage_id String
 
   mods String @default("NM")
@@ -242,19 +242,19 @@ model Match {
   mp_link   String?     @db.VarChar(255)
   status    MatchStatus @default(Pending)
 
-  stage    TournamentStage @relation(fields: [stage_id], references: [id])
+  stage    TournamentStage @relation(fields: [stage_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   stage_id String
 
-  referee    User?   @relation(fields: [referee_id], references: [id])
+  referee    User?   @relation(fields: [referee_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   referee_id String?
 
-  redTeam     Team?   @relation("red_team", fields: [red_team_id], references: [id])
+  redTeam     Team?   @relation("red_team", fields: [red_team_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   red_team_id String?
 
-  blueTeam     Team?   @relation("blue_team", fields: [blue_team_id], references: [id])
+  blueTeam     Team?   @relation("blue_team", fields: [blue_team_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   blue_team_id String?
 
-  winner    Team?   @relation(fields: [winner_id], references: [id])
+  winner    Team?   @relation(fields: [winner_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   winner_id String?
 
   created_at DateTime @default(now()) @db.Timestamp(6)
@@ -269,12 +269,12 @@ model Team {
   icon_url String? @db.VarChar(255)
   timezone String  @db.VarChar(16)
 
-  creator    User   @relation(fields: [creator_id], references: [id])
+  creator    User   @relation(fields: [creator_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   creator_id String
 
   players PlayersOnTeams[]
 
-  tournament    Tournament @relation(fields: [tournament_id], references: [id])
+  tournament    Tournament @relation(fields: [tournament_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   tournament_id String
 
   invitations TeamInvite[]
@@ -286,8 +286,8 @@ model Team {
 
   one_player_team Boolean @default(false)
 
-  qualifier_lobby    TournamentQualifierLobby? 
-  qualifier_played   Boolean                   @default(false)
+  qualifier_lobby  TournamentQualifierLobby?
+  qualifier_played Boolean                   @default(false)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -302,10 +302,10 @@ model TeamInvite {
 
   embed_message_id String?
 
-  team    Team   @relation(fields: [team_id], references: [id])
+  team    Team   @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   team_id String
 
-  user    User   @relation(fields: [user_id], references: [id])
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id String
 
   created_at DateTime @default(now()) @db.Timestamp(6)
@@ -339,7 +339,7 @@ model Tryout {
   end_date          DateTime @db.Timestamp(6)
 
   stages     TryoutStage[]
-  creator    User          @relation(fields: [creator_id], references: [id])
+  creator    User          @relation(fields: [creator_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   creator_id String
 
   players PlayersOnTryouts[]
@@ -357,7 +357,7 @@ model TryoutStage {
   name      String @db.VarChar(255)
   custom_id String @db.VarChar(16)
 
-  tryout    Tryout @relation(fields: [tryout_id], references: [id])
+  tryout    Tryout @relation(fields: [tryout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   tryout_id String
 
   lobbies TryoutLobby[]
@@ -378,12 +378,12 @@ model TryoutLobby {
   player_limit Int
   schedule     DateTime @db.Timestamp(6)
 
-  stage   TryoutStage @relation(fields: [stageId], references: [id])
+  stage   TryoutStage @relation(fields: [stageId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   stageId String
 
   status TryoutLobbyStatus @default(Pending)
 
-  referee    User?   @relation(fields: [referee_id], references: [id])
+  referee    User?   @relation(fields: [referee_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
   referee_id String?
 
   staff_embed_message_id  String? //? Used for the interactive embed.
@@ -408,8 +408,8 @@ model PlayersOnTryoutLobbies {
   tryout_lobby_id String
   user_id         String
 
-  tryoutLobby TryoutLobby @relation(fields: [tryout_lobby_id], references: [id])
-  player      User        @relation(fields: [user_id], references: [id])
+  tryoutLobby TryoutLobby @relation(fields: [tryout_lobby_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  player      User        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   played Boolean @default(false)
 
@@ -424,8 +424,8 @@ model PlayersOnTryouts {
   tryout_id String
   user_id   String
 
-  tryout Tryout @relation(fields: [tryout_id], references: [id])
-  player User   @relation(fields: [user_id], references: [id])
+  tryout Tryout @relation(fields: [tryout_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  player User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -438,8 +438,8 @@ model PlayersOnTeams {
   team_id String
   user_id String
 
-  team   Team @relation(fields: [team_id], references: [id])
-  player User @relation(fields: [user_id], references: [id])
+  team   Team @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  player User @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   created_at DateTime @default(now()) @db.Timestamp(6)
   updated_at DateTime @updatedAt @db.Timestamp(6)
@@ -449,11 +449,11 @@ model PlayersOnTeams {
 }
 
 model TryoutMapPick {
-  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id])
+  beatmap    Beatmap? @relation(fields: [beatmap_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   beatmap_id Int?
 
   pick_id  String      @db.VarChar(16)
-  stage    TryoutStage @relation(fields: [stage_id], references: [id])
+  stage    TryoutStage @relation(fields: [stage_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   stage_id String
 
   mods String @default("NM")
