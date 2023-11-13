@@ -248,6 +248,17 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 				return;
 			}
 
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Green")
+						.setTitle("Success")
+						.setDescription(
+							"You have successfully left the tournament. You have been removed from your team.",
+						),
+				],
+			});
+
 			const captain = await this.container.client.users.fetch(
 				team.creator.discord_id!,
 			);
