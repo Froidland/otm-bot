@@ -223,19 +223,32 @@ export class TeamCommand extends Subcommand {
 			return;
 		}
 
-		if (playerData.teams[0].team_id === team.team.id) {
+		if (playerData.teams.length > 0) {
+			if (playerData.teams[0].team_id === team.team.id) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"The player you want to invite is already in your team.",
+							),
+					],
+				});
+
+				return;
+			}
+
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"The player you want to invite is already in your team.",
+							"The player you want to invite is already in a team.",
 						),
 				],
 			});
-
-			return;
 		}
 
 		if (playerData.team_invites.length > 0) {
