@@ -112,6 +112,21 @@ export class TeamCommand extends Subcommand {
 			return;
 		}
 
+		if (tournament.type === "OneVsOne") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a team vs team tournament.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (tournament.registration_end_date < new Date()) {
 			await interaction.editReply({
 				embeds: [
