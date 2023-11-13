@@ -26,19 +26,6 @@ export class AcceptTeamInviteButton extends InteractionHandler {
 	public async run(interaction: ButtonInteraction) {
 		await interaction.deferReply();
 
-		if (!interaction.guild) {
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Red")
-						.setTitle("Error")
-						.setDescription("This command can only be used in a server."),
-				],
-			});
-
-			return;
-		}
-
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
@@ -141,7 +128,9 @@ export class AcceptTeamInviteButton extends InteractionHandler {
 		}
 
 		try {
-			const member = await interaction.guild.members.fetch(interaction.user.id);
+			const guild = await this.container.client.guilds.fetch(tournament.server_id);
+
+			const member = await guild.members.fetch(interaction.user.id);
 
 			await member.roles.add(tournament.player_role_id);
 
