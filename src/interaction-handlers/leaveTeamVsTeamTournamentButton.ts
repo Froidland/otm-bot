@@ -76,6 +76,7 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 								player: true,
 							},
 						},
+						creator: true,
 					},
 				},
 			},
@@ -247,7 +248,9 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 				return;
 			}
 
-			const captain = await this.container.client.users.fetch(team.creator_id);
+			const captain = await this.container.client.users.fetch(
+				team.creator.discord_id!,
+			);
 
 			await captain.send({
 				embeds: [
@@ -255,7 +258,7 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 						.setColor("Yellow")
 						.setTitle("Player left")
 						.setDescription(
-							`<@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\` has left your team for tournament \`${tournament.name}\`.)`,
+							`<@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`) has left your team for tournament \`${tournament.name}\`.)`,
 						),
 				],
 			});
