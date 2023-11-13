@@ -101,6 +101,37 @@ export class AcceptTeamInviteButton extends InteractionHandler {
 
 		const team = user.team_invites[0].team;
 
+		const existingTeam = await db.team.findFirst({
+			where: {
+				tournament_id: tournament.id,
+				players: {
+					some: {
+						player: {
+							id: user.id,
+						},
+					},
+				},
+				NOT: {
+					id: team.id,
+				},
+			},
+		});
+
+		if (existingTeam) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid invite")
+						.setDescription(
+							`You are already in a team for the \`${tournament.name}\` tournament.`,
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (team.players.length >= tournament.max_team_size) {
 			await interaction.editReply({
 				embeds: [
@@ -128,7 +159,9 @@ export class AcceptTeamInviteButton extends InteractionHandler {
 		}
 
 		try {
-			const guild = await this.container.client.guilds.fetch(tournament.server_id);
+			const guild = await this.container.client.guilds.fetch(
+				tournament.server_id,
+			);
 
 			const member = await guild.members.fetch(interaction.user.id);
 
