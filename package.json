@@ -35,7 +35,7 @@
 		"@sapphire/plugin-subcommands": "^4.2.1",
 		"@sapphire/utilities": "^3.13.0",
 		"adm-zip": "^0.5.10",
-		"axios": "^1.5.1",
+		"axios": "^1.6.1",
 		"bullmq": "^4.12.5",
 		"discord.js": "^14.13.0",
 		"luxon": "^3.4.3",
