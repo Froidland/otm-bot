@@ -24,9 +24,8 @@ export class ClaimQualifiersLobbyButton extends InteractionHandler {
 		return this.some();
 	}
 
-	// TODO: Add
 	public async run(interaction: ButtonInteraction) {
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply();
 
 		const user = await db.user.findFirst({
 			where: {
