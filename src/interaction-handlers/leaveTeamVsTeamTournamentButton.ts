@@ -269,7 +269,7 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 						.setColor("Yellow")
 						.setTitle("Player left")
 						.setDescription(
-							`<@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`) has left your team for tournament \`${tournament.name}\`.)`,
+							`<@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`) has left your team for tournament \`${tournament.name}\`.`,
 						),
 				],
 			});
