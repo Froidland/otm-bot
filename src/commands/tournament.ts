@@ -228,6 +228,18 @@ export class TournamentCommand extends Subcommand {
 		const acronymInNames =
 			interaction.options.getBoolean("acronym-in-names") || true;
 
+		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
+			zone: "utc",
+		});
+
+		const registrationEndDate = DateTime.fromFormat(
+			registrationEndDateString,
+			"yyyy-MM-dd HH:mm",
+			{
+				zone: "utc",
+			},
+		);
+
 		const prefix = acronymInNames ? `${acronym}: ` : "";
 
 		if (!interaction.guild) {
@@ -311,6 +323,21 @@ export class TournamentCommand extends Subcommand {
 
 				return;
 			}
+
+			if (qualifiersDeadline < registrationEndDate) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								"Qualifiers deadline must be after registration end date.",
+							),
+					],
+				});
+
+				return;
+			}
 		}
 
 		const user = await db.user.findFirst({
@@ -326,18 +353,6 @@ export class TournamentCommand extends Subcommand {
 
 			return;
 		}
-
-		const startDate = DateTime.fromFormat(startDateString, "yyyy-MM-dd HH:mm", {
-			zone: "utc",
-		});
-
-		const registrationEndDate = DateTime.fromFormat(
-			registrationEndDateString,
-			"yyyy-MM-dd HH:mm",
-			{
-				zone: "utc",
-			},
-		);
 
 		if (!startDate.isValid || !registrationEndDate.isValid) {
 			await interaction.editReply({
