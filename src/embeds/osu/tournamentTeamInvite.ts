@@ -18,7 +18,9 @@ type TeamPlayer = {
 
 type TeamInviteData = {
 	tournamentName: string;
-	captainUsername: string;
+	captainDiscordId: string;
+	captainOsuUsername: string;
+	captainOsuId: string;
 	teamName: string;
 	players: TeamPlayer[];
 };
@@ -41,7 +43,7 @@ const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
 export const tournamentTeamInvite = (
 	data: TeamInviteData,
 ): MessageCreateOptions => {
-	const embedDescription = `You have been invited to join ${data.captainUsername}'s team \`${data.teamName}\` for the \`${data.tournamentName}\` tournament. Click the buttons below to accept or decline the invite. You can also ignore this message in order to not receive any more invites for this team.`;
+	const embedDescription = `<@${data.captainDiscordId}> (\`${data.captainOsuUsername}\` - \`#${data.captainOsuId}\`) has invited you to join their team \`${data.teamName}\` for the \`${data.tournamentName}\` tournament. Click the buttons below to accept or decline the invite. You can also ignore this message in order to not receive any more invites for this team.`;
 	const teamMemberList = data.players
 		.map(
 			(player) =>
@@ -53,7 +55,7 @@ export const tournamentTeamInvite = (
 		embeds: [
 			new EmbedBuilder()
 				.setColor("Blue")
-				.setTitle(`${data.captainUsername} has invited you to join a team`)
+				.setTitle(`${data.captainOsuUsername} has invited you to join a team`)
 				.setDescription(embedDescription)
 				.setFields([
 					{

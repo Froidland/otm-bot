@@ -269,7 +269,9 @@ export class TeamCommand extends Subcommand {
 		try {
 			const message = await player.send(
 				tournamentTeamInvite({
-					captainUsername: user.osu_username,
+					captainDiscordId: user.discord_id!,
+					captainOsuId: user.osu_id,
+					captainOsuUsername: user.osu_username,
 					teamName: team.team.name,
 					tournamentName: tournament.name,
 					players: team.team.players.map((player) => player.player),
