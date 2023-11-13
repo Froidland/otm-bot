@@ -1,5 +1,6 @@
 import db from "@/db";
 import { NoAccountEmbed, tournamentRegistration } from "@/embeds";
+import { hasTournamentOrganizerRole } from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
@@ -17,6 +18,16 @@ type Scoring = "ScoreV1" | "ScoreV2";
 			name: "create",
 			chatInputRun: "chatInputRunCreate",
 			preconditions: ["ServerAdminOnly"],
+		},
+		{
+			name: "embed",
+			type: "group",
+			entries: [
+				{
+					name: "send",
+					chatInputRun: "chatInputRunEmbedSend",
+				},
+			],
 		},
 	],
 })
@@ -169,6 +180,25 @@ export class TournamentCommand extends Subcommand {
 									"The team size in lobby. Defaults to 4, max 8. Ignored for 1v1.",
 								)
 								.setMaxValue(8),
+						),
+				)
+				.addSubcommandGroup((builder) =>
+					builder
+						.setName("embed")
+						.setDescription("!")
+						.addSubcommand((builder) =>
+							builder
+								.setName("send")
+								.setDescription(
+									"Re-send the tournament registration embed to a channel.",
+								)
+								.addChannelOption((option) =>
+									option
+										.setName("channel")
+										.setDescription("The channel to send the embed to.")
+										.addChannelTypes(ChannelType.GuildText)
+										.setRequired(true),
+								),
 						),
 				),
 		);
@@ -694,6 +724,195 @@ export class TournamentCommand extends Subcommand {
 					.setFooter({
 						text: `Unique ID: ${id}`,
 					}),
+			],
+		});
+	}
+
+	public async chatInputRunEmbedSend(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({
+			ephemeral: true,
+		});
+
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
+		const channelOption = interaction.options.getChannel("channel", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a tournament staff channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTournamentOrganizerRole(interaction, tournament)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		const tournamentEmbedUsedChannel = await db.tournament.findFirst({
+			where: {
+				embed_channel_id: channelOption.id,
+				NOT: {
+					id: tournament.id,
+				},
+			},
+		});
+
+		if (tournamentEmbedUsedChannel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"The channel selected for the embed is already in use by another tournament. Please select another channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		//? Delete the previous embed if it exists.
+		if (tournament.embed_channel_id && tournament.embed_message_id) {
+			const previousChannel = await interaction.guild.channels.fetch(
+				tournament.embed_channel_id,
+			);
+
+			if (previousChannel && previousChannel.isTextBased()) {
+				const messages = await previousChannel.messages.fetch({
+					around: tournament.embed_message_id,
+					limit: 1,
+				});
+
+				const previousMessage = messages.first();
+
+				if (previousMessage) {
+					await previousMessage.delete();
+				}
+			}
+		}
+
+		const channel = await interaction.guild.channels.fetch(channelOption.id);
+
+		if (!channel || !channel.isTextBased()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("Invalid channel."),
+				],
+			});
+
+			return;
+		}
+
+		let embedMessage = null;
+
+		try {
+			embedMessage = await channel.send(
+				tournamentRegistration({
+					tournamentName: tournament.name,
+					type: tournament.type,
+				}),
+			);
+
+			await db.tournament.update({
+				where: {
+					id: tournament.id,
+				},
+				data: {
+					embed_channel_id: channel.id,
+					embed_message_id: embedMessage.id,
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occured while sending the embed. Please try again later.",
+						),
+				],
+			});
+
+			if (embedMessage && embedMessage.nonce !== "1") {
+				await embedMessage.delete();
+			}
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Embed sent")
+					.setDescription(`The embed has been sent to <#${channel.id}>.`),
 			],
 		});
 	}
