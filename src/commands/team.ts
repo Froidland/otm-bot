@@ -1,8 +1,10 @@
 import db from "@/db";
 import { NoAccountEmbed, tournamentTeamInvite } from "@/embeds";
+import { hasTournamentOrganizerRole } from "@/utils";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
-import { EmbedBuilder } from "discord.js";
+import { AttachmentBuilder, EmbedBuilder } from "discord.js";
+import { unparse } from "papaparse";
 
 @ApplyOptions<Subcommand.Options>({
 	description: "Team management commands.",
@@ -14,6 +16,10 @@ import { EmbedBuilder } from "discord.js";
 		{
 			name: "kick",
 			chatInputRun: "chatInputRunKick",
+		},
+		{
+			name: "list",
+			chatInputRun: "chatInputRunList",
 		},
 	],
 })
@@ -43,6 +49,28 @@ export class TeamCommand extends Subcommand {
 								.setName("player")
 								.setDescription("The player you want to kick.")
 								.setRequired(true),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("list")
+						.setDescription("List all players in your team.")
+						.addStringOption((option) =>
+							option
+								.setName("format")
+								.setDescription(
+									"The format you want to list the players in. (Default: message)",
+								)
+								.addChoices(
+									{
+										name: "Message",
+										value: "message",
+									},
+									{
+										name: "CSV",
+										value: "csv",
+									},
+								),
 						),
 				),
 		);
@@ -408,5 +436,274 @@ export class TeamCommand extends Subcommand {
 
 			return;
 		}
+	}
+
+	public async chatInputRunList(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const format = interaction.options.getString("format", false) || "message";
+
+		if (format === "message") {
+			await this.handleListMessage(interaction);
+
+			return;
+		}
+
+		if (format === "csv") {
+			await this.handleListCSV(interaction);
+
+			return;
+		}
+	}
+
+	// TODO: Add pagination.
+	private async handleListMessage(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					include: {
+						creator: true,
+						_count: {
+							select: {
+								players: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTournamentOrganizerRole(interaction, tournament)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		const teams = tournament.teams;
+
+		if (teams.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle("Teams")
+						.setDescription(
+							"There are no teams registered for this tournament.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		let embedDescription = `There is a total of \`${teams.length}\` teams registered for the tournament.\n`;
+		embedDescription += "List of teams:\n";
+
+		for (const team of teams) {
+			embedDescription += `\`${team.name}\` - <@${
+				team.creator.discord_id
+			}> (\`${team.creator.osu_username}\` - \`#${team.creator.osu_id}\`) | \`${team.id}\`\n`;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Teams")
+					.setDescription(embedDescription),
+			],
+		});
+	}
+
+	private async handleListCSV(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					include: {
+						creator: true,
+						qualifier_lobby: true,
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTournamentOrganizerRole(interaction, tournament)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		const teams = tournament.teams;
+
+		if (teams.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle("Teams")
+						.setDescription(
+							"There are no teams registered for this tournament.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const csv = unparse(
+			{
+				fields: [
+					"team_id",
+					"team_name",
+					"captain_discord_id",
+					"captain_discord_username",
+					"captain_osu_id",
+					"captain_osu_username",
+					"qualifier_lobby_id",
+				],
+				data: teams.map((team) => {
+					return [
+						team.id,
+						team.name,
+						team.creator.discord_id,
+						team.creator.discord_username,
+						team.creator.osu_id,
+						team.creator.osu_username,
+						team.qualifier_lobby?.id || "Not scheduled",
+					];
+				}),
+			},
+			{
+				quotes: true,
+			},
+		);
+
+		const data = Buffer.from(csv, "utf-8");
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Teams")
+					.setDescription(
+						`There are a total of \`${teams.length}\` teams registered for this tournament.`,
+					),
+			],
+			files: [
+				new AttachmentBuilder(data)
+					.setName("teams.csv")
+					.setDescription("List of teams in CSV format."),
+			],
+		});
 	}
 }
