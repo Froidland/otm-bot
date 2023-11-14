@@ -347,37 +347,24 @@ export class TeamCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const player = interaction.options.getUser("player", true);
+		if (!interaction.guildId) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
+		const playerOption = interaction.options.getUser("player", true);
 
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
-			},
-			include: {
-				teams: {
-					where: {
-						team: {
-							tournament: {
-								player_channel_id: interaction.channelId,
-							},
-						},
-					},
-					include: {
-						team: {
-							include: {
-								creator: true,
-								tournament: true,
-								players: {
-									where: {
-										player: {
-											discord_id: player.id,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 		});
 
@@ -389,14 +376,63 @@ export class TeamCommand extends Subcommand {
 			return;
 		}
 
-		if (user.teams.length < 1) {
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: {
+						OR: [
+							{
+								creator_id: user.id,
+							},
+							{
+								players: {
+									some: {
+										user_id: user.id,
+									},
+								},
+							},
+						],
+					},
+					include: {
+						players: {
+							where: {
+								player: {
+									discord_id: playerOption.id,
+								},
+							},
+							include: {
+								player: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
-						.setTitle("Error")
+						.setTitle("Invalid channel")
 						.setDescription(
-							"Either this channel is not a tournament player channel or you are not part of a team for this tournament.",
+							"This command can only be used in a tournament channel.",
 						),
 				],
 			});
@@ -404,17 +440,29 @@ export class TeamCommand extends Subcommand {
 			return;
 		}
 
-		const tournament = user.teams[0].team.tournament;
-		const team = user.teams[0].team;
-
-		if (team.players.length < 1) {
+		if (tournament.teams.length < 1) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
+						.setDescription("You are not part of a team for this tournament."),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		if (team.creator_id !== user.id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Teams")
 						.setDescription(
-							"The player you are trying to kick is not in your team.",
+							"You are not the team's captain. Only the team captain can kick players.",
 						),
 				],
 			});
@@ -435,6 +483,101 @@ export class TeamCommand extends Subcommand {
 			});
 
 			return;
+		}
+
+		if (team.players.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("The player you want to kick is not in your team."),
+				],
+			});
+
+			return;
+		}
+
+		const player = team.players[0];
+
+		if (player.user_id === user.id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You can't kick yourself from your team."),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.team.update({
+				where: {
+					id: team.id,
+				},
+				data: {
+					players: {
+						delete: {
+							team_id_user_id: {
+								team_id: team.id,
+								user_id: player.user_id,
+							},
+						},
+					},
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while kicking the player. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`You have successfully kicked <@${player.player.discord_id}> (\`${player.player.osu_username}\` - \`#${player.player.osu_id}\`) from your team.`,
+					),
+			],
+		});
+
+		await playerOption.send({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Yellow")
+					.setTitle("Kicked")
+					.setDescription(
+						`You have been kicked from team \`${team.name}\` for tournament \`${tournament.name}\`.`,
+					),
+			],
+		});
+
+		try {
+			const guild = await this.container.client.guilds.fetch(
+				interaction.guildId,
+			);
+
+			const member = await guild.members.fetch(playerOption.id);
+
+			await member.roles.remove(tournament.player_role_id);
+		} catch (error) {
+			this.container.logger.error(error);
 		}
 	}
 
