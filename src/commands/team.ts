@@ -556,9 +556,7 @@ export class TeamCommand extends Subcommand {
 		embedDescription += "List of teams:\n";
 
 		for (const team of teams) {
-			embedDescription += `\`${team.name}\` - <@${
-				team.creator.discord_id
-			}> (\`${team.creator.osu_username}\` - \`#${team.creator.osu_id}\`) | \`${team.id}\`\n`;
+			embedDescription += `\`${team.name}\` - <@${team.creator.discord_id}> (\`${team.creator.osu_username}\` - \`#${team.creator.osu_id}\`) | \`${team._count.players}\` players\n`;
 		}
 
 		await interaction.editReply({
