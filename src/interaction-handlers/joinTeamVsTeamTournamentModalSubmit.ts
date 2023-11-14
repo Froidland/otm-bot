@@ -165,6 +165,28 @@ export class JoinTeamVsTeamTournamentModalSubmitHandler extends InteractionHandl
 			(i) => i.customId === "teamTimezoneInput",
 		)!.value;
 
+		const sameNameTeam = await db.team.findFirst({
+			where: {
+				tournament_id: tournament.id,
+				name: teamName,
+			},
+		});
+
+		if (sameNameTeam) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid name")
+						.setDescription(
+							"A team with this name already exists. Please choose a different name.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (!timezoneRegex.test(teamTimezone)) {
 			await interaction.editReply({
 				embeds: [
