@@ -1423,7 +1423,7 @@ export class QualifiersCommand extends Subcommand {
 					  "](https://osu.ppy.sh/community/matches/" +
 					  lobby.bancho_id +
 					  ")"
-					: " | **" + lobby.status + "**";
+					: "**" + lobby.status + "**";
 
 			embedDescription += `\\- \`${lobby.team.name}\` | \`${date.toFormat(
 				"DDDD T",
