@@ -1258,8 +1258,8 @@ export class QualifiersCommand extends Subcommand {
 				data: lobbies.map((lobby) => {
 					return [
 						lobby.id,
-						lobby.team.name,
 						lobby.team.id,
+						lobby.team.name,
 						lobby.team.creator.discord_id || "None",
 						lobby.team.creator.discord_username || "None",
 						lobby.team.creator.osu_username,
