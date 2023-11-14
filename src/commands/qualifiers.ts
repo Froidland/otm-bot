@@ -8,8 +8,9 @@ import {
 import { createId } from "@paralleldrive/cuid2";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
-import { APIEmbedField, EmbedBuilder } from "discord.js";
+import { APIEmbedField, AttachmentBuilder, EmbedBuilder } from "discord.js";
 import { DateTime } from "luxon";
+import { unparse } from "papaparse";
 import { v2 } from "osu-api-extended";
 
 const modCombinations = [
@@ -182,17 +183,18 @@ export class QualifiersCommand extends Subcommand {
 						.addStringOption((option) =>
 							option
 								.setName("format")
-								.setDescription("The format to list the lobbies in.")
+								.setDescription(
+									"The format to list the lobbies in. (Default: message)",
+								)
 								.addChoices(
 									{
 										name: "Message",
 										value: "message",
 									},
-									// TODO: Add CSV support.
-									/* {
+									{
 										name: "CSV",
 										value: "csv",
-									}, */
+									},
 								)
 								.setRequired(false),
 						),
@@ -1101,8 +1103,206 @@ export class QualifiersCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
+		const format = interaction.options.getString("format", false) || "message";
+
+		if (format === "message") {
+			await this.handleListMessage(interaction);
+
+			return;
+		}
+
+		if (format === "csv") {
+			await this.handleListCsv(interaction);
+
+			return;
+		}
+	}
+
+	private async handleListCsv(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
 		const onlyFuture = interaction.options.getBoolean("future", false) || false;
-		// const format = interaction.options.getString("format", false) || "message";
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				qualifier: {
+					include: {
+						lobbies: {
+							where: onlyFuture ? { schedule: { gt: new Date() } } : undefined,
+							include: {
+								team: {
+									include: {
+										creator: true,
+									},
+								},
+								referee: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be executed in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!tournament.qualifier) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This tournament has no qualifiers."),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!hasTournamentRefereeRole(interaction, tournament) &&
+			!hasTournamentOrganizerRole(interaction, tournament)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do that."),
+				],
+			});
+
+			return;
+		}
+
+		const lobbies = tournament.qualifier.lobbies;
+
+		if (lobbies.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No lobbies scheduled")
+						.setDescription(
+							onlyFuture
+								? "There are no lobbies scheduled in the future."
+								: "There are no lobbies scheduled yet.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const csv = unparse(
+			{
+				fields: [
+					"lobby_id",
+					"team_id",
+					"team_name",
+					"captain_discord_id",
+					"captain_discord_username",
+					"captain_osu_id",
+					"captain_osu_username",
+					"schedule",
+					"referee_discord_id",
+					"referee_discord_username",
+					"referee_osu_id",
+					"referee_osu_username",
+					"bancho_id",
+					"auto_ref",
+					"status",
+				],
+				data: lobbies.map((lobby) => {
+					return [
+						lobby.id,
+						lobby.team.name,
+						lobby.team.id,
+						lobby.team.creator.discord_id || "None",
+						lobby.team.creator.discord_username || "None",
+						lobby.team.creator.osu_username,
+						lobby.team.creator.osu_id,
+						lobby.schedule.toISOString(),
+						lobby.referee?.discord_id || "None",
+						lobby.referee?.discord_username || "None",
+						lobby.referee?.osu_username || "None",
+						lobby.referee?.osu_id || "None",
+						lobby.bancho_id || "None",
+						lobby.auto_ref ? "true" : "false",
+						lobby.status,
+					];
+				}),
+			},
+			{
+				quotes: true,
+			},
+		);
+
+		const data = Buffer.from(csv, "utf-8");
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Lobbies")
+					.setDescription(
+						`There is a total of \`${lobbies.length}\` lobbies with the specified filters.`,
+					),
+			],
+			files: [
+				new AttachmentBuilder(data)
+					.setName("lobbies.csv")
+					.setDescription("List of lobbies in CSV format."),
+			],
+		});
+	}
+
+	private async handleListMessage(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		const onlyFuture = interaction.options.getBoolean("future", false) || false;
 
 		const user = await db.user.findFirst({
 			where: {
