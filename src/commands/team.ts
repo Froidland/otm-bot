@@ -6,6 +6,10 @@ import { Subcommand } from "@sapphire/plugin-subcommands";
 import { AttachmentBuilder, EmbedBuilder } from "discord.js";
 import { unparse } from "papaparse";
 
+const timezoneRegex = /^UTC(?:\+|-)(?:\d){1,2}$/;
+const urlRegex =
+	/[(http(s)?)://(www.)?a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/;
+
 @ApplyOptions<Subcommand.Options>({
 	description: "Team management commands.",
 	subcommands: [
@@ -24,6 +28,24 @@ import { unparse } from "papaparse";
 		{
 			name: "list",
 			chatInputRun: "chatInputRunList",
+		},
+		{
+			name: "edit",
+			type: "group",
+			entries: [
+				{
+					name: "name",
+					chatInputRun: "chatInputRunEditName",
+				},
+				{
+					name: "timezone",
+					chatInputRun: "chatInputRunEditTimezone",
+				},
+				{
+					name: "icon",
+					chatInputRun: "chatInputRunEditIcon",
+				},
+			],
 		},
 	],
 })
@@ -86,6 +108,49 @@ export class TeamCommand extends Subcommand {
 										name: "CSV",
 										value: "csv",
 									},
+								),
+						),
+				)
+				.addSubcommandGroup((builder) =>
+					builder
+						.setName("edit")
+						.setDescription("!")
+						.addSubcommand((builder) =>
+							builder
+								.setName("name")
+								.setDescription("Edit your team name.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription("The new name of your team.")
+										.setMaxLength(127)
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("timezone")
+								.setDescription("Edit your team timezone.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription(
+											"The new timezone of your team. (Format: UTC+/-<number>)",
+										)
+										.setMaxLength(16)
+										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("icon")
+								.setDescription("Edit your team icon.")
+								.addStringOption((option) =>
+									option
+										.setName("value")
+										.setDescription("The new icon of your team.")
+										.setMaxLength(255)
+										.setRequired(true),
 								),
 						),
 				),
@@ -1011,6 +1076,533 @@ export class TeamCommand extends Subcommand {
 				new AttachmentBuilder(data)
 					.setName("teams.csv")
 					.setDescription("List of teams in CSV format."),
+			],
+		});
+	}
+
+	public async chatInputRunEditName(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const name = interaction.options.getString("value", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: {
+						OR: [
+							{
+								creator_id: user.id,
+							},
+							{
+								players: {
+									some: {
+										user_id: user.id,
+									},
+								},
+							},
+						],
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.teams.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You are not part of a team for this tournament."),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.type !== "TeamVsTeam") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a team vs team tournament.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		if (team.creator_id !== user.id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You are not the team's captain. Only the team captain can edit the team name.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.registration_end_date < new Date()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"The registration period for this tournament has ended. You can no longer edit your team name.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.team.update({
+				where: {
+					id: team.id,
+				},
+				data: {
+					name,
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while editing the team name. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`You have successfully edited your team name to \`${name}\`.`,
+					),
+			],
+		});
+	}
+
+	public async chatInputRunEditTimezone(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const timezone = interaction.options.getString("value", true).toUpperCase();
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: {
+						OR: [
+							{
+								creator_id: user.id,
+							},
+							{
+								players: {
+									some: {
+										user_id: user.id,
+									},
+								},
+							},
+						],
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.teams.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You are not part of a team for this tournament."),
+				],
+			});
+
+			return;
+		}
+
+		if (!timezoneRegex.test(timezone)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid Timezone")
+						.setDescription(
+							"Please provide a valid timezone. A valid timezone is in the format of `UTC+/-<number>`.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		if (team.creator_id !== user.id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You are not the team's captain. Only the team captain can edit the team name.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.registration_end_date < new Date()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"The registration period for this tournament has ended. You can no longer edit your team name.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.team.update({
+				where: {
+					id: team.id,
+				},
+				data: {
+					timezone,
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while editing the team timezone. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`You have successfully edited your team timezone to \`${timezone}\`.`,
+					),
+			],
+		});
+	}
+
+	public async chatInputRunEditIcon(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const icon = interaction.options.getString("value", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: {
+						OR: [
+							{
+								creator_id: user.id,
+							},
+							{
+								players: {
+									some: {
+										user_id: user.id,
+									},
+								},
+							},
+						],
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.teams.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You are not part of a team for this tournament."),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.type !== "TeamVsTeam") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a team vs team tournament.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		if (team.creator_id !== user.id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You are not the team's captain. Only the team captain can edit the team name.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.registration_end_date < new Date()) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"The registration period for this tournament has ended. You can no longer edit your team name.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!urlRegex.test(icon)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid Icon URL")
+						.setDescription("Please provide a valid URL for your team icon."),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.team.update({
+				where: {
+					id: team.id,
+				},
+				data: {
+					icon_url: icon,
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occurred while editing the team icon. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`You have successfully edited your team icon to \`${icon}\`.`,
+					)
+					.setThumbnail(icon),
 			],
 		});
 	}
