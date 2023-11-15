@@ -47,6 +47,10 @@ const urlRegex =
 				},
 			],
 		},
+		{
+			name: "remove",
+			chatInputRun: "chatInputRunRemove",
+		},
 	],
 })
 export class TeamCommand extends Subcommand {
@@ -152,6 +156,17 @@ export class TeamCommand extends Subcommand {
 										.setMaxLength(255)
 										.setRequired(true),
 								),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("remove")
+						.setDescription("Remove a team from the tournament. (Staff only)")
+						.addStringOption((option) =>
+							option
+								.setName("id")
+								.setDescription("The unique ID of the team you want to remove.")
+								.setRequired(true),
 						),
 				),
 		);
@@ -1608,5 +1623,160 @@ export class TeamCommand extends Subcommand {
 					.setThumbnail(icon),
 			],
 		});
+	}
+
+	public async chatInputRunRemove(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const teamId = interaction.options.getString("id", true);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: {
+						id: teamId,
+					},
+					include: {
+						players: {
+							include: {
+								player: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTournamentOrganizerRole(interaction, tournament)) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.teams.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Team not found")
+						.setDescription(
+							"There is no team registered for this tournament with the provided ID.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		try {
+			await db.team.delete({
+				where: {
+					id: team.id,
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"There was an error while removing the team. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`You have successfully removed team \`${team.name}\`. The members of the team have been notified.`,
+					),
+			],
+		});
+
+		for (const player of team.players) {
+			try {
+				const user = await this.container.client.users.fetch(
+					player.player.discord_id!,
+				);
+
+				await user.send({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Yellow")
+							.setTitle("Team Removed")
+							.setDescription(
+								`Your team \`${team.name}\` has been removed from tournament \`${tournament.name}\`. This action was performed by the tournament organizers, if you believe this is a mistake, please contact them.`,
+							),
+					],
+				});
+			} catch (error) {
+				this.container.logger.error(error);
+			}
+		}
 	}
 }
