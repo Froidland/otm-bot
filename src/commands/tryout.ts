@@ -1820,6 +1820,19 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
+		if (tryout.stages[0].mappool.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid stage!")
+						.setDescription("This stage's mappool is empty."),
+				],
+			});
+
+			return;
+		}
+
 		// TODO: For the love of anything please implement a custom sort function to do this or something cause this is sacrilege (or not, who knows...)
 		// TODO: Automate grouping the different mods as to not rely on the "extra" array in the object and support additional mods.
 		const mappoolObject = {

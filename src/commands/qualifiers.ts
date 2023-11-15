@@ -1535,6 +1535,19 @@ export class QualifiersCommand extends Subcommand {
 			}
 		}
 
+		if (tournament.qualifier.mappool.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Empty mappool!")
+						.setDescription("The qualifiers mappool is empty."),
+				],
+			});
+
+			return;
+		}
+
 		const qualifier = tournament.qualifier;
 
 		// TODO: Same as in the tryout mappool command.
