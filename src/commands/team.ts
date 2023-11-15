@@ -1,6 +1,6 @@
 import db from "@/db";
 import { NoAccountEmbed, tournamentTeamInvite } from "@/embeds";
-import { hasTournamentOrganizerRole } from "@/utils";
+import { hasTournamentOrganizerRole, hasTournamentRefereeRole } from "@/utils";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import { AttachmentBuilder, EmbedBuilder } from "discord.js";
@@ -16,6 +16,10 @@ import { unparse } from "papaparse";
 		{
 			name: "kick",
 			chatInputRun: "chatInputRunKick",
+		},
+		{
+			name: "info",
+			chatInputRun: "chatInputRunInfo",
 		},
 		{
 			name: "list",
@@ -49,6 +53,18 @@ export class TeamCommand extends Subcommand {
 								.setName("player")
 								.setDescription("The player you want to kick.")
 								.setRequired(true),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("info")
+						.setDescription("Get information about a team.")
+						.addStringOption((option) =>
+							option
+								.setName("team-name")
+								.setDescription(
+									"The name of the team you want to get information about. (Staff only, case insensitive)",
+								),
 						),
 				)
 				.addSubcommand((builder) =>
@@ -579,6 +595,157 @@ export class TeamCommand extends Subcommand {
 		} catch (error) {
 			this.container.logger.error(error);
 		}
+	}
+
+	public async chatInputRunInfo(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const teamName = interaction.options.getString("team-name", false);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: teamName
+						? {
+								name: teamName,
+						  }
+						: {
+								OR: [
+									{
+										creator_id: user.id,
+									},
+									{
+										players: {
+											some: {
+												user_id: user.id,
+											},
+										},
+									},
+								],
+						  },
+					include: {
+						creator: true,
+						players: {
+							include: {
+								player: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (teamName) {
+			if (
+				!hasTournamentOrganizerRole(interaction, tournament) &&
+				!hasTournamentRefereeRole(interaction, tournament)
+			) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription("You don't have permission to do this."),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (tournament.teams.length < 1) {
+			if (teamName) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Error")
+							.setDescription(
+								`There is no team registered for this tournament with the name \`${teamName}\`.`,
+							),
+					],
+				});
+
+				return;
+			}
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle("Teams")
+						.setDescription("You are not part of a team for this tournament."),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		let embedDescription = `**Team name:** \`${team.name}\`\n`;
+		embedDescription += `**Team captain:** <@${team.creator.discord_id}> (\`${team.creator.osu_username}\` - \`#${team.creator.osu_id}\`)\n`;
+		embedDescription += `**Players:**\n`;
+
+		for (const player of team.players) {
+			embedDescription += `<@${player.player.discord_id}> (\`${player.player.osu_username}\` - \`#${player.player.osu_id}\`)\n`;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Team info")
+					.setDescription(embedDescription),
+			],
+		});
 	}
 
 	public async chatInputRunList(
