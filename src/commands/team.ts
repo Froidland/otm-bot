@@ -808,7 +808,10 @@ export class TeamCommand extends Subcommand {
 				new EmbedBuilder()
 					.setColor("Blue")
 					.setTitle("Team info")
-					.setDescription(embedDescription),
+					.setDescription(embedDescription)
+					.setFooter({
+						text: `Unique ID: ${team.id}`,
+					}),
 			],
 		});
 	}
