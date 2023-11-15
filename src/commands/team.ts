@@ -719,8 +719,8 @@ export class TeamCommand extends Subcommand {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
-						.setColor("Blue")
-						.setTitle("Teams")
+						.setColor("Red")
+						.setTitle("Error")
 						.setDescription("You are not part of a team for this tournament."),
 				],
 			});
