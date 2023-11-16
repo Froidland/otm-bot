@@ -5,6 +5,7 @@ import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import {
 	APIEmbedField,
+	AttachmentBuilder,
 	ChannelType,
 	EmbedBuilder,
 	GuildTextBasedChannel,
@@ -18,6 +19,7 @@ import { DateTime } from "luxon";
 import { createId } from "@paralleldrive/cuid2";
 import { hasTryoutAdminRole } from "@/utils";
 import { v2 } from "osu-api-extended";
+import { unparse } from "papaparse";
 
 // TODO: Revise this, it doesn't really convince me.
 const modCombinations = [
@@ -171,6 +173,10 @@ const modCombinations = [
 				{
 					name: "remove",
 					chatInputRun: "chatInputPlayerRemove",
+				},
+				{
+					name: "list",
+					chatInputRun: "chatInputPlayerList",
 				},
 			],
 		},
@@ -646,6 +652,36 @@ export class TryoutCommand extends Subcommand {
 										.setName("player")
 										.setDescription("The player to remove from the tryout.")
 										.setRequired(true),
+								),
+						)
+						.addSubcommand((builder) =>
+							builder
+								.setName("list")
+								.setDescription("List all the players registered.")
+								.addStringOption((option) =>
+									option
+										.setName("stage-id")
+										.setDescription(
+											"The custom ID of the stage. (Default: None)",
+										)
+										.setRequired(false),
+								)
+								.addStringOption((option) =>
+									option
+										.setName("format")
+										.setDescription(
+											"The format to use for the list. (Default: Message)",
+										)
+										.addChoices(
+											{
+												name: "Message",
+												value: "message",
+											},
+											{
+												name: "CSV",
+												value: "csv",
+											},
+										),
 								),
 						),
 				),
@@ -3655,5 +3691,396 @@ export class TryoutCommand extends Subcommand {
 				],
 			});
 		}
+	}
+
+	public async chatInputPlayerList(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const format = interaction.options.getString("format", false) || "message";
+
+		if (format === "message") {
+			await this.handleListMessage(interaction);
+
+			return;
+		}
+
+		if (format === "csv") {
+			await this.handleListCSV(interaction);
+
+			return;
+		}
+	}
+
+	private async handleListMessage(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		const stageId = interaction.options.getString("stage-id", false);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.followUp({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+			//! TypeScript can't infer whether the include is in the type or not with a ternary operator on the stageId so I gotta include this no matter what
+			include: {
+				players: {
+					include: {
+						player: true,
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.followUp({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTryoutAdminRole(interaction, tryout)) {
+			await interaction.followUp({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.players.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No players!")
+						.setDescription("There are no players registered for this tryout."),
+				],
+			});
+
+			return;
+		}
+
+		if (stageId) {
+			const stage = await db.tryoutStage.findFirst({
+				where: {
+					custom_id: stageId,
+				},
+				include: {
+					lobbies: {
+						include: {
+							players: {
+								include: {
+									player: true,
+								},
+							},
+						},
+					},
+				},
+			});
+
+			if (!stage) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Invalid stage!")
+							.setDescription("The stage you specified doesn't exist."),
+					],
+				});
+
+				return;
+			}
+
+			const players = stage.lobbies.flatMap((lobby) => {
+				return lobby.players.map((player) => {
+					return {
+						...player.player,
+						lobbyId: lobby.custom_id,
+						played: player.played,
+					};
+				});
+			});
+
+			let embedDescription = `Players in stage \`${stage.custom_id}\`:\n`;
+
+			for (const player of players) {
+				embedDescription += `<@${player.discord_id}> (\`${
+					player.osu_username
+				}\` - \`#${player.osu_id}\`) | Lobby \`${player.lobbyId}\` - ${
+					player.played ? "Played" : "Not played"
+				}\n`;
+			}
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Blue")
+						.setTitle("Player list")
+						.setDescription(embedDescription),
+				],
+			});
+
+			return;
+		}
+
+		let embedDescription = `Players in this tryout:\n`;
+
+		for (const player of tryout.players) {
+			embedDescription += `<@${player.player.discord_id}> (\`${
+				player.player.osu_username
+			}\` - \`#${player.player.osu_id}\`) | Joined on \`${DateTime.fromJSDate(
+				player.created_at,
+				{
+					zone: "utc",
+				},
+			).toFormat("DDDD T")}\`\n`;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Player list")
+					.setDescription(embedDescription),
+			],
+		});
+	}
+
+	private async handleListCSV(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		const stageId = interaction.options.getString("stage-id", false);
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.followUp({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+			//! TypeScript can't infer whether the include is in the type or not with a ternary operator on the stageId so I gotta include this no matter what
+			include: {
+				players: {
+					include: {
+						player: true,
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.followUp({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (!hasTryoutAdminRole(interaction, tryout)) {
+			await interaction.followUp({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this."),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.players.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("No players!")
+						.setDescription("There are no players registered for this tryout."),
+				],
+			});
+
+			return;
+		}
+
+		if (stageId) {
+			const stage = await db.tryoutStage.findFirst({
+				where: {
+					custom_id: stageId,
+				},
+				include: {
+					lobbies: {
+						include: {
+							players: {
+								include: {
+									player: true,
+								},
+							},
+						},
+					},
+				},
+			});
+
+			if (!stage) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Invalid stage!")
+							.setDescription("The stage you specified doesn't exist."),
+					],
+				});
+
+				return;
+			}
+
+			const players = stage.lobbies.flatMap((lobby) => {
+				return lobby.players.map((player) => {
+					return {
+						...player.player,
+						lobbyId: lobby.custom_id,
+						played: player.played,
+					};
+				});
+			});
+
+			const csv = unparse(
+				{
+					fields: [
+						"discord_id",
+						"discord_username",
+						"osu_id",
+						"osu_username",
+						"lobby_id",
+						"played",
+					],
+					data: players.map((player) => {
+						return [
+							player.discord_id,
+							player.discord_username,
+							player.osu_id,
+							player.osu_username,
+							player.lobbyId,
+							player.played,
+						];
+					}),
+				},
+				{
+					quotes: true,
+				},
+			);
+
+			const data = Buffer.from(csv, "utf8");
+
+			await interaction.editReply({
+				files: [
+					new AttachmentBuilder(data)
+						.setName(`${tryout.acronym}-${stageId}.csv`)
+						.setDescription("List of players in CSV format."),
+				],
+			});
+
+			return;
+		}
+
+		const csv = unparse(
+			{
+				fields: [
+					"discord_id",
+					"discord_username",
+					"osu_id",
+					"osu_username",
+					"joined_at",
+				],
+				data: tryout.players.map((player) => {
+					return [
+						player.player.discord_id,
+						player.player.discord_username,
+						player.player.osu_id,
+						player.player.osu_username,
+						player.created_at.toISOString(),
+					];
+				}),
+			},
+			{
+				quotes: true,
+			},
+		);
+
+		const data = Buffer.from(csv, "utf8");
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Blue")
+					.setTitle("Player list")
+					.setDescription(
+						`There is a total of \`${tryout.players.length}\` players in this tryout.`,
+					),
+			],
+			files: [
+				new AttachmentBuilder(data)
+					.setName(`${tryout.acronym}.csv`)
+					.setDescription("List of players in CSV format."),
+			],
+		});
 	}
 }
