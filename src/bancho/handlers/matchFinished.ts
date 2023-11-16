@@ -97,11 +97,8 @@ export const matchFinished: MultiplayerEventHandler = {
 		await event.channel.sendMessage(`!mp map ${map.beatmapId}`);
 		await event.channel.sendMessage(`!mp mods ${getModsString(map.mods)}`);
 
-		lobby.lastPick = {
-			beatmapId: map.beatmapId,
-			pickId: map.pickId,
-			mods: map.mods,
-		};
+		lobby.mappoolHistory.push(map);
+		lobby.currentStartedAt = null;
 
 		await event.channel.sendMessage("!mp timer 120");
 		lobby.state = "waiting";

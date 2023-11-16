@@ -196,11 +196,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 	await newLobby.sendMessage(`!mp map ${map.beatmapId}`);
 	await newLobby.sendMessage(`!mp mods ${getModsString(map.mods)}`);
 
-	lobby.lastPick = {
-		beatmapId: map.beatmapId,
-		pickId: map.pickId,
-		mods: map.mods,
-	};
+	lobby.mappoolHistory.push(map);
 
 	if (lobby.referees.length > 0) {
 		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);
@@ -414,11 +410,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 	await newLobby.sendMessage(`!mp map ${map.beatmapId}`);
 	await newLobby.sendMessage(`!mp mods ${getModsString(map.mods)}`);
 
-	lobby.lastPick = {
-		beatmapId: map.beatmapId,
-		pickId: map.pickId,
-		mods: map.mods,
-	};
+	lobby.mappoolHistory.push(map);
 
 	if (lobby.referees.length > 0) {
 		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);

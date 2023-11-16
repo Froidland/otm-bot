@@ -29,16 +29,12 @@ type BaseLobby = {
 	referees: LobbyUser[];
 	mappool: Map[];
 	mappoolQueue: string[]; //? Just an array of pickIds. Gets shifted when a map is picked.
+	mappoolHistory: Map[]; //? Used in case the bot crashes and we need to resume the lobby.
+	currentStartedAt: string | null;
 	refereeRoleId: string;
 	staffNotifChannelId: string;
 	playerNotifChannelId: string;
 	schedule: string;
-	//? Used in case the bot crashes and we need to resume the lobby.
-	lastPick:
-		| (Map & {
-				startedAt?: string; //? Used in the threshold check for the !abort command.
-		  })
-		| null;
 	state: LobbyState;
 	initialOvertime: boolean;
 };
