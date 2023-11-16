@@ -100,7 +100,7 @@ export class QualifiersCommand extends Subcommand {
 							builder
 								.setName("set")
 								.setDescription(
-									"Set a specific pick for the tournament's qualifiers mappool",
+									"Set a specific pick for the qualifiers mappool. It will be appended to the mappool order.",
 								)
 								.addStringOption((option) =>
 									option
@@ -416,6 +416,18 @@ export class QualifiersCommand extends Subcommand {
 			},
 		];
 
+		const mappoolOrderArray =
+			tournament.qualifier.mappool_order === ""
+				? []
+				: tournament.qualifier.mappool_order.split(" ");
+
+		//? If the pick is already in the mappool order, there's no need to add it again.
+		if (!mappoolOrderArray.includes(pick)) {
+			mappoolOrderArray.push(pick);
+		}
+
+		const newMappoolOrder = mappoolOrderArray.join(" ");
+
 		try {
 			await db.tournamentQualifier.update({
 				where: {
@@ -441,6 +453,7 @@ export class QualifiersCommand extends Subcommand {
 							},
 						},
 					},
+					mappool_order: newMappoolOrder,
 				},
 			});
 		} catch (error) {

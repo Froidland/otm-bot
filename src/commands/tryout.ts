@@ -1507,6 +1507,18 @@ export class TryoutCommand extends Subcommand {
 			},
 		];
 
+		const mappoolOrderArray =
+			tryout.stages[0].mappool_order === ""
+				? []
+				: tryout.stages[0].mappool_order.split(" ");
+
+		//? If the pick is already in the mappool order, there's no need to add it again.
+		if (!mappoolOrderArray.includes(pick)) {
+			mappoolOrderArray.push(pick);
+		}
+
+		const newMappoolOrder = mappoolOrderArray.join(" ");
+
 		try {
 			await db.tryoutStage.update({
 				where: {
@@ -1532,6 +1544,7 @@ export class TryoutCommand extends Subcommand {
 							},
 						},
 					},
+					mappool_order: newMappoolOrder,
 				},
 			});
 
