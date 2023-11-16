@@ -1,4 +1,5 @@
 import { BanchoCommand } from ".";
+import { banchoLobbies } from "../store";
 
 export const players: BanchoCommand = {
 	name: "playerlist",
@@ -8,6 +9,10 @@ export const players: BanchoCommand = {
 	executeCM: async (client, event) => {
 		const banchoChannel = event.channel;
 
+		const autoLobby = banchoLobbies.find(
+			(l) => l.banchoId === banchoChannel.name.split("_")[1],
+		);
+
 		const players = [];
 
 		for (const [key] of banchoChannel.channelMembers.entries()) {
@@ -16,5 +21,12 @@ export const players: BanchoCommand = {
 
 		// TODO: Send players registered for the current lobby.
 		await banchoChannel.sendMessage(`Current players: ${players.join(", ")}.`);
+		if (autoLobby) {
+			await banchoChannel.sendMessage(
+				`Registered players: ${autoLobby.players
+					.map((p) => p.osuUsername)
+					.join(", ")}`,
+			);
+		}
 	},
 };
