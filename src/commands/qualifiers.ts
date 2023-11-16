@@ -218,11 +218,14 @@ export class QualifiersCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const pick = interaction.options.getString("pick", true).toUpperCase();
+		const pick = interaction.options
+			.getString("pick", true)
+			.toUpperCase()
+			.trim();
 		const beatmapId = interaction.options.getNumber("beatmap-id", true);
-		const mods = (
-			interaction.options.getString("mods", false) || "NM"
-		).toUpperCase();
+		const mods = (interaction.options.getString("mods", false) || "NM")
+			.toUpperCase()
+			.trim();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -489,7 +492,10 @@ export class QualifiersCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const pick = interaction.options.getString("pick", true).toUpperCase();
+		const pick = interaction.options
+			.getString("pick", true)
+			.toUpperCase()
+			.trim();
 
 		const user = await db.user.findFirst({
 			where: {

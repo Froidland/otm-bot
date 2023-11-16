@@ -1182,7 +1182,8 @@ export class TryoutCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
-			.toUpperCase();
+			.toUpperCase()
+			.trim();
 
 		const pick = interaction.options.getString("pick", true).toUpperCase();
 
@@ -1333,8 +1334,13 @@ export class TryoutCommand extends Subcommand {
 		const stageId = interaction.options
 			.getString("stage-id", true)
 			.toUpperCase();
-		const pick = interaction.options.getString("pick", true).toUpperCase();
-		const mods = (interaction.options.getString("mods") || "NM").toUpperCase();
+		const pick = interaction.options
+			.getString("pick", true)
+			.toUpperCase()
+			.trim();
+		const mods = (interaction.options.getString("mods") || "NM")
+			.toUpperCase()
+			.trim();
 		const beatmapId = interaction.options.getNumber("beatmap-id", true);
 
 		const user = await db.user.findFirst({
