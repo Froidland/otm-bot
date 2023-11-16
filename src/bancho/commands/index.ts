@@ -1,6 +1,8 @@
 import BanchoJs from "bancho.js";
 import { playerList } from "./playerList";
 import { panic } from "./panic";
+import { replay } from "./replay";
+import { history } from "./history";
 
 export type BanchoCommand = {
 	name: string;
@@ -24,6 +26,6 @@ export class CommandError extends Error {
 	}
 }
 
-const commands: BanchoCommand[] = [playerList, panic];
+const commands: BanchoCommand[] = [playerList, panic, replay, history];
 
 export default commands;
