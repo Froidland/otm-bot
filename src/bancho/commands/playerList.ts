@@ -1,7 +1,7 @@
 import { BanchoCommand } from ".";
 import { banchoLobbies } from "../store";
 
-export const players: BanchoCommand = {
+export const playerList: BanchoCommand = {
 	name: "playerlist",
 	aliases: ["players", "pl"],
 	description: "Shows the current players in the lobby.",
