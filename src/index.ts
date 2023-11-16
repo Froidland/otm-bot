@@ -18,6 +18,7 @@ import { tryoutLobbyCreateQueue } from "./processing/queues/tryoutLobbyCreateQue
 import { initializeTournamentQualifierReminderSendWorker } from "./processing/workers/tournamentQualifierReminderSendWorker";
 import { initializeTournamentQualifierCreateWorker } from "./processing/workers/tournamentQualifierCreateWorker";
 import { Settings } from "luxon";
+import { initializeTournamentQualifierReminderScheduleWorker } from "./processing/workers/tournamentQualifierReminderScheduleWorker";
 
 // Discord client setup
 const discordClient = new SapphireClient({
@@ -164,7 +165,7 @@ async function bootstrap() {
 
 		// Tournament qualifier workers
 		initializeTournamentQualifierReminderSendWorker();
-		initializeTryoutLobbyReminderScheduleWorker();
+		initializeTournamentQualifierReminderScheduleWorker();
 		initializeTournamentQualifierCreateWorker();
 		// ----------------------------
 		container.logger.info("Successfully started background workers.");
