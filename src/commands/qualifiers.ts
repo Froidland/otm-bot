@@ -14,6 +14,7 @@ import { unparse } from "papaparse";
 import { v2 } from "osu-api-extended";
 
 const modCombinations = [
+	"NM",
 	"HD",
 	"HR",
 	"DT",

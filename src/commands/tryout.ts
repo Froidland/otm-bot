@@ -23,6 +23,7 @@ import { unparse } from "papaparse";
 
 // TODO: Revise this, it doesn't really convince me.
 const modCombinations = [
+	"NM",
 	"HD",
 	"HR",
 	"DT",
