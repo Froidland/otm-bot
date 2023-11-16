@@ -534,7 +534,7 @@ export class QualifiersCommand extends Subcommand {
 			return;
 		}
 
-		if (!tournament.qualifier || !tournament.tournamentQualifierId) {
+		if (!tournament.qualifier) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
