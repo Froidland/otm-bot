@@ -84,7 +84,10 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
@@ -121,7 +124,10 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
@@ -146,7 +152,10 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
@@ -249,7 +258,10 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
@@ -292,7 +304,10 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
@@ -331,7 +346,10 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
@@ -358,7 +376,10 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 
 		if (staffChannel && staffChannel.isTextBased()) {
 			await staffChannel.send({
-				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
+				content:
+					lobby.referees.length < 1
+						? `<@&${lobby.refereeRoleId}>`
+						: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
