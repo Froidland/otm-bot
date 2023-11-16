@@ -162,7 +162,8 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			playerNotifChannelId: playerChannelId,
 			refereeRoleId: tryout.referee_role_id,
 			schedule: lobby.schedule.toISOString(),
-			lastPick: null,
+			mappoolHistory: [],
+			currentStartedAt: null,
 			state: "initializing",
 			initialOvertime: false,
 		};
