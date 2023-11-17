@@ -97,9 +97,9 @@ async function workerHandler(job: Job<JobData, void, string>) {
 	const reminderJobs = lobbies.map((lobby) => {
 		const players = lobby.team.players.map((player) => {
 			return {
-				osu_id: player.player.osu_id,
-				osu_username: player.player.osu_username,
-				discord_id: player.player.discord_id,
+				osuId: player.player.osu_id,
+				osuUsername: player.player.osu_username,
+				discordId: player.player.discord_id,
 			};
 		});
 
