@@ -6,7 +6,7 @@ import { EmbedBuilder } from "discord.js";
 	description:
 		"Help message for linking your discord account to your osu! account.",
 })
-export class LoginCommand extends Command {
+export class LinkCommand extends Command {
 	public override registerApplicationCommands(registry: Command.Registry) {
 		registry.registerChatInputCommand((builder) =>
 			builder //
@@ -26,9 +26,7 @@ export class LoginCommand extends Command {
 					.setColor("Blue")
 					.setTitle("Authentication!")
 					.setDescription(
-						`Please login with your osu account on [this website](${
-							process.env.FRONTEND_URL! + process.env.FRONTEND_LOGIN_ROUTE!
-						}) and then link your discord account in order to make use of all the bot's features.`,
+						`Please sign in with your osu! account [here](${process.env.FRONTEND_URL}${process.env.FRONTEND_LOGIN_ROUTE}) in order to link your Discord account to your osu! account.`,
 					),
 			],
 		});
