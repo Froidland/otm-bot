@@ -481,6 +481,7 @@ export class QualifiersCommand extends Subcommand {
 				new EmbedBuilder()
 					.setColor("Green")
 					.setTitle("Success")
+					.setImage(beatmap.cover_url)
 					.setDescription(embedDescription)
 					.setFields(fields),
 			],
@@ -641,8 +642,9 @@ export class QualifiersCommand extends Subcommand {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setColor("Green")
-					.setTitle("Success")
+					.setColor("Yellow")
+					.setTitle("Pick removed")
+					.setImage(beatmap?.cover_url || null)
 					.setDescription(embedDescription),
 			],
 		});
