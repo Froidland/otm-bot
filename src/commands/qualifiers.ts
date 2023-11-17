@@ -602,7 +602,7 @@ export class QualifiersCommand extends Subcommand {
 			.split(" ")
 			.filter((p) => p !== pick);
 
-		const embedDescription = `[${beatmap?.artist} - ${beatmap?.title} [${beatmap?.version}]](https://osu.ppy.sh/beatmaps/${beatmap?.id}) has removed as the \`${pick}\` from the qualifiers mappool.`;
+		const embedDescription = `[${beatmap?.artist} - ${beatmap?.title} [${beatmap?.version}]](https://osu.ppy.sh/beatmaps/${beatmap?.id}) has been removed as the \`${pick}\` from the qualifiers mappool.`;
 
 		try {
 			await db.tournamentQualifier.update({
