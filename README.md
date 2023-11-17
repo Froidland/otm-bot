@@ -57,7 +57,8 @@ The IRC credentials and the API key can be obtained from the [Legacy API](https:
 
 The bot uses an authentication server to handle the OAuth flow, you can find the source code for the server [here](https://github.com/Froidland/otm-web). You can either make your own server or use the default one. Whichever you choose, you need to set the `FRONTEND_URL` and `FRONTEND_LOGIN_ROUTE` variables accordingly. You can find the example values in the [.env.example](.env.example) file.
 
-## Setting up the database
+## Setting up the databases
+### MariaDB
 The bot uses [Prisma](https://www.prisma.io/) as an ORM, this means that it can automatically create the database tables for you. To do this, you first need to create a database in your MariaDB instance, you can do this by running the following query:
 
 ```sql
@@ -75,6 +76,10 @@ You can read more about this command in the [official documentation](https://www
 **Note:** For development purposes, the user you use to connect to the database must have `CREATE`, `ALTER`, `DROP` and `REFERENCES ON *.*` privileges in order to create the tables. You can find more information about this [here](https://www.prisma.io/docs/concepts/components/prisma-migrate/shadow-database#shadow-database-user-permissions).
 
 Another option, although not recommended, is to run the migrations manually. You can find the migrations in the [prisma/migrations](prisma/migrations) directory.
+
+### Redis
+
+The bot uses BullMQ for queues and workers, this means that it needs to create the queues in Redis. Everything is handled automatically by the bot, you just need to make sure that the Redis instance is running and that the proper credentials are set in the `.env` file. If you are running the docker image as indicated in the [External dependencies](#external-dependencies) section, it is likely that you don't need to change anything because the default values should work. For more information about BullMQ, you can read the [official documentation](https://docs.bullmq.io/).
 
 # Running the bot
 After having installed all the dependencies and filled the environment variables, you can run the bot using the following command:
