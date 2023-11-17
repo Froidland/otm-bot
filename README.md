@@ -42,8 +42,8 @@ For Linux installations, you can follow Digital Ocean's [guide](https://www.digi
 ## Environment variables
 The bot uses environment variables to store sensitive information. You can find all the required variables in the [.env.example](.env.example) file, the lines starting with a `#` symbol are variables that are optional but it's recommended to fill them anyways. Make sure to create a `.env` file and fill it with the required information.
 
-### Getting the discord credentials
-In order to get the discord token, you need to create a new application in the [discord developer portal](https://discord.com/developers/applications). After creating the application, you can get the bot id from the general information tab, labeled as `Application ID`, and the bot token from the bot tab, labeled as `Token`. These correspond to the `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` variables.
+### Getting the Discord credentials
+In order to get the Discord token, you need to create a new application in the [discord developer portal](https://discord.com/developers/applications). After creating the application, you can get token from the bot tab, labeled as `Token`, you will most likely have to reset it to obtain it. This corresponds to the `BOT_TOKEN` variable.
 
 ### Getting the osu! credentials
 
