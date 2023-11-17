@@ -95,7 +95,7 @@ export class AutoRefQualifiersLobby extends InteractionHandler {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							"You cannot toggle auto ref if the lobby is in less than 15 minutes.",
+							"You cannot toggle auto ref if the lobby starts in less than 15 minutes or has already started.",
 						),
 				],
 			});
