@@ -979,46 +979,67 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		let embedDescription = `**Creator:** <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_id}\` - \`#${tryout.creator.osu_id}\`)\n`;
-		embedDescription += `**Server ID:** \`${tryout.server_id}\`\n`;
-		embedDescription += `**Date:** From \`${DateTime.fromJSDate(
-			tryout.start_date,
-			{
-				zone: "utc",
-			},
-		).toFormat("DDDD T")}\` to \`${DateTime.fromJSDate(tryout.end_date, {
+		let infoField = `Name: \`${tryout.name}\`\n`;
+		infoField += `Acronym: \`${tryout.acronym}\`\n`;
+		infoField += `Creator: <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_id}\` - \`#${tryout.creator.osu_id}\`)\n`;
+		infoField += `Server ID: \`${tryout.server_id}\`\n`;
+		infoField += `Is staff allowed: \`${tryout.allow_staff ? "Yes" : "No"}\`\n`;
+		infoField += `Registered players: \`${tryout._count.players}\`\n`;
+
+		let datesField = `Start date: \`${DateTime.fromJSDate(tryout.start_date, {
 			zone: "utc",
 		}).toFormat("DDDD T")}\`\n`;
-		embedDescription += "**Roles:**\n";
-		embedDescription += `\\- <@&${tryout.admin_role_id}> (Management)\n`;
-		embedDescription += `\\- <@&${tryout.referee_role_id}> (Referee)\n`;
-		embedDescription += `\\- <@&${tryout.player_role_id}> (Player)\n`;
-		embedDescription += "**Channels:**\n";
-		embedDescription += `\\- <#${tryout.staff_channel_id}> (Staff)\n`;
-		embedDescription += `\\- <#${tryout.player_channel_id}> (Player)\n`;
+		datesField += `End date: \`${DateTime.fromJSDate(tryout.end_date, {
+			zone: "utc",
+		}).toFormat("DDDD T")}\`\n`;
 
-		if (tryout.embed_channel_id) {
-			embedDescription += `\\- <#${tryout.embed_channel_id}> (Embed)\n`;
-		}
-
-		embedDescription += `**Registered players:** \`${tryout._count.players}\`\n`;
-		// TODO: Add lobby count and display pending and done lobbies.
-		embedDescription += "**Stages:**\n";
+		let stagesField = "";
 
 		if (tryout.stages.length === 0) {
-			embedDescription += "*No stages have been created yet.*";
+			stagesField += "*No stages have been created yet.*";
+		} else {
+			stagesField += tryout.stages
+				.map((stage) => `\`${stage.name}\` (\`${stage.custom_id}\`)`)
+				.join("\n");
 		}
 
-		embedDescription += tryout.stages
-			.map((stage) => `\`${stage.name}\` (\`${stage.custom_id}\`)`)
-			.join("\n");
+		let channelsField = `Staff Channel: <#${tryout.staff_channel_id}>\n`;
+		channelsField += `Player Channel: <#${tryout.player_channel_id}>\n`;
+		channelsField += `Embed Channel: <#${tryout.embed_channel_id}>`;
+
+		let rolesField = `Admin Role: <@&${tryout.admin_role_id}>\n`;
+		rolesField += `Referee Role: <@&${tryout.referee_role_id}>\n`;
+		rolesField += `Player Role: <@&${tryout.player_role_id}>`;
 
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
 					.setColor("Blue")
-					.setTitle(`${tryout.name} (\`${tryout.acronym}\`)`)
-					.setDescription(embedDescription)
+					.setTitle("Tryout info")
+					.setFields([
+						{
+							name: "Info",
+							value: infoField,
+						},
+						{
+							name: "Dates",
+							value: datesField,
+						},
+						{
+							name: "Stages",
+							value: stagesField,
+						},
+						{
+							name: "Channels",
+							value: channelsField,
+							inline: true,
+						},
+						{
+							name: "Roles",
+							value: rolesField,
+							inline: true,
+						},
+					])
 					.setFooter({
 						text: `Unique ID: ${tryout.id}`,
 					}),
