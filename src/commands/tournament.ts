@@ -40,6 +40,10 @@ type Scoring = "ScoreV1" | "ScoreV2";
 				},
 			],
 		},
+		{
+			name: "info",
+			chatInputRun: "chatInputRunInfo",
+		},
 	],
 })
 export class TournamentCommand extends Subcommand {
@@ -237,6 +241,13 @@ export class TournamentCommand extends Subcommand {
 											},
 										),
 								),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("info")
+						.setDescription(
+							"Get information about the current channel's tournament.",
 						),
 				),
 		);
@@ -1230,6 +1241,147 @@ export class TournamentCommand extends Subcommand {
 				new AttachmentBuilder(data)
 					.setName("players.csv")
 					.setDescription("List of players in CSV format."),
+			],
+		});
+	}
+
+	public async chatInputRunInfo(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply({ ephemeral: true });
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+					{
+						player_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				creator: true,
+				qualifier: true,
+				_count: {
+					select: {
+						teams: true,
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This command can only be used in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		let infoField = `Name: \`${tournament.name}\`\n`;
+		infoField += `Acronym: \`${tournament.acronym}\`\n`;
+		infoField += `Creator: <@${tournament.creator.discord_id}> (\`${tournament.creator.osu_username}\` - \`#${tournament.creator.osu_id}\`)\n`;
+
+		if (tournament.type === "TeamVsTeam") {
+			infoField += `Registered teams: \`${tournament._count.teams}\`\n`;
+		} else {
+			infoField += `Registered players: \`${tournament._count.teams}\`\n`;
+		}
+
+		let settingsField = `Type: \`${tournament.type}\`\n`;
+		settingsField += `Scoring: \`${tournament.scoring}\`\n`;
+		settingsField += `Win condition: \`${tournament.win_condition}\`\n`;
+		settingsField += `Minimum team size: \`${tournament.min_team_size}\`\n`;
+		settingsField += `Maximum team size: \`${tournament.max_team_size}\`\n`;
+		settingsField += `In lobby team size: \`${tournament.lobby_team_size}\`\n`;
+		settingsField += `Has qualifiers: \`${
+			tournament.qualifier ? "Yes" : "No"
+		}\`\n`;
+
+		let datesField = `Start date: \`${DateTime.fromJSDate(
+			tournament.start_date,
+		).toFormat("DDDD T")}\`\n`;
+		datesField += `Registration end date: \`${DateTime.fromJSDate(
+			tournament.registration_end_date,
+		).toFormat("DDDD T")}\`\n`;
+
+		if (tournament.qualifier) {
+			datesField += `Qualifiers deadline: \`${DateTime.fromJSDate(
+				tournament.qualifier.deadline,
+			).toFormat("DDDD T")}\`\n`;
+		}
+
+		let channelsField = `Staff channel: <#${tournament.staff_channel_id}>\n`;
+		channelsField += `Mappooler channel: <#${tournament.mappooler_channel_id}>\n`;
+		channelsField += `Referee channel: <#${tournament.referee_channel_id}>\n`;
+		channelsField += `Player channel: <#${tournament.player_channel_id}>\n`;
+
+		let rolesField = `Organizer role: <@&${tournament.organizer_role_id}>\n`;
+		rolesField += `Mappooler role: <@&${tournament.mappooler_role_id}>\n`;
+		rolesField += `Referee role: <@&${tournament.referee_role_id}>\n`;
+		rolesField += `Player role: <@&${tournament.player_role_id}>\n`;
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Tournament created")
+					.setFields([
+						{
+							name: "Info",
+							value: infoField,
+						},
+						{
+							name: "Settings",
+							value: settingsField,
+						},
+						{
+							name: "Dates",
+							value: datesField,
+						},
+						{
+							name: "Channels",
+							value: channelsField,
+							inline: true,
+						},
+						{
+							name: "Roles",
+							value: rolesField,
+							inline: true,
+						},
+					])
+					.setFooter({
+						text: `Unique ID: ${tournament.id}`,
+					}),
 			],
 		});
 	}
