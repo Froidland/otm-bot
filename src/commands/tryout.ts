@@ -932,7 +932,7 @@ export class TryoutCommand extends Subcommand {
 	public async chatInputInfo(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
-		await interaction.deferReply();
+		await interaction.deferReply({ ephemeral: true });
 
 		const uniqueId = interaction.options.getString("unique-id");
 
