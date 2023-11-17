@@ -56,7 +56,7 @@ export class ProfileCommand extends Command {
 	) {
 		await interaction.deferReply();
 
-		const usernameOption = interaction.options.getString("username");
+		const usernameOption = interaction.options.getString("username")?.trim();
 		let userQuery = usernameOption;
 		const mode = interaction.options.getString("mode") as Gamemode | null;
 

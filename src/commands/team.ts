@@ -682,7 +682,7 @@ export class TeamCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const teamName = interaction.options.getString("team-name", false);
+		const teamName = interaction.options.getString("team-name", false)?.trim();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1103,7 +1103,7 @@ export class TeamCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const name = interaction.options.getString("value", true);
+		const name = interaction.options.getString("value", true).trim();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1274,7 +1274,10 @@ export class TeamCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
-		const timezone = interaction.options.getString("value", true).toUpperCase();
+		const timezone = interaction.options
+			.getString("value", true)
+			.trim()
+			.toUpperCase();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1445,7 +1448,7 @@ export class TeamCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const icon = interaction.options.getString("value", true);
+		const icon = interaction.options.getString("value", true).trim();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1630,7 +1633,7 @@ export class TeamCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const teamId = interaction.options.getString("id", true);
+		const teamId = interaction.options.getString("id", true).trim();
 
 		const user = await db.user.findFirst({
 			where: {

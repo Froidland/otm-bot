@@ -671,14 +671,17 @@ export class TryoutCommand extends Subcommand {
 
 		const id = createId();
 
-		const name = interaction.options.getString("name", true);
-		const acronym = interaction.options.getString("acronym", true);
+		const name = interaction.options.getString("name", true).trim();
+		const acronym = interaction.options
+			.getString("acronym", true)
+			.trim()
+			.toUpperCase();
 		const embedChannel = interaction.options.getChannel("embed-channel", true, [
 			ChannelType.GuildText,
 		]);
 
 		const startDate = DateTime.fromFormat(
-			interaction.options.getString("start-date", true),
+			interaction.options.getString("start-date", true).trim(),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
@@ -686,7 +689,7 @@ export class TryoutCommand extends Subcommand {
 		);
 
 		const endDate = DateTime.fromFormat(
-			interaction.options.getString("end-date", true),
+			interaction.options.getString("end-date", true).trim(),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
@@ -934,7 +937,7 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const uniqueId = interaction.options.getString("unique-id");
+		const uniqueId = interaction.options.getString("unique-id")?.trim();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1068,9 +1071,10 @@ export class TryoutCommand extends Subcommand {
 
 		const id = createId();
 
-		const name = interaction.options.getString("name", true);
+		const name = interaction.options.getString("name", true).trim();
 		const customId = interaction.options
 			.getString("custom-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -1193,7 +1197,6 @@ export class TryoutCommand extends Subcommand {
 		}
 	}
 
-	// TODO: Remove map from mappool order when removing it from the mappool.
 	public async chatInputMapRemove(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
@@ -1201,10 +1204,13 @@ export class TryoutCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
-			.toUpperCase()
-			.trim();
+			.trim()
+			.toUpperCase();
 
-		const pick = interaction.options.getString("pick", true).toUpperCase();
+		const pick = interaction.options
+			.getString("pick", true)
+			.trim()
+			.toUpperCase();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -1357,14 +1363,15 @@ export class TryoutCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
+			.trim()
 			.toUpperCase();
 		const pick = interaction.options
 			.getString("pick", true)
-			.toUpperCase()
-			.trim();
+			.trim()
+			.toUpperCase();
 		const mods = (interaction.options.getString("mods") || "NM")
-			.toUpperCase()
-			.trim();
+			.trim()
+			.toUpperCase();
 		const beatmapId = interaction.options.getNumber("beatmap-id", true);
 
 		const user = await db.user.findFirst({
@@ -1613,10 +1620,12 @@ export class TryoutCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
+			.trim()
 			.toUpperCase();
 
 		const pattern = interaction.options
 			.getString("pattern", true)
+			.trim()
 			.toUpperCase()
 			.split(" ");
 
@@ -1774,6 +1783,7 @@ export class TryoutCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -1972,6 +1982,7 @@ export class TryoutCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -2231,7 +2242,7 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
-		const name = interaction.options.getString("value", true);
+		const name = interaction.options.getString("value", true).trim();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -2329,7 +2340,10 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
-		const acronym = interaction.options.getString("value", true).toUpperCase();
+		const acronym = interaction.options
+			.getString("value", true)
+			.trim()
+			.toUpperCase();
 
 		const user = await db.user.findFirst({
 			where: {
@@ -2428,7 +2442,7 @@ export class TryoutCommand extends Subcommand {
 		await interaction.deferReply();
 
 		const date = DateTime.fromFormat(
-			interaction.options.getString("value", true),
+			interaction.options.getString("value", true).trim(),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
@@ -2567,7 +2581,7 @@ export class TryoutCommand extends Subcommand {
 		await interaction.deferReply();
 
 		const date = DateTime.fromFormat(
-			interaction.options.getString("value", true),
+			interaction.options.getString("value", true).trim(),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",

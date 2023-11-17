@@ -359,14 +359,16 @@ export class LobbyCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
+			.trim()
 			.toUpperCase();
 		const customId = interaction.options
 			.getString("custom-id", true)
+			.trim()
 			.toUpperCase();
 		const playerLimit = interaction.options.getNumber("player-limit", true);
 
 		const startDate = DateTime.fromFormat(
-			interaction.options.getString("start-date", true),
+			interaction.options.getString("start-date", true).trim(),
 			"yyyy-MM-dd HH:mm",
 			{
 				zone: "utc",
@@ -542,14 +544,18 @@ export class LobbyCommand extends Subcommand {
 
 		const stageId = interaction.options
 			.getString("stage-id", true)
+			.trim()
 			.toUpperCase();
 		const customIdPrefix = interaction.options
 			.getString("custom-id-prefix", true)
+			.trim()
 			.toUpperCase();
-		const startDateOption = interaction.options.getString("start-date", true);
+		const startDateOption = interaction.options
+			.getString("start-date", true)
+			.trim();
 		const playerLimit = interaction.options.getNumber("player-limit", true);
 		const count = interaction.options.getNumber("count", true);
-		const interval = interaction.options.getString("interval", true);
+		const interval = interaction.options.getString("interval", true).trim();
 		const auto = interaction.options.getBoolean("auto", false) || false;
 
 		const startDate = DateTime.fromFormat(startDateOption, "yyyy-MM-dd HH:mm", {
@@ -771,6 +777,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		//? Get the tryout for the current staff channel and include any lobbies that match the lobby ID.
@@ -914,6 +921,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -1062,6 +1070,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -1276,6 +1285,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -1687,6 +1697,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		const user = await db.user.findFirst({
@@ -1843,6 +1854,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		const playerOption = interaction.options.getUser("player", true);
@@ -2146,6 +2158,7 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
 		const playerOption = interaction.options.getUser("player", true);
@@ -2329,9 +2342,10 @@ export class LobbyCommand extends Subcommand {
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
+			.trim()
 			.toUpperCase();
 
-		const playerId = interaction.options.getString("player-id", true);
+		const playerId = interaction.options.getString("player-id", true).trim();
 
 		const user = await db.user.findFirst({
 			where: {

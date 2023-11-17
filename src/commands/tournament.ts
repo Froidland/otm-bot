@@ -265,16 +265,18 @@ export class TournamentCommand extends Subcommand {
 
 		const id = createId();
 
-		const name = interaction.options.getString("name", true);
+		const name = interaction.options.getString("name", true).trim();
 		const acronym = interaction.options
 			.getString("acronym", true)
+			.trim()
 			.toUpperCase();
 
-		const startDateString = interaction.options.getString("start-date", true);
-		const registrationEndDateString = interaction.options.getString(
-			"registration-end-date",
-			true,
-		);
+		const startDateString = interaction.options
+			.getString("start-date", true)
+			.trim();
+		const registrationEndDateString = interaction.options
+			.getString("registration-end-date", true)
+			.trim();
 
 		const type = interaction.options.getString("type", true) as TournamentType;
 		const winCondition =
@@ -285,9 +287,9 @@ export class TournamentCommand extends Subcommand {
 
 		const hasQualifiers =
 			interaction.options.getBoolean("has-qualifiers") || false;
-		const qualifiersDeadlineString = interaction.options.getString(
-			"qualifiers-deadline",
-		);
+		const qualifiersDeadlineString = interaction.options
+			.getString("qualifiers-deadline")
+			?.trim();
 
 		//? If the tournament is 1v1, ignore the provided minTeamSize.
 		const minTeamSize =
