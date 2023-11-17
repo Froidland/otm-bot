@@ -837,7 +837,7 @@ export class TryoutCommand extends Subcommand {
 
 		let infoField = `Name: \`${name}\`\n`;
 		infoField += `Acronym: \`${acronym}\`\n`;
-		infoField += `Creator: <@${user.discord_id}>\n`;
+		infoField += `Creator: <@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`)`;
 		infoField += `Is staff allowed: \`${allowStaff ? "Yes" : "No"}\`\n`;
 
 		let datesField = `Start date: \`${startDate.toFormat("DDDD T")}\`\n`;
@@ -979,7 +979,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		let embedDescription = `**Owner:** <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_id}\` - [osu! profile](https://osu.ppy.sh/users/${tryout.creator.osu_id}))\n`;
+		let embedDescription = `**Creator:** <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_id}\` - \`#${tryout.creator.osu_id}\`)\n`;
 		embedDescription += `**Server ID:** \`${tryout.server_id}\`\n`;
 		embedDescription += `**Date:** From \`${DateTime.fromJSDate(
 			tryout.start_date,
