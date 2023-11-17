@@ -1354,7 +1354,7 @@ export class TournamentCommand extends Subcommand {
 			embeds: [
 				new EmbedBuilder()
 					.setColor("Green")
-					.setTitle("Tournament created")
+					.setTitle("Tournament info")
 					.setFields([
 						{
 							name: "Info",
