@@ -1310,6 +1310,7 @@ export class TournamentCommand extends Subcommand {
 		let infoField = `Name: \`${tournament.name}\`\n`;
 		infoField += `Acronym: \`${tournament.acronym}\`\n`;
 		infoField += `Creator: <@${tournament.creator.discord_id}> (\`${tournament.creator.osu_username}\` - \`#${tournament.creator.osu_id}\`)\n`;
+		infoField += `Server ID: \`${tournament.server_id}\`\n`;
 
 		if (tournament.type === "TeamVsTeam") {
 			infoField += `Registered teams: \`${tournament._count.teams}\`\n`;
@@ -1353,7 +1354,7 @@ export class TournamentCommand extends Subcommand {
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
-					.setColor("Green")
+					.setColor("Blue")
 					.setTitle("Tournament info")
 					.setFields([
 						{
