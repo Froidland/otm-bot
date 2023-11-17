@@ -109,7 +109,6 @@ model Tournament {
   embed_message_id String?
 
   organizer_role_id String
-  staff_role_id     String
   mappooler_role_id String
   referee_role_id   String
   player_role_id    String

@@ -66,7 +66,6 @@ CREATE TABLE `tournaments` (
     `embed_channel_id` VARCHAR(191) NULL,
     `embed_message_id` VARCHAR(191) NULL,
     `organizer_role_id` VARCHAR(191) NOT NULL,
-    `staff_role_id` VARCHAR(191) NOT NULL,
     `mappooler_role_id` VARCHAR(191) NOT NULL,
     `referee_role_id` VARCHAR(191) NOT NULL,
     `player_role_id` VARCHAR(191) NOT NULL,

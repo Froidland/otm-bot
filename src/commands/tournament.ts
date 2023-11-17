@@ -469,15 +469,11 @@ export class TournamentCommand extends Subcommand {
 			return;
 		}
 
-		let organizerRole, staffRole, mappoolerRole, refereeRole, playerRole;
+		let organizerRole, mappoolerRole, refereeRole, playerRole;
 
 		try {
 			organizerRole = await interaction.guild.roles.create({
 				name: `${prefix}Organizer`,
-			});
-
-			staffRole = await interaction.guild.roles.create({
-				name: `${prefix}Staff`,
 			});
 
 			mappoolerRole = await interaction.guild.roles.create({
@@ -495,7 +491,6 @@ export class TournamentCommand extends Subcommand {
 			this.container.logger.error(error);
 
 			if (organizerRole) await organizerRole.delete();
-			if (staffRole) await staffRole.delete();
 			if (mappoolerRole) await mappoolerRole.delete();
 			if (refereeRole) await refereeRole.delete();
 			if (playerRole) await playerRole.delete();
@@ -540,7 +535,11 @@ export class TournamentCommand extends Subcommand {
 						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
 					},
 					{
-						id: staffRole,
+						id: refereeRole,
+						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
+					},
+					{
+						id: mappoolerRole,
 						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
 					},
 				],
@@ -600,7 +599,11 @@ export class TournamentCommand extends Subcommand {
 						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
 					},
 					{
-						id: staffRole,
+						id: refereeRole,
+						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
+					},
+					{
+						id: mappoolerRole,
 						allow: ["SendMessages", "ReadMessageHistory", "ViewChannel"],
 					},
 					{
@@ -619,7 +622,6 @@ export class TournamentCommand extends Subcommand {
 			if (tournamentCategory) await tournamentCategory.delete();
 
 			await organizerRole.delete();
-			await staffRole.delete();
 			await mappoolerRole.delete();
 			await refereeRole.delete();
 			await playerRole.delete();
@@ -667,7 +669,6 @@ export class TournamentCommand extends Subcommand {
 		channelsField += `Player channel: <#${playerChannel.id}>\n`;
 
 		let rolesField = `Organizer role: <@&${organizerRole.id}>\n`;
-		rolesField += `Staff role: <@&${staffRole.id}>\n`;
 		rolesField += `Mappooler role: <@&${mappoolerRole.id}>\n`;
 		rolesField += `Referee role: <@&${refereeRole.id}>\n`;
 		rolesField += `Player role: <@&${playerRole.id}>\n`;
@@ -693,7 +694,6 @@ export class TournamentCommand extends Subcommand {
 					referee_channel_id: refereeChannel.id,
 					player_channel_id: playerChannel.id,
 					organizer_role_id: organizerRole.id,
-					staff_role_id: staffRole.id,
 					mappooler_role_id: mappoolerRole.id,
 					referee_role_id: refereeRole.id,
 					player_role_id: playerRole.id,
