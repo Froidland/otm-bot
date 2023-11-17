@@ -330,8 +330,8 @@ model Tryout {
   acronym           String   @db.VarChar(64)
   staff_channel_id  String
   player_channel_id String
-  embed_channel_id  String?
-  embed_message_id  String?
+  embed_channel_id  String
+  embed_message_id  String
   admin_role_id     String
   referee_role_id   String
   player_role_id    String

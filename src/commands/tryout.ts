@@ -9,9 +9,7 @@ import {
 	ChannelType,
 	EmbedBuilder,
 	GuildTextBasedChannel,
-	Message,
 	PermissionFlagsBits,
-	Role,
 	SlashCommandSubcommandBuilder,
 	SlashCommandSubcommandGroupBuilder,
 } from "discord.js";
@@ -231,10 +229,10 @@ export class TryoutCommand extends Subcommand {
 							option
 								.setName("embed-channel")
 								.setDescription(
-									"The channel where the tryout embed will be sent. (Default: Do not send)",
+									"The channel where the tryout embed will be sent.",
 								)
 								.addChannelTypes(ChannelType.GuildText)
-								.setRequired(false),
+								.setRequired(true),
 						)
 						.addBooleanOption((option) =>
 							option
@@ -242,57 +240,6 @@ export class TryoutCommand extends Subcommand {
 								.setDescription(
 									"Whether or not staff members can join the tryout. (Default: false)",
 								)
-								.setRequired(false),
-						)
-						.addRoleOption((option) =>
-							option
-								.setName("management-role")
-								.setDescription(
-									"The role required to manage the tryout data. (Default: New Role)",
-								)
-								.setRequired(false),
-						)
-						.addRoleOption((option) =>
-							option
-								.setName("referee-role")
-								.setDescription(
-									"The role required to claim lobbies among other things. (Default: New Role)",
-								)
-								.setRequired(false),
-						)
-						.addRoleOption((option) =>
-							option
-								.setName("player-role")
-								.setDescription(
-									"The role required to execute player commands. (Default: New Role)",
-								)
-								.setRequired(false),
-						)
-						.addChannelOption((option) =>
-							option
-								.setName("staff-channel")
-								.setDescription(
-									"The channel where the staff members can manage the tryout. (Default: New Channel)",
-								)
-								.addChannelTypes(ChannelType.GuildText)
-								.setRequired(false),
-						)
-						.addChannelOption((option) =>
-							option
-								.setName("player-channel")
-								.setDescription(
-									"The channel where the players can talk. (Default: New Channel)",
-								)
-								.addChannelTypes(ChannelType.GuildText)
-								.setRequired(false),
-						)
-						.addChannelOption((option) =>
-							option
-								.setName("parent-category")
-								.setDescription(
-									"The parent category for all the created channels. (Default: None)",
-								)
-								.addChannelTypes(ChannelType.GuildCategory)
 								.setRequired(false),
 						),
 				)
@@ -694,11 +641,19 @@ export class TryoutCommand extends Subcommand {
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
-		let playerChannelCreated = false;
-		let staffChannelCreated = false;
-		let playerRoleCreated = false;
-		let adminRoleCreated = false;
-		let refereeRoleCreated = false;
+
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
 
 		const user = await db.user.findFirst({
 			where: {
@@ -718,24 +673,9 @@ export class TryoutCommand extends Subcommand {
 
 		const name = interaction.options.getString("name", true);
 		const acronym = interaction.options.getString("acronym", true);
-		const embedChannel = interaction.options.getChannel(
-			"embed-channel",
-		) as GuildTextBasedChannel | null;
-
-		let playerRole = interaction.options.getRole("player-role") as Role | null;
-		let adminRole = interaction.options.getRole(
-			"management-role",
-		) as Role | null;
-		let refereeRole = interaction.options.getRole(
-			"referee-role",
-		) as Role | null;
-
-		let staffChannel = interaction.options.getChannel(
-			"staff-channel",
-		) as GuildTextBasedChannel | null;
-		let playerChannel = interaction.options.getChannel(
-			"player-channel",
-		) as GuildTextBasedChannel | null;
+		const embedChannel = interaction.options.getChannel("embed-channel", true, [
+			ChannelType.GuildText,
+		]);
 
 		const startDate = DateTime.fromFormat(
 			interaction.options.getString("start-date", true),
@@ -783,35 +723,51 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		const parentCategory =
-			interaction.options.getChannel("parent-category") ?? undefined;
+		let playerRole, adminRole, refereeRole;
 
-		if (!playerRole) {
-			playerRole = (await interaction.guild?.roles.create({
+		try {
+			playerRole = await interaction.guild.roles.create({
 				name: `${acronym}: Player`,
-			})) as Role;
+			});
 
-			playerRoleCreated = true;
-		}
-
-		if (!adminRole) {
-			adminRole = (await interaction.guild?.roles.create({
+			// TODO: Rename this to Organizer.
+			adminRole = await interaction.guild.roles.create({
 				name: `${acronym}: Management`,
-			})) as Role;
+			});
 
-			adminRoleCreated = true;
-		}
-
-		if (!refereeRole) {
-			refereeRole = (await interaction.guild?.roles.create({
+			refereeRole = await interaction.guild.roles.create({
 				name: `${acronym}: Referee`,
-			})) as Role;
+			});
+		} catch (error) {
+			this.container.logger.error(error);
 
-			refereeRoleCreated = true;
+			if (playerRole) await playerRole.delete();
+			if (adminRole) await adminRole.delete();
+			if (refereeRole) await refereeRole.delete();
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occured while creating roles. Please try again later. All changes will be reverted.",
+						),
+				],
+			});
+
+			return;
 		}
 
-		if (!staffChannel) {
-			staffChannel = (await interaction.guild?.channels.create({
+		let tryoutCategory, staffChannel, playerChannel;
+
+		try {
+			tryoutCategory = await interaction.guild.channels.create({
+				name: `${acronym}`,
+				type: ChannelType.GuildCategory,
+			});
+
+			staffChannel = await interaction.guild.channels.create({
 				name: `${acronym}-staff`,
 				type: ChannelType.GuildText,
 				permissionOverwrites: [
@@ -828,14 +784,10 @@ export class TryoutCommand extends Subcommand {
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 				],
-				parent: parentCategory?.id,
-			})) as GuildTextBasedChannel;
+				parent: tryoutCategory,
+			});
 
-			staffChannelCreated = true;
-		}
-
-		if (!playerChannel) {
-			playerChannel = (await interaction.guild?.channels.create({
+			playerChannel = await interaction.guild.channels.create({
 				name: `${acronym}-players`,
 				type: ChannelType.GuildText,
 				permissionOverwrites: [
@@ -856,43 +808,59 @@ export class TryoutCommand extends Subcommand {
 						allow: [PermissionFlagsBits.ViewChannel],
 					},
 				],
-				parent: parentCategory?.id,
-			})) as GuildTextBasedChannel;
+				parent: tryoutCategory,
+			});
+		} catch (error) {
+			this.container.logger.error(error);
 
-			playerChannelCreated = true;
+			if (playerChannel) await playerChannel.delete();
+			if (staffChannel) await staffChannel.delete();
+			if (tryoutCategory) await tryoutCategory.delete();
+
+			if (playerRole) await playerRole.delete();
+			if (refereeRole) await refereeRole.delete();
+			if (adminRole) await adminRole.delete();
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"An error occured while creating channels. Please try again later. All changes will be reverted.",
+						),
+				],
+			});
+
+			return;
 		}
 
-		let embedDescription = "**__Tryout info:__**\n";
-		embedDescription += `**\\- Name:** \`${name}\`\n`;
-		embedDescription += `**\\- Acronym:** \`${acronym}\`\n`;
-		embedDescription += `**\\- Owner:** <@${user.discord_id}>\n`;
-		embedDescription += "**__Tryout roles and channels:__**\n";
-		embedDescription += `**\\- Admin Role:** <@&${adminRole.id}>\n`;
-		embedDescription += `**\\- Referee Role:** <@&${refereeRole.id}>\n`;
-		embedDescription += `**\\- Player Role:** <@&${playerRole.id}>\n`;
+		let infoField = `Name: \`${name}\`\n`;
+		infoField += `Acronym: \`${acronym}\`\n`;
+		infoField += `Creator: <@${user.discord_id}>\n`;
+		infoField += `Is staff allowed: \`${allowStaff ? "Yes" : "No"}\`\n`;
 
-		if (embedChannel) {
-			embedDescription += `**\\- Embed Channel:** <#${embedChannel.id}>\n`;
-		}
+		let datesField = `Start date: \`${startDate.toFormat("DDDD T")}\`\n`;
+		datesField += `End date: \`${endDate.toFormat("DDDD T")}\`\n`;
 
-		embedDescription += `**\\- Staff Channel:** <#${staffChannel.id}>\n`;
-		embedDescription += `**\\- Player Channel:** <#${playerChannel.id}>`;
+		let rolesField = `Admin Role: <@&${adminRole.id}>\n`;
+		rolesField += `Referee Role: <@&${refereeRole.id}>\n`;
+		rolesField += `Player Role: <@&${playerRole.id}>\n`;
+
+		let channelsField = `Staff Channel: <#${staffChannel.id}>\n`;
+		channelsField += `Player Channel: <#${playerChannel.id}>`;
+
+		const embedMessage = await embedChannel.send(tryoutRegistration(name));
 
 		try {
-			let embedMessage: Message | null = null;
-
-			if (embedChannel) {
-				embedMessage = await embedChannel.send(tryoutRegistration(name));
-			}
-
 			await db.tryout.create({
 				data: {
 					id,
 					name,
 					acronym,
-					server_id: interaction.guildId!,
-					embed_channel_id: embedChannel?.id,
-					embed_message_id: embedMessage?.id,
+					server_id: interaction.guild.id,
+					embed_channel_id: embedChannel.id,
+					embed_message_id: embedMessage.id,
 					admin_role_id: adminRole.id,
 					referee_role_id: refereeRole.id,
 					player_role_id: playerRole.id,
@@ -901,24 +869,8 @@ export class TryoutCommand extends Subcommand {
 					allow_staff: allowStaff,
 					start_date: startDate.toJSDate(),
 					end_date: endDate.toJSDate(),
-					creator: {
-						connect: {
-							id: user.id,
-						},
-					},
+					creator_id: user.id,
 				},
-			});
-
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle("Tryout created!")
-						.setDescription(embedDescription)
-						.setFooter({
-							text: `Unique ID: ${id}`,
-						}),
-				],
 			});
 		} catch (error) {
 			this.container.logger.error(error);
@@ -934,15 +886,47 @@ export class TryoutCommand extends Subcommand {
 				],
 			});
 
-			// Channels
-			if (playerChannelCreated) playerChannel.delete();
-			if (staffChannelCreated) staffChannel.delete();
+			if (playerChannel) await playerChannel.delete();
+			if (staffChannel) await staffChannel.delete();
+			if (tryoutCategory) await tryoutCategory.delete();
 
-			// Roles
-			if (playerRoleCreated) playerRole.delete();
-			if (adminRoleCreated) adminRole.delete();
-			if (refereeRoleCreated) refereeRole.delete();
+			if (playerRole) await playerRole.delete();
+			if (refereeRole) await refereeRole.delete();
+			if (adminRole) await adminRole.delete();
+
+			return;
 		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Tryout created!")
+					.setFields([
+						{
+							name: "Info",
+							value: infoField,
+						},
+						{
+							name: "Dates",
+							value: datesField,
+						},
+						{
+							name: "Channels",
+							value: channelsField,
+							inline: true,
+						},
+						{
+							name: "Roles",
+							value: rolesField,
+							inline: true,
+						},
+					])
+					.setFooter({
+						text: `Unique ID: ${id}`,
+					}),
+			],
+		});
 	}
 
 	public async chatInputInfo(
