@@ -31,6 +31,14 @@ export const panic: BanchoCommand = {
 			return;
 		}
 
+		if (lobby.state === "finished") {
+			await event.channel.sendMessage(
+				"This lobby has finished, so you cannot panic.",
+			);
+
+			return;
+		}
+
 		lobby.state = "panicked";
 
 		const notificationChannel = await container.client.channels.fetch(
