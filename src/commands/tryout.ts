@@ -936,6 +936,20 @@ export class TryoutCommand extends Subcommand {
 
 		const uniqueId = interaction.options.getString("unique-id");
 
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
 		const tryout = await db.tryout.findFirst({
 			where: uniqueId
 				? {
