@@ -6,6 +6,7 @@ import {
 	PieceContext,
 } from "@sapphire/framework";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
+import { DateTime } from "luxon";
 
 export class UnclaimQualifiersLobbyButton extends InteractionHandler {
 	public constructor(context: PieceContext) {
@@ -24,7 +25,7 @@ export class UnclaimQualifiersLobbyButton extends InteractionHandler {
 	}
 
 	public async run(interaction: ButtonInteraction) {
-		await interaction.deferReply();
+		await interaction.deferReply({ ephemeral: true });
 
 		const user = await db.user.findFirst({
 			where: {
@@ -72,6 +73,21 @@ export class UnclaimQualifiersLobbyButton extends InteractionHandler {
 						.setTitle("Error")
 						.setDescription(
 							"You can't unclaim a lobby that you haven't claimed.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (DateTime.fromJSDate(lobby.schedule).diffNow("minutes").minutes < 5) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"You cannot un-claim this lobby because it is starting soon or has already started.",
 						),
 				],
 			});
