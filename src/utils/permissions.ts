@@ -14,19 +14,6 @@ export function hasTournamentOrganizerRole(
 	);
 }
 
-export function hasTournamentStaffRole(
-	interaction: Interaction,
-	tournament: Tournament,
-) {
-	if (!interaction.member) {
-		return false;
-	}
-
-	return (interaction.member.roles as GuildMemberRoleManager).cache.has(
-		tournament.staff_role_id,
-	);
-}
-
 export function hasTournamentMappoolerRole(
 	interaction: Interaction,
 	tournament: Tournament,
