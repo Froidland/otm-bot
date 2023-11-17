@@ -53,6 +53,10 @@ You can get the client id and client secret from the OAuth application page, the
 
 The IRC credentials and the API key can be obtained from the [Legacy API](https://osu.ppy.sh/home/account/edit#legacy-api) section in your account settings. These correspond to the `BANCHO_USERNAME`, `BANCHO_PASSWORD` and `BANCHO_API_KEY` variables.
 
+### Authentication server
+
+The bot uses an authentication server to handle the OAuth flow, you can find the source code for the server [here](https://github.com/Froidland/otm-web). You can either make your own server or use the default one. Whichever you choose, you need to set the `FRONTEND_URL` and `FRONTEND_LOGIN_ROUTE` variables accordingly. You can find the example values in the [.env.example](.env.example) file.
+
 ## Setting up the database
 The bot uses [Prisma](https://www.prisma.io/) as an ORM, this means that it can automatically create the database tables for you. To do this, you first need to create a database in your MariaDB instance, you can do this by running the following query:
 
