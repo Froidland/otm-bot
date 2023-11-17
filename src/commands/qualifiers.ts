@@ -969,6 +969,40 @@ export class QualifiersCommand extends Subcommand {
 			return;
 		}
 
+		if (date.toSeconds() > DateTime.now().toSeconds() - 60 * 30) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Too soon!")
+						.setDescription(
+							"You can't schedule a lobby less than 30 minutes from now.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (date.toJSDate() < tournament.registration_end_date) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid date!")
+						.setDescription(
+							`You must schedule your qualifier lobby for after the registration period ends. The registration period ends on \`${DateTime.fromJSDate(
+								tournament.registration_end_date,
+							).toFormat("DDDD T")}\` <t:${DateTime.fromJSDate(
+								tournament.registration_end_date,
+							).toSeconds()}:R>.`,
+						),
+				],
+			});
+
+			return;
+		}
+
 		if (team.qualifier_lobby) {
 			const date = DateTime.fromJSDate(team.qualifier_lobby.schedule);
 			const difference = date.diffNow("minutes").minutes;
