@@ -30,7 +30,6 @@ export const playerAutoTryoutLobbyEmbed = (
 			: "*None*"
 	}\n`;
 
-	embedDescription += `\\- **MP Link:** [${lobby.banchoId}](https://osu.ppy.sh/community/matches/${lobby.banchoId})\n`;
 	embedDescription += `\\- **Schedule:** \`${DateTime.fromJSDate(
 		new Date(lobby.schedule),
 		{
