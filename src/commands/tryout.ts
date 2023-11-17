@@ -1301,6 +1301,10 @@ export class TryoutCommand extends Subcommand {
 
 		const beatmap = tryout.stages[0].mappool[0].beatmap;
 
+		const newMappoolOrder = tryout.stages[0].mappool_order
+			.split(" ")
+			.filter((p) => p !== pick);
+
 		const embedDescription = `[${beatmap?.artist} - ${beatmap?.title} [${beatmap?.version}]](https://osu.ppy.sh/beatmaps/${beatmap?.id}) has removed as the **${pick}** from stage \`${tryout.stages[0].name}\`.`;
 
 		try {
@@ -1317,6 +1321,7 @@ export class TryoutCommand extends Subcommand {
 							},
 						},
 					},
+					mappool_order: newMappoolOrder.join(" "),
 				},
 			});
 
