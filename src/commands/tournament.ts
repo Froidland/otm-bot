@@ -248,6 +248,11 @@ export class TournamentCommand extends Subcommand {
 						.setName("info")
 						.setDescription(
 							"Get information about the current channel's tournament.",
+						)
+						.addStringOption((option) =>
+							option
+								.setName("unique-id")
+								.setDescription("The unique ID of the tournament."),
 						),
 				),
 		);
@@ -1250,6 +1255,8 @@ export class TournamentCommand extends Subcommand {
 	) {
 		await interaction.deferReply({ ephemeral: true });
 
+		const uniqueId = interaction.options.getString("unique-id")?.trim();
+
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
@@ -1265,22 +1272,26 @@ export class TournamentCommand extends Subcommand {
 		}
 
 		const tournament = await db.tournament.findFirst({
-			where: {
-				OR: [
-					{
-						staff_channel_id: interaction.channelId,
-					},
-					{
-						mappooler_channel_id: interaction.channelId,
-					},
-					{
-						referee_channel_id: interaction.channelId,
-					},
-					{
-						player_channel_id: interaction.channelId,
-					},
-				],
-			},
+			where: uniqueId
+				? {
+						id: uniqueId,
+				  }
+				: {
+						OR: [
+							{
+								staff_channel_id: interaction.channelId,
+							},
+							{
+								mappooler_channel_id: interaction.channelId,
+							},
+							{
+								referee_channel_id: interaction.channelId,
+							},
+							{
+								player_channel_id: interaction.channelId,
+							},
+						],
+				  },
 			include: {
 				creator: true,
 				qualifier: true,
