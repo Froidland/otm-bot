@@ -56,7 +56,7 @@
 		"@types/node": "^20.9.0",
 		"@types/papaparse": "^5.3.11",
 		"@typescript-eslint/eslint-plugin": "^6.11.0",
-		"@typescript-eslint/parser": "^6.11.0",
+		"@typescript-eslint/parser": "^6.12.0",
 		"cross-env": "^7.0.3",
 		"dotenv-safe": "^8.2.0",
 		"eslint": "^8.53.0",
