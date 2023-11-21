@@ -54,4 +54,4 @@ export type QualifierLobby = BaseLobby & {
 export type AutoLobby = TryoutLobby | QualifierLobby;
 
 // TODO: Persist this in redis as fallback in case the bot crashes.
-export const banchoLobbies: AutoLobby[] = [];
+export const lobbyStore: AutoLobby[] = [];

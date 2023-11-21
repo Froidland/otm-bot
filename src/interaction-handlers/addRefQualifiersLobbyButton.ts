@@ -1,4 +1,4 @@
-import { banchoLobbies } from "@/bancho/store";
+import { lobbyStore } from "@/bancho/store";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { hasTournamentOrganizerRole, hasTournamentRefereeRole } from "@/utils";
@@ -92,7 +92,7 @@ export class AddRefQualifiersLobbyButton extends InteractionHandler {
 			return;
 		}
 
-		const ongoingLobby = banchoLobbies.find((l) => l.id === lobby.id);
+		const ongoingLobby = lobbyStore.find((l) => l.id === lobby.id);
 
 		if (!ongoingLobby) {
 			await interaction.editReply({

@@ -1,6 +1,6 @@
 import { container } from "@sapphire/pieces";
 import { BanchoCommand } from ".";
-import { banchoLobbies } from "../store";
+import { lobbyStore } from "../store";
 import { EmbedBuilder } from "discord.js";
 
 export const panic: BanchoCommand = {
@@ -8,31 +8,33 @@ export const panic: BanchoCommand = {
 	aliases: [],
 	description: "Pings the referee responsible for the lobby.",
 	usage: "!panic",
-	executeCM: async (client, event) => {
-		const banchoId = event.channel.name.split("_")[1];
+	executeCM: async (client, banchoLobby, message) => {
+		const channel = banchoLobby.channel;
 
-		const lobby = banchoLobbies.find((l) => l.banchoId === banchoId);
+		const lobby = lobbyStore.find(
+			(l) => l.banchoId === banchoLobby.id.toString(),
+		);
 
 		if (!lobby) {
-			await event.channel.sendMessage(
-				"This lobby is not set up as an automatic tryout lobby.",
+			await channel.sendMessage(
+				"This lobby is not set up as an automatic lobby.",
 			);
 
 			return;
 		}
 
 		const player = lobby.players.find(
-			(p) => p.osuUsername === event.user.ircUsername,
+			(p) => p.osuUsername === message.user.ircUsername,
 		);
 
 		if (!player) {
-			await event.channel.sendMessage("You are not a part of this lobby.");
+			await channel.sendMessage("You are not a part of this lobby.");
 
 			return;
 		}
 
 		if (lobby.state === "finished") {
-			await event.channel.sendMessage(
+			await channel.sendMessage(
 				"This lobby has finished, so you cannot panic.",
 			);
 
@@ -46,7 +48,7 @@ export const panic: BanchoCommand = {
 		);
 
 		if (!notificationChannel || !notificationChannel.isTextBased()) {
-			await event.channel.sendMessage(
+			await channel.sendMessage(
 				"No staff channel was found. Please contact a staff member manually.",
 			);
 
@@ -89,7 +91,7 @@ export const panic: BanchoCommand = {
 		} catch (error) {
 			container.logger.error(error);
 
-			await event.channel.sendMessage(
+			await channel.sendMessage(
 				"An error ocurred while panicking. Please contact a staff member manually.",
 			);
 		}

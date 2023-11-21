@@ -4,7 +4,7 @@ import {
 	LobbyUser,
 	QualifierLobby,
 	TryoutLobby,
-	banchoLobbies,
+	lobbyStore,
 } from "./store";
 import { container } from "@sapphire/pieces";
 import { DateTime } from "luxon";
@@ -16,6 +16,14 @@ import {
 	staffAutoTryoutLobbyEmbed,
 } from "@/embeds";
 import { EmbedBuilder } from "discord.js";
+import {
+	matchFinished,
+	matchStarted,
+	playerJoined,
+	allPlayersReady,
+	timerEnd as timerEnded,
+	message,
+} from "./handlers";
 
 /**
  * Creates a lobby in bancho linked to the given lobby, stores it in memory and handles all the necessary setup and events.
@@ -58,7 +66,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 		return false;
 	}
 
-	let newLobby = null;
+	let banchoChannel = null;
 	let staffMessage = null;
 	let playerMessage = null;
 
@@ -143,7 +151,8 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 	}
 
 	try {
-		newLobby = await container.bancho.createLobby(lobby.name);
+		banchoChannel = await container.bancho.createLobby(lobby.name);
+		addBanchoLobbyListeners(container.bancho, banchoChannel.lobby);
 	} catch (error) {
 		container.logger.error(error);
 		const staffChannel = await container.client.channels.fetch(
@@ -170,9 +179,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 		return false;
 	}
 
-	const banchoId = newLobby.name.split("_")[1];
-
-	lobby.banchoId = banchoId;
+	lobby.banchoId = banchoChannel.lobby.id.toString();
 
 	const discordStaffChannel = await container.client.channels.fetch(
 		lobby.staffNotifChannelId,
@@ -200,29 +207,29 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 		300,
 	);
 
-	await newLobby.sendMessage(`!mp timer ${timer}`);
-	await newLobby.sendMessage(`!mp set 0 3 16`);
-	await newLobby.sendMessage(`!mp map ${map.beatmapId}`);
-	await newLobby.sendMessage(`!mp mods ${getModsString(map.mods)}`);
+	await banchoChannel.lobby.startTimer(timer);
+	await banchoChannel.lobby.setSettings(0, 3, 16);
+	await banchoChannel.lobby.setMap(map.beatmapId);
+	await banchoChannel.lobby.setMods(getModsString(map.mods));
 
 	lobby.mappoolHistory.push(map);
 
 	if (lobby.referees.length > 0) {
-		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);
+		await banchoChannel.lobby.addRef("#" + lobby.referees[0].osuId);
 	}
 
 	for (const player of lobby.players) {
-		await newLobby.sendMessage(`!mp invite #${player.osuId}`);
+		await banchoChannel.lobby.invitePlayer("#" + player.osuId);
 	}
 
-	banchoLobbies.push(lobby);
+	lobbyStore.push(lobby);
 
 	await db.tryoutLobby.update({
 		where: {
 			id: lobby.id,
 		},
 		data: {
-			bancho_id: banchoId,
+			bancho_id: banchoChannel.lobby.id.toString(),
 			status: "Ongoing",
 			staff_embed_message_id: staffMessage?.id || null,
 			player_embed_message_id: playerMessage?.id || null,
@@ -238,7 +245,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
  * @returns `true` if the lobby was created successfully, `false` otherwise.
  */
 export async function createQualifierLobby(lobby: QualifierLobby) {
-	if (banchoLobbies.length >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
+	if (lobbyStore.length >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
 		container.logger.warn(
 			`[AutoRef] Could not create qualifier lobby ${lobby.id} because there are too many ongoing lobbies.`,
 		);
@@ -278,7 +285,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 		return false;
 	}
 
-	let newLobby = null;
+	let banchoChannel = null;
 	let staffMessage = null;
 	let playerMessage = null;
 
@@ -367,7 +374,8 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 	}
 
 	try {
-		newLobby = await container.bancho.createLobby(lobby.name);
+		banchoChannel = await container.bancho.createLobby(lobby.name);
+		addBanchoLobbyListeners(container.bancho, banchoChannel.lobby);
 	} catch (error) {
 		container.logger.error(error);
 		const staffChannel = await container.client.channels.fetch(
@@ -396,9 +404,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 		return false;
 	}
 
-	const banchoId = newLobby.name.split("_")[1];
-
-	lobby.banchoId = banchoId;
+	lobby.banchoId = banchoChannel.lobby.id.toString();
 
 	const discordStaffChannel = await container.client.channels.fetch(
 		lobby.staffNotifChannelId,
@@ -426,27 +432,27 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 		300,
 	);
 
-	await newLobby.sendMessage(`!mp timer ${timer}`);
-	await newLobby.sendMessage(`!mp set 0 3 16`);
-	await newLobby.sendMessage(`!mp map ${map.beatmapId}`);
-	await newLobby.sendMessage(`!mp mods ${getModsString(map.mods)}`);
+	await banchoChannel.lobby.startTimer(timer);
+	await banchoChannel.lobby.setSettings(0, 3, 16);
+	await banchoChannel.lobby.setMap(map.beatmapId);
+	await banchoChannel.lobby.setMods(getModsString(map.mods));
 
 	lobby.mappoolHistory.push(map);
 
 	if (lobby.referees.length > 0) {
-		await newLobby.sendMessage(`!mp addref #${lobby.referees[0].osuId}`);
+		await banchoChannel.lobby.addRef("#" + lobby.referees[0].osuId);
 	}
 
-	await newLobby.sendMessage(`!mp invite #${lobby.captain.osuId}`);
+	await banchoChannel.lobby.invitePlayer("#" + lobby.captain.osuId);
 
-	banchoLobbies.push(lobby);
+	lobbyStore.push(lobby);
 
 	await db.tournamentQualifierLobby.update({
 		where: {
 			id: lobby.id,
 		},
 		data: {
-			bancho_id: banchoId,
+			bancho_id: banchoChannel.lobby.id.toString(),
 			status: "Ongoing",
 			staff_embed_message_id: staffMessage?.id || null,
 			player_embed_message_id: playerMessage?.id || null,
@@ -462,15 +468,15 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
  */
 export async function endLobby(
 	lobby: AutoLobby,
-	channel: BanchoJs.BanchoChannel,
+	banchoLobby: BanchoJs.BanchoLobby,
 	skipped: boolean = false,
 ) {
-	await channel.sendMessage("!mp close");
+	await banchoLobby.closeLobby();
 
-	const index = banchoLobbies.findIndex((l) => l.id === lobby.id);
+	const index = lobbyStore.findIndex((l) => l.id === lobby.id);
 
 	if (index > -1) {
-		banchoLobbies.splice(index, 1);
+		lobbyStore.splice(index, 1);
 	}
 
 	if (skipped) {
@@ -580,4 +586,22 @@ export function getModsString(mods: string) {
 	}
 
 	return result.join(" ");
+}
+
+/**
+ * Adds all the necessary listeners to the given lobby.
+ * @param client BanchoClient instance.
+ * @param lobby BanchoLobby instance.
+ */
+export function addBanchoLobbyListeners(
+	client: BanchoJs.BanchoClient,
+	lobby: BanchoJs.BanchoLobby,
+) {
+	lobby.on("matchFinished", () => matchFinished(client, lobby));
+	lobby.on("matchStarted", () => matchStarted(client, lobby));
+	lobby.on("playerJoined", (entity) => playerJoined(client, lobby, entity));
+	lobby.on("allPlayersReady", () => allPlayersReady(client, lobby));
+	lobby.on("timerEnded", () => timerEnded(client, lobby));
+
+	lobby.channel.on("message", (msg) => message(client, lobby, msg));
 }

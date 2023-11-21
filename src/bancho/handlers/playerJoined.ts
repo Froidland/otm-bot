@@ -1,27 +1,38 @@
-import { MultiplayerEventHandler } from ".";
+import { lobbyStore } from "../store";
+import BanchoJs from "bancho.js";
 
-export const playerJoined: MultiplayerEventHandler = {
-	regex: /^\S+ joined in slot \d+\.$/,
-	execute: async (client, event, lobby) => {
-		const [, username] =
-			event.message.match(/^(\S+) joined in slot \d+\.$/) ?? [];
-
-		if (!username) {
-			return;
-		}
-
-		const player = lobby.players.find((p) => p.osuUsername === username);
-
-		if (player) {
-			return;
-		}
-
-		const referee = lobby.referees.find((r) => r.osuUsername === username);
-
-		if (referee) {
-			return;
-		}
-
-		await event.channel.sendMessage(`!mp kick ${username}`);
-	},
+type Entity = {
+	player: BanchoJs.BanchoLobbyPlayer;
+	slot: number;
+	team: string;
 };
+
+export async function playerJoined(
+	client: BanchoJs.BanchoClient,
+	banchLobby: BanchoJs.BanchoLobby,
+	entity: Entity,
+) {
+	const lobby = lobbyStore.find((l) => l.banchoId === banchLobby.id.toString());
+
+	if (!lobby) {
+		return;
+	}
+
+	const player = lobby.players.find(
+		(p) => p.osuUsername === entity.player.user.username,
+	);
+
+	if (player) {
+		return;
+	}
+
+	const referee = lobby.referees.find(
+		(r) => r.osuUsername === entity.player.user.username,
+	);
+
+	if (referee) {
+		return;
+	}
+
+	await banchLobby.kickPlayer(entity.player.user.username);
+}

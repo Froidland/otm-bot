@@ -1,4 +1,4 @@
-import { banchoLobbies } from "@/bancho/store";
+import { lobbyStore } from "@/bancho/store";
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import {
@@ -7,6 +7,7 @@ import {
 	PieceContext,
 } from "@sapphire/framework";
 import { ButtonInteraction, EmbedBuilder } from "discord.js";
+import BanchoJs from "bancho.js";
 
 export class InviteTryoutLobbyButtonHandler extends InteractionHandler {
 	public constructor(context: PieceContext) {
@@ -71,7 +72,7 @@ export class InviteTryoutLobbyButtonHandler extends InteractionHandler {
 			return;
 		}
 
-		const ongoingLobby = banchoLobbies.find((l) => l.id === lobby.id);
+		const ongoingLobby = lobbyStore.find((l) => l.id === lobby.id);
 
 		if (!ongoingLobby) {
 			await interaction.editReply({
@@ -103,7 +104,12 @@ export class InviteTryoutLobbyButtonHandler extends InteractionHandler {
 			`#mp_${ongoingLobby.banchoId}`,
 		);
 
-		await banchoChannel.sendMessage(`!mp invite #${user.osu_id}`);
+		// TODO: Reply with error if the channel is not a multiplayer channel.
+		if (!(banchoChannel instanceof BanchoJs.BanchoMultiplayerChannel)) {
+			return;
+		}
+
+		await banchoChannel.lobby.invitePlayer("#" + user.osu_id);
 
 		await interaction.editReply({
 			embeds: [

@@ -15,7 +15,8 @@ export type BanchoCommand = {
 	) => Promise<void>;
 	executeCM?: (
 		client: BanchoJs.BanchoClient,
-		event: BanchoJs.ChannelMessage,
+		lobby: BanchoJs.BanchoLobby,
+		message: BanchoJs.BanchoMessage,
 	) => Promise<void>;
 };
 

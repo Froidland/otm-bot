@@ -1,15 +1,15 @@
 import { BanchoCommand } from ".";
-import { banchoLobbies } from "../store";
+import { lobbyStore } from "../store";
 
 export const history: BanchoCommand = {
 	name: "history",
 	aliases: ["hist"],
 	description: "Shows the current pick history.",
 	usage: "!history",
-	executeCM: async (client, event) => {
-		const banchoChannel = event.channel;
+	executeCM: async (client, banchoLobby) => {
+		const banchoChannel = banchoLobby.channel;
 
-		const lobby = banchoLobbies.find(
+		const lobby = lobbyStore.find(
 			(l) => l.banchoId === banchoChannel.name.split("_")[1],
 		);
 
