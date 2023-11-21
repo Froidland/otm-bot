@@ -31,7 +31,7 @@ import {
  * @returns `true` if the lobby was created successfully, `false` otherwise.
  */
 export async function createTryoutLobby(lobby: TryoutLobby) {
-	if (banchoLobbies.length >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
+	if (lobbyStore.size >= +(process.env.BANCHO_MAX_LOBBIES || 3)) {
 		container.logger.warn(
 			`[AutoRef] Could not create tryout lobby ${lobby.id} because there are too many ongoing lobbies.`,
 		);
@@ -222,7 +222,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 		await banchoChannel.lobby.invitePlayer("#" + player.osuId);
 	}
 
-	lobbyStore.push(lobby);
+	lobbyStore.set(banchoChannel.lobby.id, lobby);
 
 	await db.tryoutLobby.update({
 		where: {
@@ -245,7 +245,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
  * @returns `true` if the lobby was created successfully, `false` otherwise.
  */
 export async function createQualifierLobby(lobby: QualifierLobby) {
-	if (lobbyStore.length >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
+	if (lobbyStore.size >= +(process.env.BANCHO_MAX_LOBBIES || 5)) {
 		container.logger.warn(
 			`[AutoRef] Could not create qualifier lobby ${lobby.id} because there are too many ongoing lobbies.`,
 		);
@@ -445,7 +445,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 
 	await banchoChannel.lobby.invitePlayer("#" + lobby.captain.osuId);
 
-	lobbyStore.push(lobby);
+	lobbyStore.set(banchoChannel.lobby.id, lobby);
 
 	await db.tournamentQualifierLobby.update({
 		where: {
@@ -473,11 +473,7 @@ export async function endLobby(
 ) {
 	await banchoLobby.closeLobby();
 
-	const index = lobbyStore.findIndex((l) => l.id === lobby.id);
-
-	if (index > -1) {
-		lobbyStore.splice(index, 1);
-	}
+	lobbyStore.delete(banchoLobby.id)
 
 	if (skipped) {
 		return;
@@ -566,7 +562,7 @@ export function getModsString(mods: string) {
 	const result: string[] = [];
 
 	if (mods === "NM") {
-		return ["NF"];
+		return "NF";
 	}
 
 	if (!mods.startsWith("FM")) {

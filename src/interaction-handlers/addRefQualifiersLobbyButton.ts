@@ -92,7 +92,22 @@ export class AddRefQualifiersLobbyButton extends InteractionHandler {
 			return;
 		}
 
-		const ongoingLobby = lobbyStore.find((l) => l.id === lobby.id);
+		if (!lobby.bancho_id) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription(
+							"This lobby is missing a bancho ID. Maybe it hasn't started yet?",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const ongoingLobby = lobbyStore.get(lobby.bancho_id);
 
 		if (!ongoingLobby) {
 			await interaction.editReply({

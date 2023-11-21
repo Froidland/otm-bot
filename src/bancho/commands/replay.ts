@@ -12,9 +12,7 @@ export const replay: BanchoCommand = {
 
 		const pickId = message.content.split(" ")[1];
 
-		const lobby = lobbyStore.find(
-			(l) => l.banchoId === channel.name.split("_")[1],
-		);
+		const lobby = lobbyStore.get(banchoLobby.id);
 
 		if (!lobby) {
 			await channel.sendMessage(
@@ -80,7 +78,7 @@ export const replay: BanchoCommand = {
 		if (banchoLobby.mods.join(" ") !== getModsString(map.mods)) {
 			await banchoLobby.setMods(getModsString(map.mods));
 		}
-		
+
 		await banchoLobby.startTimer(120);
 
 		lobby.state = "waiting";

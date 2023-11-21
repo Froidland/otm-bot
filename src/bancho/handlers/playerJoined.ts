@@ -12,7 +12,7 @@ export async function playerJoined(
 	banchoLobby: BanchoJs.BanchoLobby,
 	entity: Entity,
 ) {
-	const lobby = lobbyStore.find((l) => l.banchoId === banchLobby.id.toString());
+	const lobby = lobbyStore.get(banchoLobby.id);
 
 	if (!lobby) {
 		return;

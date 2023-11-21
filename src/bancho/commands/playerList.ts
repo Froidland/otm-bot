@@ -9,9 +9,7 @@ export const playerList: BanchoCommand = {
 	executeCM: async (client, banchoLobby) => {
 		const channel = banchoLobby.channel;
 
-		const autoLobby = lobbyStore.find(
-			(l) => l.banchoId === channel.name.split("_")[1],
-		);
+		const autoLobby = lobbyStore.get(banchoLobby.id);
 
 		const players = [];
 

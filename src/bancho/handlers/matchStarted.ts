@@ -5,9 +5,7 @@ export async function matchStarted(
 	client: BanchoJs.BanchoClient,
 	banchoLobby: BanchoJs.BanchoLobby,
 ) {
-	const lobby = lobbyStore.find(
-		(l) => l.banchoId === banchoLobby.id.toString(),
-	);
+	const lobby = lobbyStore.get(banchoLobby.id);
 
 	if (!lobby) {
 		return;

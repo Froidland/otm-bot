@@ -11,9 +11,7 @@ export const panic: BanchoCommand = {
 	executeCM: async (client, banchoLobby, message) => {
 		const channel = banchoLobby.channel;
 
-		const lobby = lobbyStore.find(
-			(l) => l.banchoId === banchoLobby.id.toString(),
-		);
+		const lobby = lobbyStore.get(banchoLobby.id);
 
 		if (!lobby) {
 			await channel.sendMessage(
