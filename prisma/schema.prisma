@@ -192,7 +192,7 @@ model TournamentQualifierLobby {
   team    Team   @relation(fields: [team_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   team_id String @unique @db.VarChar(24)
 
-  bancho_id String?
+  bancho_id Int?
   auto_ref  Boolean @default(false)
 
   reminder_status ReminderStatus @default(Pending)
@@ -393,7 +393,7 @@ model TryoutLobby {
 
   players PlayersOnTryoutLobbies[]
 
-  bancho_id String?
+  bancho_id Int?
   auto_ref  Boolean @default(false)
 
   reminder_status ReminderStatus @default(Pending)

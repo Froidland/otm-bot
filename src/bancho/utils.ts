@@ -229,7 +229,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 			id: lobby.id,
 		},
 		data: {
-			bancho_id: banchoChannel.lobby.id.toString(),
+			bancho_id: banchoChannel.lobby.id,
 			status: "Ongoing",
 			staff_embed_message_id: staffMessage?.id || null,
 			player_embed_message_id: playerMessage?.id || null,
@@ -452,7 +452,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 			id: lobby.id,
 		},
 		data: {
-			bancho_id: banchoChannel.lobby.id.toString(),
+			bancho_id: banchoChannel.lobby.id,
 			status: "Ongoing",
 			staff_embed_message_id: staffMessage?.id || null,
 			player_embed_message_id: playerMessage?.id || null,
