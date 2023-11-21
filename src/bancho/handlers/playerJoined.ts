@@ -9,7 +9,7 @@ type Entity = {
 
 export async function playerJoined(
 	client: BanchoJs.BanchoClient,
-	banchLobby: BanchoJs.BanchoLobby,
+	banchoLobby: BanchoJs.BanchoLobby,
 	entity: Entity,
 ) {
 	const lobby = lobbyStore.find((l) => l.banchoId === banchLobby.id.toString());
@@ -34,5 +34,5 @@ export async function playerJoined(
 		return;
 	}
 
-	await banchLobby.kickPlayer(entity.player.user.username);
+	await banchoLobby.kickPlayer(entity.player.user.username);
 }
