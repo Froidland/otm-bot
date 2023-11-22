@@ -45,8 +45,8 @@ dependencies:
     specifier: ^1.6.2
     version: 1.6.2
   bancho.js:
-    specifier: ^0.11.5
-    version: 0.11.5
+    specifier: ^0.11.6
+    version: 0.11.6
   bullmq:
     specifier: ^4.13.2
     version: 4.13.2
@@ -1075,8 +1075,8 @@ packages:
   /balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
-  /bancho.js@0.11.5:
-    resolution: {integrity: sha512-+1RkJpX4k55L9bYC0C8gqHvOVwVU6iDdQ0Yqt2mPIY4d/75oZRNJidyvgiT9rxbDBT1bHaaR4IM8SMN4zVzKjg==}
+  /bancho.js@0.11.6:
+    resolution: {integrity: sha512-PN0NJGbz7GKVgviY7qPc0nyvr0W6Fo5KtN22nvtEzMnd6inevegygalSON7pgoY3cxIhI7wBiQIpOA2JrnNfHg==}
     engines: {node: '>=8'}
     peerDependencies:
       weak-value-map: ^1.0.1
