@@ -998,7 +998,7 @@ export class TryoutCommand extends Subcommand {
 
 		let infoField = `Name: \`${tryout.name}\`\n`;
 		infoField += `Acronym: \`${tryout.acronym}\`\n`;
-		infoField += `Creator: <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_id}\` - \`#${tryout.creator.osu_id}\`)\n`;
+		infoField += `Creator: <@${tryout.creator.discord_id}> (\`${tryout.creator.osu_username}\` - \`#${tryout.creator.osu_id}\`)\n`;
 		infoField += `Server ID: \`${tryout.server_id}\`\n`;
 		infoField += `Is staff allowed: \`${tryout.allow_staff ? "Yes" : "No"}\`\n`;
 		infoField += `Registered players: \`${tryout._count.players}\`\n`;
