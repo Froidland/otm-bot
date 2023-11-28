@@ -1,5 +1,5 @@
-import { lobbyStore } from "../store";
 import BanchoJs from "bancho.js";
+import { lobbyStore } from "../store";
 
 type Entity = {
 	player: BanchoJs.BanchoLobbyPlayer;

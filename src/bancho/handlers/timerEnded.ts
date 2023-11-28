@@ -1,14 +1,14 @@
 import db from "@/db";
+import { container } from "@sapphire/pieces";
+import BanchoJs from "bancho.js";
+import { EmbedBuilder } from "discord.js";
+import { lobbyStore } from "../store";
 import {
 	endLobby,
 	getCurrentPlayers,
 	getMissingPlayers,
 	getModsString,
 } from "../utils";
-import { container } from "@sapphire/pieces";
-import { EmbedBuilder } from "discord.js";
-import BanchoJs from "bancho.js";
-import { lobbyStore } from "../store";
 
 export async function timerEnd(
 	client: BanchoJs.BanchoClient,
@@ -99,7 +99,7 @@ export async function timerEnd(
 					for (const player of missingPlayers) {
 						const banchoUser = client.getUser(player.osuUsername);
 
-						await banchoLobby.invitePlayer("#" + player.osuId);
+						await banchoLobby.invitePlayer(`#${player.osuId}`);
 						await banchoUser.sendMessage(
 							"The match is about to start, please join the lobby.",
 						);
@@ -176,7 +176,7 @@ export async function timerEnd(
 						`Failed to find next map in mappool for lobby ${lobby.id} (#mp_${lobby.banchoId}).`,
 					);
 
-					if (staffChannel && staffChannel.isTextBased()) {
+					if (staffChannel?.isTextBased()) {
 						let embedDescription =
 							"Could not find next map in mappool after overtime.\n";
 						embedDescription += `**Bancho channel:** \`#mp_${lobby.banchoId}\`\n`;
@@ -222,7 +222,7 @@ export async function timerEnd(
 				await banchoLobby.startTimer(120);
 				lobby.state = "waiting";
 
-				if (staffChannel && staffChannel.isTextBased()) {
+				if (staffChannel?.isTextBased()) {
 					let embedDescription = `Pick ${skippedMap?.pickId} was skipped due to overtime.\n`;
 					embedDescription += `**Bancho channel:** \`#mp_${lobby.banchoId}\`\n`;
 					embedDescription += `**MP Link:** (${lobby.banchoId})[https://osu.ppy.sh/community/matches/${lobby.banchoId}]`;

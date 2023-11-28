@@ -2,7 +2,7 @@ import { QualifierLobby } from "@/bancho/store";
 import { createQualifierLobby } from "@/bancho/utils";
 import db from "@/db";
 import { container } from "@sapphire/pieces";
-import { WorkerOptions, Worker, Job } from "bullmq";
+import { Job, Worker, WorkerOptions } from "bullmq";
 import { DateTime } from "luxon";
 
 type JobData = {
@@ -162,7 +162,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const beatmaps = mappool.map((m) => {
 			return {
-				beatmapId: m.beatmap_id!,
+				beatmapId: m.beatmap_id,
 				pickId: m.pick_id,
 				mods: m.mods,
 			};

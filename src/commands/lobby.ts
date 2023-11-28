@@ -710,7 +710,7 @@ export class LobbyCommand extends Subcommand {
 		embedDescription += `**Tryout:** \`${tryout.name}\`\n`;
 		embedDescription += `**Stage:** \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
 		embedDescription += `**Lobby count:** \`${lobbiesToCreate.length}\`\n\n`;
-		embedDescription += `**__Details:__**\n`;
+		embedDescription += "**__Details:__**\n";
 
 		for (const lobby of lobbiesToCreate) {
 			embedDescription += `Lobby \`${lobby.custom_id}\`\n`;
@@ -1068,6 +1068,19 @@ export class LobbyCommand extends Subcommand {
 			ephemeral: true,
 		});
 
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
+
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
 			.trim()
@@ -1089,7 +1102,7 @@ export class LobbyCommand extends Subcommand {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				player_channel_id: interaction.channel!.id,
+				player_channel_id: interaction.channel.id,
 			},
 			include: {
 				_count: {
@@ -1197,7 +1210,7 @@ export class LobbyCommand extends Subcommand {
 			},
 		});
 
-		if (previousLobby && previousLobby.played) {
+		if (previousLobby?.played) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -1388,6 +1401,19 @@ export class LobbyCommand extends Subcommand {
 			ephemeral: true,
 		});
 
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
+
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
@@ -1408,10 +1434,10 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				OR: [
 					{
-						player_channel_id: interaction.channel!.id,
+						player_channel_id: interaction.channel.id,
 					},
 					{
-						staff_channel_id: interaction.channel!.id,
+						staff_channel_id: interaction.channel.id,
 					},
 				],
 			},
@@ -1476,7 +1502,7 @@ export class LobbyCommand extends Subcommand {
 			embedDescription += `**Stage \`${stage.name}\`** (\`${stage.custom_id}\`)\n`;
 
 			if (stage.lobbies.length < 1) {
-				embedDescription += `\\- *No lobbies in this stage*\n\n`;
+				embedDescription += "\\- *No lobbies in this stage*\n\n";
 
 				continue;
 			}
@@ -1527,6 +1553,19 @@ export class LobbyCommand extends Subcommand {
 			ephemeral: true,
 		});
 
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
+
 		const player = interaction.options.getUser("player", false);
 		let playerData = null;
 
@@ -1548,10 +1587,10 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				OR: [
 					{
-						player_channel_id: interaction.channel!.id,
+						player_channel_id: interaction.channel.id,
 					},
 					{
-						staff_channel_id: interaction.channel!.id,
+						staff_channel_id: interaction.channel.id,
 					},
 				],
 			},
@@ -1695,6 +1734,19 @@ export class LobbyCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
+
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
 			.trim()
@@ -1718,10 +1770,10 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				OR: [
 					{
-						player_channel_id: interaction.channel!.id,
+						player_channel_id: interaction.channel.id,
 					},
 					{
-						staff_channel_id: interaction.channel!.id,
+						staff_channel_id: interaction.channel.id,
 					},
 				],
 			},
@@ -1807,11 +1859,7 @@ export class LobbyCommand extends Subcommand {
 		}\n`;
 		embedDescription += `\\- **Bancho ID:** ${
 			lobby.bancho_id
-				? "[" +
-				  lobby.bancho_id +
-				  "](https://osu.ppy.sh/community/matches/" +
-				  lobby.bancho_id +
-				  ")"
+				? `[${lobby.bancho_id}](https://osu.ppy.sh/community/matches/${lobby.bancho_id})`
 				: "`None`"
 		}\n`;
 		embedDescription += `\\- **Schedule:** \`${DateTime.fromJSDate(
@@ -1826,9 +1874,7 @@ export class LobbyCommand extends Subcommand {
 
 		if (lobby._count.players > 0) {
 			for (const player of lobby.players) {
-				embedDescription += `\\- ${userMention(player.player.discord_id!)} (\`${
-					player.player.osu_username
-				}\` - \`#${player.player.osu_id}\`)\n`;
+				embedDescription += `\\- <@${player.player.discord_id}> (\`${player.player.osu_username}\` - \`#${player.player.osu_id}\`)\n`;
 			}
 		} else {
 			embedDescription += "*No players in this lobby*\n";
@@ -1847,10 +1893,24 @@ export class LobbyCommand extends Subcommand {
 		});
 	}
 
+	// TODO: Improve the error messages.
 	public async chatInputPlayerAssign(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
+
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
@@ -1877,10 +1937,10 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				OR: [
 					{
-						player_channel_id: interaction.channel!.id,
+						player_channel_id: interaction.channel.id,
 					},
 					{
-						staff_channel_id: interaction.channel!.id,
+						staff_channel_id: interaction.channel.id,
 					},
 				],
 			},
@@ -2054,7 +2114,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		if (originLobby && originLobby.players[0].played) {
+		if (originLobby?.players[0].played) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2151,10 +2211,24 @@ export class LobbyCommand extends Subcommand {
 		}
 	}
 
+	// TODO: Improve the error messages.
 	public async chatInputPlayerUnassign(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
+
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
@@ -2181,10 +2255,10 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				OR: [
 					{
-						player_channel_id: interaction.channel!.id,
+						player_channel_id: interaction.channel.id,
 					},
 					{
-						staff_channel_id: interaction.channel!.id,
+						staff_channel_id: interaction.channel.id,
 					},
 				],
 			},
@@ -2335,10 +2409,24 @@ export class LobbyCommand extends Subcommand {
 		}
 	}
 
+	// TODO: Improve the error messages.
 	public async chatInputPlayerUnassignId(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
+
+		if (!interaction.channel) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription("This command can only be used in a channel."),
+				],
+			});
+
+			return;
+		}
 
 		const lobbyId = interaction.options
 			.getString("lobby-id", true)
@@ -2365,10 +2453,10 @@ export class LobbyCommand extends Subcommand {
 			where: {
 				OR: [
 					{
-						player_channel_id: interaction.channel!.id,
+						player_channel_id: interaction.channel.id,
 					},
 					{
-						staff_channel_id: interaction.channel!.id,
+						staff_channel_id: interaction.channel.id,
 					},
 				],
 			},

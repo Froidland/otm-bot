@@ -1,24 +1,24 @@
-import "@sapphire/plugin-hmr";
-import "@sapphire/pieces";
 import { LogLevel, SapphireClient, container } from "@sapphire/framework";
-import { GatewayIntentBits } from "discord.js";
-import db from "./db";
-import { auth } from "osu-api-extended";
-import {
-	initializeTryoutLobbyReminderScheduleWorker,
-	initializeTryoutLobbyCreateWorker,
-	tryoutLobbyReminderScheduleQueue,
-	tournamentQualifierReminderScheduleQueue,
-	tournamentQualifierCreateQueue,
-	initializeTryoutLobbyReminderSendWorker,
-} from "./processing";
+import "@sapphire/pieces";
+import "@sapphire/plugin-hmr";
 import BanchoJs from "bancho.js";
-import { registerBanchoEvents } from "./bancho/events";
-import { tryoutLobbyCreateQueue } from "./processing/queues/tryoutLobbyCreateQueue";
-import { initializeTournamentQualifierReminderSendWorker } from "./processing/workers/tournamentQualifierReminderSendWorker";
-import { initializeTournamentQualifierCreateWorker } from "./processing/workers/tournamentQualifierCreateWorker";
+import { GatewayIntentBits } from "discord.js";
 import { Settings } from "luxon";
+import { auth } from "osu-api-extended";
+import { registerBanchoEvents } from "./bancho/events";
+import db from "./db";
+import {
+	initializeTryoutLobbyCreateWorker,
+	initializeTryoutLobbyReminderScheduleWorker,
+	initializeTryoutLobbyReminderSendWorker,
+	tournamentQualifierCreateQueue,
+	tournamentQualifierReminderScheduleQueue,
+	tryoutLobbyReminderScheduleQueue,
+} from "./processing";
+import { tryoutLobbyCreateQueue } from "./processing/queues/tryoutLobbyCreateQueue";
+import { initializeTournamentQualifierCreateWorker } from "./processing/workers/tournamentQualifierCreateWorker";
 import { initializeTournamentQualifierReminderScheduleWorker } from "./processing/workers/tournamentQualifierReminderScheduleWorker";
+import { initializeTournamentQualifierReminderSendWorker } from "./processing/workers/tournamentQualifierReminderSendWorker";
 
 // Discord client setup
 const discordClient = new SapphireClient({
@@ -39,8 +39,11 @@ const discordClient = new SapphireClient({
 
 // Bancho client setup
 const banchoClient = new BanchoJs.BanchoClient({
+	// biome-ignore lint: env variables are checked by dotenv-safe
 	username: process.env.BANCHO_USERNAME!,
+	// biome-ignore lint: env variables are checked by dotenv-safe
 	password: process.env.BANCHO_PASSWORD!,
+	// biome-ignore lint: env variables are checked by dotenv-safe
 	apiKey: process.env.BANCHO_API_KEY!,
 });
 // ---------------------------
@@ -55,7 +58,9 @@ async function bootstrap() {
 	try {
 		// osu! API setup
 		await auth.login(
+			// biome-ignore lint: env variables are checked by dotenv-safe
 			+process.env.OSU_CLIENT_ID!,
+			// biome-ignore lint: env variables are checked by dotenv-safe
 			process.env.OSU_CLIENT_SECRET!,
 			["public"],
 		);
@@ -91,7 +96,7 @@ async function bootstrap() {
 			});
 
 			db.$on("query", (e) => {
-				container.logger.debug(e.duration + "ms " + e.query);
+				container.logger.debug(`${e.duration}ms ${e.query}`);
 			});
 
 			db.$on("error", (e) => {

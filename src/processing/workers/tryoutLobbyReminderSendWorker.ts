@@ -88,12 +88,10 @@ async function workerHandler(job: Job<JobData, void, string>) {
 	let playerMessage = null;
 	let staffMessage = null;
 
-	const staffMessageDescription =
-		"The following players are registered for this lobby:\n\n" +
-		data.players.map(
-			(player) =>
-				`• <@${player.discordId}> | \`${player.osuUsername}\` - \`!mp invite #${player.osuId}\``,
-		);
+	const staffMessageDescription = `The following players are registered for this lobby:\n\n${data.players.map(
+		(player) =>
+			`• <@${player.discordId}> | \`${player.osuUsername}\` - \`!mp invite #${player.osuId}\``,
+	)}`;
 
 	const playerChannel = await container.client.channels.fetch(
 		data.playerChannelId,
@@ -103,7 +101,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 		data.staffChannelId,
 	);
 
-	if (playerChannel && playerChannel.isTextBased()) {
+	if (playerChannel?.isTextBased()) {
 		playerMessage = await playerChannel.send({
 			content: data.players.map((player) => `<@${player.discordId}>`).join(" "),
 			embeds: [
@@ -115,10 +113,11 @@ async function workerHandler(job: Job<JobData, void, string>) {
 						).toRelative()}!`,
 					)
 					.setDescription(
-						"The lobby will be made soon, make sure you are in-game to receive your invite." +
-							(data.referee
+						`The lobby will be made soon, make sure you are in-game to receive your invite.${
+							data.referee
 								? ` In case you need any help, your referee is <@${data.referee.discord_id}> (\`${data.referee.osu_username}\` - \`#${data.referee.osu_id}\`)`
-								: ""),
+								: ""
+						}`,
 					)
 					.setFooter({
 						text: `Unique ID: ${data.lobbyId}`,
@@ -128,7 +127,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 		});
 	}
 
-	if (staffChannel && staffChannel.isTextBased()) {
+	if (staffChannel?.isTextBased()) {
 		staffMessage = await staffChannel.send({
 			content: data.referee
 				? `<@${data.referee.discord_id}>`

@@ -150,10 +150,26 @@ export class JoinOneVsOneTournamentModalSubmitHandler extends InteractionHandler
 			inputs.push(...component.components);
 		}
 
-		const timezone = inputs.find((i) => i.customId === "timezoneInput")!.value;
+		const timezone = inputs.find((i) => i.customId === "timezoneInput");
+
+		if (!timezone) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Unexpected error")
+						.setDescription(
+							"Unable to find timezone input. Please try again later or contact a staff member.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		const icon = `https://a.ppy.sh/${user.osu_id}`;
 
-		if (!timezoneRegex.test(timezone)) {
+		if (!timezoneRegex.test(timezone.value)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -174,7 +190,7 @@ export class JoinOneVsOneTournamentModalSubmitHandler extends InteractionHandler
 					id,
 					creator_id: user.id,
 					name: user.osu_username,
-					timezone,
+					timezone: timezone.value,
 					icon_url: icon,
 					tournament_id: tournament.id,
 					players: {

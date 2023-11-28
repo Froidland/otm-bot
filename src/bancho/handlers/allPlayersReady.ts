@@ -1,6 +1,6 @@
+import BanchoJs from "bancho.js";
 import { lobbyStore } from "../store";
 import { getCurrentPlayers, getMissingPlayers } from "../utils";
-import BanchoJs from "bancho.js";
 
 export async function allPlayersReady(
 	client: BanchoJs.BanchoClient,

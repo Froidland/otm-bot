@@ -6,8 +6,8 @@ import {
 	PieceContext,
 } from "@sapphire/framework";
 import {
-	EmbedBuilder,
 	type ButtonInteraction,
+	EmbedBuilder,
 	GuildMemberRoleManager,
 } from "discord.js";
 

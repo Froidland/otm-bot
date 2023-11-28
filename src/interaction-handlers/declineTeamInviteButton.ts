@@ -125,9 +125,13 @@ export class DeclineTeamInviteButton extends InteractionHandler {
 			],
 		});
 
+		if (!user.team_invites[0].team.creator.discord_id) {
+			return;
+		}
+
 		try {
 			const captain = await this.container.client.users.fetch(
-				user.team_invites[0].team.creator.discord_id!,
+				user.team_invites[0].team.creator.discord_id,
 			);
 
 			await captain.send({

@@ -1,6 +1,6 @@
 import db from "@/db";
 import { container } from "@sapphire/pieces";
-import { WorkerOptions, Worker, Job } from "bullmq";
+import { Job, Worker, WorkerOptions } from "bullmq";
 import { DateTime } from "luxon";
 import { tournamentQualifierReminderSendQueue } from "../queues";
 

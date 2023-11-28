@@ -5,7 +5,7 @@ import {
 	InteractionHandlerTypes,
 	PieceContext,
 } from "@sapphire/framework";
-import { EmbedBuilder, type ButtonInteraction } from "discord.js";
+import { type ButtonInteraction, EmbedBuilder } from "discord.js";
 
 export class AcceptTeamInviteButton extends InteractionHandler {
 	public constructor(context: PieceContext) {
@@ -217,9 +217,13 @@ export class AcceptTeamInviteButton extends InteractionHandler {
 			],
 		});
 
+		if (!team.creator.discord_id) {
+			return;
+		}
+
 		try {
 			const captain = await this.container.client.users.fetch(
-				team.creator.discord_id!,
+				team.creator.discord_id,
 			);
 
 			await captain.send({

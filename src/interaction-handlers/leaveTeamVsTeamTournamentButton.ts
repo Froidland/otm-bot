@@ -154,8 +154,12 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 				});
 
 				for (const player of team.players) {
+					if (!player.player.discord_id) {
+						continue;
+					}
+
 					const member = await interaction.guild.members.fetch(
-						player.player.discord_id!,
+						player.player.discord_id,
 					);
 
 					await member.roles.remove(tournament.player_role_id);
@@ -193,8 +197,12 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 					continue;
 				}
 
+				if (!player.player.discord_id) {
+					continue;
+				}
+
 				const discordUser = await this.container.client.users.fetch(
-					player.player.discord_id!,
+					player.player.discord_id,
 				);
 
 				await discordUser.send({
@@ -259,8 +267,12 @@ export class LeaveTeamVsTeamTournamentButton extends InteractionHandler {
 				],
 			});
 
+			if (!team.creator.discord_id) {
+				return;
+			}
+
 			const captain = await this.container.client.users.fetch(
-				team.creator.discord_id!,
+				team.creator.discord_id,
 			);
 
 			await captain.send({

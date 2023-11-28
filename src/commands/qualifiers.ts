@@ -10,8 +10,8 @@ import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import { APIEmbedField, AttachmentBuilder, EmbedBuilder } from "discord.js";
 import { DateTime } from "luxon";
-import { unparse } from "papaparse";
 import { v2 } from "osu-api-extended";
+import { unparse } from "papaparse";
 
 const modCombinations = [
 	"NM",
@@ -328,7 +328,7 @@ export class QualifiersCommand extends Subcommand {
 			const apiBeatmap = await v2.beatmap.id.details(beatmapId);
 
 			// @ts-expect-error osu! api wrapper shenanigans
-			if (apiBeatmap["error"] !== undefined) {
+			if (apiBeatmap.error !== undefined) {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
@@ -370,7 +370,7 @@ export class QualifiersCommand extends Subcommand {
 							.setColor("Red")
 							.setTitle("Error")
 							.setDescription(
-								`There was an error while trying to fetch the beatmap. Please try again later.`,
+								"There was an error while trying to fetch the beatmap. Please try again later.",
 							),
 					],
 				});
@@ -758,9 +758,7 @@ export class QualifiersCommand extends Subcommand {
 							`The following picks are missing from the pattern: \n${missingPicks
 								.map(
 									(pick) =>
-										`\\- \`${pick.pick_id}\` | [${pick.beatmap!.title} [${
-											pick.beatmap!.version
-										}]](https://osu.ppy.sh/beatmaps/${pick.beatmap!.id})`,
+										`\\- \`${pick.pick_id}\` | [${pick.beatmap?.title} [${pick.beatmap?.version}]](https://osu.ppy.sh/beatmaps/${pick.beatmap?.id})`,
 								)
 								.join("\n")}`,
 						),
@@ -804,7 +802,7 @@ export class QualifiersCommand extends Subcommand {
 					.setTitle("Map order set!")
 					.setDescription(
 						`The map order for the tournament's qualifiers has been set to:\n ${pattern
-							.map((pick) => "`" + pick + "`")
+							.map((pick) => `\`${pick}\``)
 							.join(" -> ")}`,
 					),
 			],
@@ -964,7 +962,7 @@ export class QualifiersCommand extends Subcommand {
 						.setColor("Red")
 						.setTitle("Invalid date!")
 						.setDescription(
-							`The date you provided is invalid. Please use the following format: \`YYYY-MM-DD HH:MM\``,
+							"The date you provided is invalid. Please use the following format: `YYYY-MM-DD HH:MM`",
 						),
 				],
 			});
@@ -1475,12 +1473,8 @@ export class QualifiersCommand extends Subcommand {
 			const date = DateTime.fromJSDate(lobby.schedule, { zone: "utc" });
 			const statusMessage =
 				lobby.status === "Completed" || lobby.status === "Ongoing"
-					? "[" +
-					  lobby.status +
-					  "](https://osu.ppy.sh/community/matches/" +
-					  lobby.bancho_id +
-					  ")"
-					: "**" + lobby.status + "**";
+					? `[${lobby.status}](https://osu.ppy.sh/community/matches/${lobby.bancho_id})`
+					: `**${lobby.status}**`;
 
 			embedDescription += `\\- \`${lobby.team.name}\` | \`${date.toFormat(
 				"DDDD T",
@@ -1650,9 +1644,11 @@ export class QualifiersCommand extends Subcommand {
 			embedDescription += `**${mod}** pool:\n`;
 
 			for (const map of maps) {
-				embedDescription += `\\- \`${map.pick_id}\` | [${map.beatmap
-					?.artist} - ${map.beatmap?.title} [${map.beatmap
-					?.version}] [${map.beatmap?.difficulty_rating.toFixed(
+				embedDescription += `\\- \`${map.pick_id}\` | [${
+					map.beatmap?.artist
+				} - ${map.beatmap?.title} [${
+					map.beatmap?.version
+				}] [${map.beatmap?.difficulty_rating.toFixed(
 					2,
 				)}★]](https://osu.ppy.sh/beatmaps/${map.beatmap_id}) \`#${
 					map.beatmap_id

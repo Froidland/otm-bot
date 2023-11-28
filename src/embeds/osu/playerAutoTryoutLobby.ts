@@ -26,7 +26,7 @@ export const playerAutoTryoutLobbyEmbed = (
 	// prettier-ignore
 	embedDescription += `\\- **Referee:** ${
 		lobby.referees.length > 0
-			? "<@" + lobby.referees[0].discordId + "> (`" + lobby.referees[0].osuUsername + "` - `#" + lobby.referees[0].osuId + "`)"
+			? `<@${lobby.referees[0].discordId}> (\`${lobby.referees[0].osuUsername}\` - \`#${lobby.referees[0].osuId}\`)`
 			: "*None*"
 	}\n`;
 

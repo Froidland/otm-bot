@@ -1,13 +1,3 @@
-import BanchoJs from "bancho.js";
-import {
-	AutoLobby,
-	LobbyUser,
-	QualifierLobby,
-	TryoutLobby,
-	lobbyStore,
-} from "./store";
-import { container } from "@sapphire/pieces";
-import { DateTime } from "luxon";
 import db from "@/db";
 import {
 	playerAutoQualifierLobbyEmbed,
@@ -15,15 +5,25 @@ import {
 	staffAutoQualifierLobbyEmbed,
 	staffAutoTryoutLobbyEmbed,
 } from "@/embeds";
+import { container } from "@sapphire/pieces";
+import BanchoJs from "bancho.js";
 import { EmbedBuilder } from "discord.js";
+import { DateTime } from "luxon";
 import {
+	allPlayersReady,
 	matchFinished,
 	matchStarted,
-	playerJoined,
-	allPlayersReady,
-	timerEnd as timerEnded,
 	message,
+	playerJoined,
+	timerEnd as timerEnded,
 } from "./handlers";
+import {
+	AutoLobby,
+	LobbyUser,
+	QualifierLobby,
+	TryoutLobby,
+	lobbyStore,
+} from "./store";
 
 /**
  * Creates a lobby in bancho linked to the given lobby, stores it in memory and handles all the necessary setup and events.
@@ -49,7 +49,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content: lobby.referees.map((r) => `<@${r.discordId}>`).join(" "),
 				embeds: [
@@ -90,7 +90,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -130,7 +130,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -159,7 +159,7 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -189,13 +189,13 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 		lobby.playerNotifChannelId,
 	);
 
-	if (discordStaffChannel && discordStaffChannel.isTextBased()) {
+	if (discordStaffChannel?.isTextBased()) {
 		staffMessage = await discordStaffChannel.send(
 			staffAutoTryoutLobbyEmbed(lobby),
 		);
 	}
 
-	if (discordPlayerChannel && discordPlayerChannel.isTextBased()) {
+	if (discordPlayerChannel?.isTextBased()) {
 		playerMessage = await discordPlayerChannel.send(
 			playerAutoTryoutLobbyEmbed(lobby),
 		);
@@ -215,11 +215,11 @@ export async function createTryoutLobby(lobby: TryoutLobby) {
 	lobby.mappoolHistory.push(map);
 
 	if (lobby.referees.length > 0) {
-		await banchoChannel.lobby.addRef("#" + lobby.referees[0].osuId);
+		await banchoChannel.lobby.addRef(`#${lobby.referees[0].osuId}`);
 	}
 
 	for (const player of lobby.players) {
-		await banchoChannel.lobby.invitePlayer("#" + player.osuId);
+		await banchoChannel.lobby.invitePlayer(`#${player.osuId}`);
 	}
 
 	lobbyStore.set(banchoChannel.lobby.id, lobby);
@@ -263,7 +263,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -309,7 +309,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -351,7 +351,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -382,7 +382,7 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 			lobby.staffNotifChannelId,
 		);
 
-		if (staffChannel && staffChannel.isTextBased()) {
+		if (staffChannel?.isTextBased()) {
 			await staffChannel.send({
 				content:
 					lobby.referees.length < 1
@@ -414,13 +414,13 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 		lobby.playerNotifChannelId,
 	);
 
-	if (discordStaffChannel && discordStaffChannel.isTextBased()) {
+	if (discordStaffChannel?.isTextBased()) {
 		staffMessage = await discordStaffChannel.send(
 			staffAutoQualifierLobbyEmbed(lobby),
 		);
 	}
 
-	if (discordPlayerChannel && discordPlayerChannel.isTextBased()) {
+	if (discordPlayerChannel?.isTextBased()) {
 		playerMessage = await discordPlayerChannel.send(
 			playerAutoQualifierLobbyEmbed(lobby),
 		);
@@ -440,10 +440,10 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 	lobby.mappoolHistory.push(map);
 
 	if (lobby.referees.length > 0) {
-		await banchoChannel.lobby.addRef("#" + lobby.referees[0].osuId);
+		await banchoChannel.lobby.addRef(`#${lobby.referees[0].osuId}`);
 	}
 
-	await banchoChannel.lobby.invitePlayer("#" + lobby.captain.osuId);
+	await banchoChannel.lobby.invitePlayer(`#${lobby.captain.osuId}`);
 
 	lobbyStore.set(banchoChannel.lobby.id, lobby);
 
@@ -469,11 +469,12 @@ export async function createQualifierLobby(lobby: QualifierLobby) {
 export async function endLobby(
 	lobby: AutoLobby,
 	banchoLobby: BanchoJs.BanchoLobby,
-	skipped: boolean = false,
+	skipped = false,
 ) {
 	await banchoLobby.closeLobby();
+	removeBanchoLobbyListeners(banchoLobby);
 
-	lobbyStore.delete(banchoLobby.id)
+	lobbyStore.delete(banchoLobby.id);
 
 	if (skipped) {
 		return;
@@ -484,7 +485,7 @@ export async function endLobby(
 			lobby.staffNotifChannelId,
 		);
 
-		if (notificationChannel && notificationChannel.isTextBased()) {
+		if (notificationChannel?.isTextBased()) {
 			await notificationChannel.send({
 				embeds: [
 					new EmbedBuilder()
@@ -600,4 +601,19 @@ export function addBanchoLobbyListeners(
 	lobby.on("timerEnded", () => timerEnded(client, lobby));
 
 	lobby.channel.on("message", (msg) => message(client, lobby, msg));
+}
+
+/**
+ * Removes all the listeners from the given lobby.
+ * @param lobby BanchoLobby instance.
+ * @param client BanchoClient instance.
+ */
+export function removeBanchoLobbyListeners(lobby: BanchoJs.BanchoLobby) {
+	lobby.removeAllListeners("matchFinished");
+	lobby.removeAllListeners("matchStarted");
+	lobby.removeAllListeners("playerJoined");
+	lobby.removeAllListeners("allPlayersReady");
+	lobby.removeAllListeners("timerEnded");
+
+	lobby.channel.removeAllListeners("message");
 }

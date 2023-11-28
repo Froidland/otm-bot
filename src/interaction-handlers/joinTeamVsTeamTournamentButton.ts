@@ -4,12 +4,12 @@ import {
 	PieceContext,
 } from "@sapphire/framework";
 import {
+	ActionRowBuilder,
 	type ButtonInteraction,
+	ModalActionRowComponentBuilder,
 	ModalBuilder,
 	TextInputBuilder,
 	TextInputStyle,
-	ActionRowBuilder,
-	ModalActionRowComponentBuilder,
 } from "discord.js";
 
 export class JoinTryoutButtonHandler extends InteractionHandler {

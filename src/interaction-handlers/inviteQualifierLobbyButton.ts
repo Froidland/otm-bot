@@ -6,8 +6,8 @@ import {
 	InteractionHandlerTypes,
 	PieceContext,
 } from "@sapphire/framework";
-import { ButtonInteraction, EmbedBuilder } from "discord.js";
 import BanchoJs from "bancho.js";
+import { ButtonInteraction, EmbedBuilder } from "discord.js";
 
 export class inviteQualifierLobbyButton extends InteractionHandler {
 	public constructor(context: PieceContext) {
@@ -124,7 +124,7 @@ export class inviteQualifierLobbyButton extends InteractionHandler {
 			return;
 		}
 
-		await banchoChannel.lobby.invitePlayer("#" + user.osu_id);
+		await banchoChannel.lobby.invitePlayer(`#${user.osu_id}`);
 
 		await interaction.editReply({
 			embeds: [

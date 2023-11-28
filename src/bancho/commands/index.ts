@@ -1,8 +1,8 @@
 import BanchoJs from "bancho.js";
-import { playerList } from "./playerList";
-import { panic } from "./panic";
-import { replay } from "./replay";
 import { history } from "./history";
+import { panic } from "./panic";
+import { playerList } from "./playerList";
+import { replay } from "./replay";
 
 export type BanchoCommand = {
 	name: string;

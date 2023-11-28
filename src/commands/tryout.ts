@@ -1,6 +1,8 @@
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
 import { tryoutRegistration } from "@/embeds/osu/tryoutRegistration";
+import { hasTryoutAdminRole } from "@/utils";
+import { createId } from "@paralleldrive/cuid2";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import {
@@ -14,8 +16,6 @@ import {
 	SlashCommandSubcommandGroupBuilder,
 } from "discord.js";
 import { DateTime } from "luxon";
-import { createId } from "@paralleldrive/cuid2";
-import { hasTryoutAdminRole } from "@/utils";
 import { v2 } from "osu-api-extended";
 import { unparse } from "papaparse";
 
@@ -726,7 +726,9 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		let playerRole, adminRole, refereeRole;
+		let playerRole;
+		let adminRole;
+		let refereeRole;
 
 		try {
 			playerRole = await interaction.guild.roles.create({
@@ -762,7 +764,9 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		let tryoutCategory, staffChannel, playerChannel;
+		let tryoutCategory;
+		let staffChannel;
+		let playerChannel;
 
 		try {
 			tryoutCategory = await interaction.guild.channels.create({
@@ -1336,7 +1340,7 @@ export class TryoutCommand extends Subcommand {
 					new EmbedBuilder()
 						.setColor("Yellow")
 						.setTitle(`${pick} removed!`)
-						.setImage(tryout.stages[0].mappool[0].beatmap!.cover_url)
+						.setImage(tryout.stages[0].mappool[0].beatmap.cover_url)
 						.setDescription(embedDescription),
 				],
 			});
@@ -1470,7 +1474,7 @@ export class TryoutCommand extends Subcommand {
 			const apiBeatmap = await v2.beatmap.id.details(beatmapId);
 
 			// @ts-expect-error osu! api wrapper shenanigans
-			if (apiBeatmap["error"] !== undefined) {
+			if (apiBeatmap.error !== undefined) {
 				await interaction.editReply({
 					embeds: [
 						new EmbedBuilder()
@@ -1604,7 +1608,7 @@ export class TryoutCommand extends Subcommand {
 						.setColor("Red")
 						.setTitle("Error")
 						.setDescription(
-							`An error occurred while setting the pick. Please try again later.`,
+							"An error occurred while setting the pick. Please try again later.",
 						),
 				],
 			});
@@ -1723,9 +1727,7 @@ export class TryoutCommand extends Subcommand {
 							`The following picks are missing from the pattern: \n${missingPicks
 								.map(
 									(pick) =>
-										`\\- \`${pick.pick_id}\` | [${pick.beatmap!.title} [${
-											pick.beatmap!.version
-										}]](https://osu.ppy.sh/beatmaps/${pick.beatmap!.id})`,
+										`\\- \`${pick.pick_id}\` | [${pick.beatmap.title} [${pick.beatmap.version}]](https://osu.ppy.sh/beatmaps/${pick.beatmap.id})`,
 								)
 								.join("\n")}`,
 						),
@@ -1755,7 +1757,7 @@ export class TryoutCommand extends Subcommand {
 							`The map order for stage \`${
 								stage.name
 							}\` has been set to:\n ${pattern
-								.map((pick) => "`" + pick + "`")
+								.map((pick) => `\`${pick}\``)
 								.join(" -> ")}`,
 						),
 				],
@@ -1949,9 +1951,11 @@ export class TryoutCommand extends Subcommand {
 			embedDescription += `**${mod}** pool:\n`;
 
 			for (const map of maps) {
-				embedDescription += `\\- \`${map.pick_id}\` | [${map.beatmap
-					?.artist} - ${map.beatmap?.title} [${map.beatmap
-					?.version}] [${map.beatmap?.difficulty_rating.toFixed(
+				embedDescription += `\\- \`${map.pick_id}\` | [${
+					map.beatmap?.artist
+				} - ${map.beatmap?.title} [${
+					map.beatmap?.version
+				}] [${map.beatmap?.difficulty_rating.toFixed(
 					2,
 				)}★]](https://osu.ppy.sh/beatmaps/${map.beatmap_id}) \`#${
 					map.beatmap_id
@@ -2719,6 +2723,19 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
 		let channel = interaction.options.getChannel("channel");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
@@ -2812,12 +2829,12 @@ export class TryoutCommand extends Subcommand {
 
 		if (!channel) {
 			try {
-				channel = (await interaction.guild!.channels.create({
+				channel = (await interaction.guild.channels.create({
 					name: `${tryout.acronym}-staff`,
 					type: ChannelType.GuildText,
 					permissionOverwrites: [
 						{
-							id: interaction.guild!.roles.everyone.id,
+							id: interaction.guild.roles.everyone.id,
 							deny: [PermissionFlagsBits.ViewChannel],
 						},
 						{
@@ -2903,6 +2920,19 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
 		let channel = interaction.options.getChannel("channel");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
@@ -2996,12 +3026,12 @@ export class TryoutCommand extends Subcommand {
 
 		if (!channel) {
 			try {
-				channel = (await interaction.guild!.channels.create({
+				channel = (await interaction.guild.channels.create({
 					name: `${tryout.acronym}-players`,
 					type: ChannelType.GuildText,
 					permissionOverwrites: [
 						{
-							id: interaction.guild!.roles.everyone.id,
+							id: interaction.guild.roles.everyone.id,
 							deny: [PermissionFlagsBits.ViewChannel],
 						},
 						{
@@ -3091,6 +3121,19 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
 		let role = interaction.options.getRole("role");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
@@ -3151,7 +3194,7 @@ export class TryoutCommand extends Subcommand {
 
 		if (!role) {
 			try {
-				role = await interaction.guild!.roles.create({
+				role = await interaction.guild.roles.create({
 					name: `${tryout.acronym}: Player`,
 				});
 			} catch (error) {
@@ -3227,6 +3270,19 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
 		let role = interaction.options.getRole("role");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
@@ -3287,7 +3343,7 @@ export class TryoutCommand extends Subcommand {
 
 		if (!role) {
 			try {
-				role = await interaction.guild!.roles.create({
+				role = await interaction.guild.roles.create({
 					name: `${tryout.acronym}: Management`,
 				});
 			} catch (error) {
@@ -3363,6 +3419,19 @@ export class TryoutCommand extends Subcommand {
 	) {
 		await interaction.deferReply();
 
+		if (!interaction.guild) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Error")
+						.setDescription("This command can only be used in a server."),
+				],
+			});
+
+			return;
+		}
+
 		let role = interaction.options.getRole("role");
 		const deletePrevious = interaction.options.getBoolean("delete-previous");
 
@@ -3423,7 +3492,7 @@ export class TryoutCommand extends Subcommand {
 
 		if (!role) {
 			try {
-				role = await interaction.guild!.roles.create({
+				role = await interaction.guild.roles.create({
 					name: `${tryout.acronym}: Referee`,
 				});
 			} catch (error) {
@@ -3915,7 +3984,7 @@ export class TryoutCommand extends Subcommand {
 			return;
 		}
 
-		let embedDescription = `Players in this tryout:\n`;
+		let embedDescription = "Players in this tryout:\n";
 
 		for (const player of tryout.players) {
 			embedDescription += `<@${player.player.discord_id}> (\`${

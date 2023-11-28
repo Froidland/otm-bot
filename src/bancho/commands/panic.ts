@@ -1,7 +1,7 @@
 import { container } from "@sapphire/pieces";
+import { EmbedBuilder } from "discord.js";
 import { BanchoCommand } from ".";
 import { lobbyStore } from "../store";
-import { EmbedBuilder } from "discord.js";
 
 export const panic: BanchoCommand = {
 	name: "panic",

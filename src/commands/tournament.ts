@@ -487,7 +487,10 @@ export class TournamentCommand extends Subcommand {
 			return;
 		}
 
-		let organizerRole, mappoolerRole, refereeRole, playerRole;
+		let organizerRole;
+		let mappoolerRole;
+		let refereeRole;
+		let playerRole;
 
 		try {
 			organizerRole = await interaction.guild.roles.create({
@@ -527,11 +530,11 @@ export class TournamentCommand extends Subcommand {
 			return;
 		}
 
-		let staffChannel,
-			mappoolerChannel,
-			refereeChannel,
-			playerChannel,
-			tournamentCategory;
+		let staffChannel;
+		let mappoolerChannel;
+		let refereeChannel;
+		let playerChannel;
+		let tournamentCategory;
 
 		try {
 			tournamentCategory = await interaction.guild.channels.create({
@@ -725,6 +728,7 @@ export class TournamentCommand extends Subcommand {
 						? {
 								create: {
 									id: createId(),
+									// biome-ignore lint: the deadline will always be defined if hasQualifiers is true.
 									deadline: qualifiersDeadline!.toJSDate(),
 								},
 						  }
@@ -894,7 +898,7 @@ export class TournamentCommand extends Subcommand {
 				tournament.embed_channel_id,
 			);
 
-			if (previousChannel && previousChannel.isTextBased()) {
+			if (previousChannel?.isTextBased()) {
 				const messages = await previousChannel.messages.fetch({
 					around: tournament.embed_message_id,
 					limit: 1,

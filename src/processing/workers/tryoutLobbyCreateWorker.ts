@@ -142,7 +142,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const beatmaps = mappool.map((m) => {
 			return {
-				beatmapId: m.beatmap_id!,
+				beatmapId: m.beatmap_id,
 				pickId: m.pick_id,
 				mods: m.mods,
 			};

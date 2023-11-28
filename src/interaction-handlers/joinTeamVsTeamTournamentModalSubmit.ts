@@ -158,17 +158,46 @@ export class JoinTeamVsTeamTournamentModalSubmitHandler extends InteractionHandl
 		}
 
 		const id = createId();
-		const teamName = inputs.find((i) => i.customId === "teamNameInput")!.value;
+		const teamName = inputs.find((i) => i.customId === "teamNameInput");
+
+		if (!teamName) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Unexpected error")
+						.setDescription(
+							"Unable to find team name input. Please try again later or contact a staff member.",
+						),
+				],
+			});
+
+			return;
+		}
+
 		const teamIcon =
 			inputs.find((i) => i.customId === "teamIconInput")?.value || null;
-		const teamTimezone = inputs.find(
-			(i) => i.customId === "teamTimezoneInput",
-		)!.value;
+		const teamTimezone = inputs.find((i) => i.customId === "teamTimezoneInput");
+
+		if (!teamTimezone) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Unexpected error")
+						.setDescription(
+							"Unable to find team timezone input. Please try again later or contact a staff member.",
+						),
+				],
+			});
+
+			return;
+		}
 
 		const sameNameTeam = await db.team.findFirst({
 			where: {
 				tournament_id: tournament.id,
-				name: teamName,
+				name: teamName.value,
 			},
 		});
 
@@ -187,7 +216,7 @@ export class JoinTeamVsTeamTournamentModalSubmitHandler extends InteractionHandl
 			return;
 		}
 
-		if (!timezoneRegex.test(teamTimezone)) {
+		if (!timezoneRegex.test(teamTimezone.value)) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -219,7 +248,7 @@ export class JoinTeamVsTeamTournamentModalSubmitHandler extends InteractionHandl
 		embedDescription += `**Name:** \`${teamName}\`\n`;
 		embedDescription += `**Creator:** <@${interaction.user.id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`)\n`;
 		embedDescription += `**Icon:** ${
-			teamIcon ? "[Link](" + teamIcon + ")" : "None"
+			teamIcon ? `[Link](${teamIcon})` : "None"
 		}\n`;
 		embedDescription += `**Timezone:** \`${teamTimezone}\`\n\n`;
 
@@ -230,9 +259,9 @@ export class JoinTeamVsTeamTournamentModalSubmitHandler extends InteractionHandl
 			await db.team.create({
 				data: {
 					id,
-					name: teamName,
+					name: teamName.value,
 					icon_url: teamIcon,
-					timezone: teamTimezone,
+					timezone: teamTimezone.value,
 					creator_id: user.id,
 					players: {
 						create: {

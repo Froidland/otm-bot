@@ -207,7 +207,7 @@ export class TeamCommand extends Subcommand {
 			},
 		});
 
-		if (!user) {
+		if (!user || !user.discord_id) {
 			await interaction.editReply({
 				embeds: [NoAccountEmbed],
 			});
@@ -393,7 +393,7 @@ export class TeamCommand extends Subcommand {
 		try {
 			const message = await player.send(
 				tournamentTeamInvite({
-					captainDiscordId: user.discord_id!,
+					captainDiscordId: user.discord_id,
 					captainOsuId: user.osu_id,
 					captainOsuUsername: user.osu_username,
 					teamName: team.team.name,
@@ -812,7 +812,7 @@ export class TeamCommand extends Subcommand {
 
 		let embedDescription = `**Team name:** \`${team.name}\`\n`;
 		embedDescription += `**Team captain:** <@${team.creator.discord_id}> (\`${team.creator.osu_username}\` - \`#${team.creator.osu_id}\`)\n`;
-		embedDescription += `**Players:**\n`;
+		embedDescription += "**Players:**\n";
 
 		for (const player of team.players) {
 			embedDescription += `<@${player.player.discord_id}> (\`${player.player.osu_username}\` - \`#${player.player.osu_id}\`)\n`;
@@ -1762,9 +1762,13 @@ export class TeamCommand extends Subcommand {
 		});
 
 		for (const player of team.players) {
+			if (!player.player.discord_id) {
+				continue;
+			}
+
 			try {
 				const user = await this.container.client.users.fetch(
-					player.player.discord_id!,
+					player.player.discord_id,
 				);
 
 				await user.send({

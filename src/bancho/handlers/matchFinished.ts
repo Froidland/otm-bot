@@ -1,9 +1,9 @@
 import db from "@/db";
-import { getModsString } from "../utils";
 import { container } from "@sapphire/pieces";
-import { EmbedBuilder } from "discord.js";
 import BanchoJs from "bancho.js";
+import { EmbedBuilder } from "discord.js";
 import { lobbyStore } from "../store";
+import { getModsString } from "../utils";
 
 // TODO: For lobbies with 1 player, check whether we are withing a 30 second grace period in case the player accidentally pressed ESC.
 export async function matchFinished(
@@ -73,7 +73,7 @@ export async function matchFinished(
 			lobby.staffNotifChannelId,
 		);
 
-		if (notificationChannel && notificationChannel.isTextBased()) {
+		if (notificationChannel?.isTextBased()) {
 			let embedDescription = "Could not find next map in mappool.\n";
 			embedDescription += `**Bancho channel:** \`#mp_${lobby.banchoId}\`\n`;
 			embedDescription += `**MP Link:** (${lobby.banchoId})[https://osu.ppy.sh/community/matches/${lobby.banchoId}]`;
