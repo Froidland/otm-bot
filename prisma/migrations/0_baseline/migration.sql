@@ -131,7 +131,7 @@ CREATE TABLE `tournament_qualifier_lobbies` (
 
 -- CreateTable
 CREATE TABLE `tournament_qualifier_map_picks` (
-    `beatmap_id` INTEGER NULL,
+    `beatmap_id` INTEGER NOT NULL,
     `pick_id` VARCHAR(16) NOT NULL,
     `qualifier_id` VARCHAR(24) NOT NULL,
     `mods` VARCHAR(191) NOT NULL DEFAULT 'NM',
@@ -143,7 +143,7 @@ CREATE TABLE `tournament_qualifier_map_picks` (
 
 -- CreateTable
 CREATE TABLE `tournament_map_picks` (
-    `beatmap_id` INTEGER NULL,
+    `beatmap_id` INTEGER NOT NULL,
     `pick_id` VARCHAR(16) NOT NULL,
     `stage_id` VARCHAR(191) NOT NULL,
     `mods` VARCHAR(191) NOT NULL DEFAULT 'NM',
@@ -292,7 +292,7 @@ CREATE TABLE `players_to_teams` (
 
 -- CreateTable
 CREATE TABLE `tryout_map_picks` (
-    `beatmap_id` INTEGER NULL,
+    `beatmap_id` INTEGER NOT NULL,
     `pick_id` VARCHAR(16) NOT NULL,
     `stage_id` VARCHAR(191) NOT NULL,
     `mods` VARCHAR(191) NOT NULL DEFAULT 'NM',
