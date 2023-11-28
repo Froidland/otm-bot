@@ -840,7 +840,7 @@ export class TryoutCommand extends Subcommand {
 
 		let infoField = `Name: \`${name}\`\n`;
 		infoField += `Acronym: \`${acronym}\`\n`;
-		infoField += `Creator: <@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`)`;
+		infoField += `Creator: <@${user.discord_id}> (\`${user.osu_username}\` - \`#${user.osu_id}\`)\n`;
 		infoField += `Is staff allowed: \`${allowStaff ? "Yes" : "No"}\`\n`;
 
 		let datesField = `Start date: \`${startDate.toFormat("DDDD T")}\`\n`;
