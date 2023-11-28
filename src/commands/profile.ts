@@ -67,6 +67,11 @@ export class ProfileCommand extends Command {
 					discord_id: interaction.user.id,
 				},
 			});
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
 
 			if (!user) {
 				await interaction.editReply({
@@ -75,8 +80,13 @@ export class ProfileCommand extends Command {
 
 				return;
 			}
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
 
 			userQuery = user.osu_id.toString();
+			return;
 		}
 
 		const userDetails = await v2.user.details(
