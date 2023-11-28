@@ -1,11 +1,11 @@
 import db from "@/db";
 import { NoAccountEmbed } from "@/embeds";
-import { v2 } from "osu-api-extended";
+import { getFlagUrl } from "@/utils";
 import { ApplyOptions } from "@sapphire/decorators";
 import { Command } from "@sapphire/framework";
 import { EmbedBuilder } from "discord.js";
 import { DateTime } from "luxon";
-import { getFlagUrl } from "@/utils";
+import { v2 } from "osu-api-extended";
 
 const gamemodes = ["osu", "taiko", "fruits", "mania"] as const;
 type Gamemode = (typeof gamemodes)[number];
@@ -56,53 +56,37 @@ export class ProfileCommand extends Command {
 	) {
 		await interaction.deferReply();
 
-		const usernameOption = interaction.options.getString("username")?.trim();
-		let userQuery = usernameOption;
+		const username = interaction.options.getString("username")?.trim();
 		const mode = interaction.options.getString("mode") as Gamemode | null;
 
-		// If the option is null, we search for the user_id associated with the users discord_id, otherwise we just use the username option.
-		if (!usernameOption) {
-			const user = await db.user.findFirst({
-				where: {
-					discord_id: interaction.user.id,
-				},
-			});
 		const user = await db.user.findFirst({
 			where: {
 				discord_id: interaction.user.id,
 			},
 		});
 
-			if (!user) {
-				await interaction.editReply({
-					embeds: [NoAccountEmbed],
-				});
-
-				return;
-			}
 		if (!user) {
 			await interaction.editReply({
 				embeds: [NoAccountEmbed],
 			});
 
-			userQuery = user.osu_id.toString();
 			return;
 		}
 
 		const userDetails = await v2.user.details(
-			userQuery!,
+			username || user.osu_id,
 			mode || "osu",
-			!usernameOption ? "id" : "username",
+			!username ? "id" : "username",
 		);
 
 		// @ts-expect-error Unfortunately, the response can indeed have an error property, osu-api-extended doesn't throw an error when the user is not found.
-		if (userDetails["error"] !== undefined) {
+		if (userDetails.error !== undefined) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
 						.setColor("Red")
 						.setTitle("Error")
-						.setDescription(`\`User not found.\``),
+						.setDescription("`User not found.`"),
 				],
 			});
 			return;
