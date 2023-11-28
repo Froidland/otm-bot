@@ -972,7 +972,7 @@ export class QualifiersCommand extends Subcommand {
 			return;
 		}
 
-		if (date.toSeconds() > DateTime.now().toSeconds() - 60 * 30) {
+		if (date.toSeconds() < DateTime.now().toSeconds() + 60 * 30) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
