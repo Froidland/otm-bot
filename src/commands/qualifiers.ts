@@ -1144,7 +1144,7 @@ export class QualifiersCommand extends Subcommand {
 					.setDescription(
 						`Your qualifier lobby has been ${
 							team.qualifier_lobby ? "rescheduled" : "scheduled"
-						} for \`${date.toFormat("DDDD T")}\`.`,
+						} for \`${date.toFormat("DDDD T")}\` <t:${date.toSeconds()}:R>.`,
 					)
 					.setFooter({
 						text: `Unique ID: ${team.qualifier_lobby?.id || id}`,
