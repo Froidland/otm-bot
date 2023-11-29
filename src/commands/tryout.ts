@@ -198,6 +198,7 @@ export class TryoutCommand extends Subcommand {
 									'The name of the tryout. (Example: "5WC Chile Tryouts 2023")',
 								)
 								.setRequired(true)
+								.setMinLength(3)
 								.setMaxLength(128),
 						)
 						.addStringOption((option) =>
@@ -207,6 +208,7 @@ export class TryoutCommand extends Subcommand {
 									'The acronym of the tryout stage. (Example: "5WC CLT")',
 								)
 								.setRequired(true)
+								.setMinLength(3)
 								.setMaxLength(64),
 						)
 						.addStringOption((option) =>

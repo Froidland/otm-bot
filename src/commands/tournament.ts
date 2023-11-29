@@ -61,6 +61,7 @@ export class TournamentCommand extends Subcommand {
 								.setName("name")
 								.setDescription("The name of the tournament.")
 								.setRequired(true)
+								.setMinLength(3)
 								.setMaxLength(255),
 						)
 						.addStringOption((option) =>
@@ -70,6 +71,7 @@ export class TournamentCommand extends Subcommand {
 									"The acronym of the tournament. Used in the name of the created channels and roles by default.",
 								)
 								.setRequired(true)
+								.setMinLength(3)
 								.setMaxLength(64),
 						)
 						.addStringOption((option) =>
@@ -178,6 +180,7 @@ export class TournamentCommand extends Subcommand {
 								.setDescription(
 									"The minimum team size for the tournament. Defaults to 6, max 16.",
 								)
+								.setMinValue(2)
 								.setMaxValue(16),
 						)
 						.addIntegerOption((option) =>
@@ -194,6 +197,7 @@ export class TournamentCommand extends Subcommand {
 								.setDescription(
 									"The team size in lobby. Defaults to 4, max 8. Ignored for 1v1.",
 								)
+								.setMinValue(2)
 								.setMaxValue(8),
 						),
 				)

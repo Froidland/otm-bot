@@ -114,6 +114,7 @@ export class LobbyCommand extends Subcommand {
 									.setName("player-limit")
 									.setDescription("The player limit of the lobby.")
 									.setRequired(true)
+									.setMinValue(1)
 									.setMaxValue(16), //! This will stay as 16 for now, but it will be changed to more when lazer becomes mainstream.
 						)
 						.addBooleanOption((option) =>
@@ -156,6 +157,7 @@ export class LobbyCommand extends Subcommand {
 								.setName("player-limit")
 								.setDescription("The player limit of the lobbies. (Max: 16)")
 								.setRequired(true)
+								.setMinValue(1)
 								.setMaxValue(16),
 						)
 						.addNumberOption((option) =>
@@ -163,6 +165,7 @@ export class LobbyCommand extends Subcommand {
 								.setName("count")
 								.setDescription("The amount of lobbies to create. (Max: 8)")
 								.setRequired(true)
+								.setMinValue(1)
 								.setMaxValue(8),
 						)
 						.addStringOption((option) =>

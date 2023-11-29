@@ -127,6 +127,7 @@ export class TeamCommand extends Subcommand {
 									option
 										.setName("value")
 										.setDescription("The new name of your team.")
+										.setMinLength(3)
 										.setMaxLength(127)
 										.setRequired(true),
 								),
@@ -141,6 +142,7 @@ export class TeamCommand extends Subcommand {
 										.setDescription(
 											"The new timezone of your team. (Format: UTC+/-<number>)",
 										)
+										.setMinLength(5)
 										.setMaxLength(16)
 										.setRequired(true),
 								),
@@ -153,6 +155,7 @@ export class TeamCommand extends Subcommand {
 									option
 										.setName("value")
 										.setDescription("The new icon of your team.")
+										.setMinLength(3)
 										.setMaxLength(255)
 										.setRequired(true),
 								),
