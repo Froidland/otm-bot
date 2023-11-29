@@ -16,6 +16,9 @@ model User {
   discord_id       String?
   discord_username String?
 
+  google_id    String?
+  google_email String?
+
   // Creator relations
   created_tournaments Tournament[]
   created_tryouts     Tryout[]
@@ -130,8 +133,8 @@ model Tournament {
   creator    User   @relation(fields: [creator_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
   creator_id String
 
-  created_at            DateTime @default(now()) @db.Timestamp(6)
-  updated_at            DateTime @updatedAt @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @updatedAt @db.Timestamp(6)
 
   @@map("tournaments")
 }
