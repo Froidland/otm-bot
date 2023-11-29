@@ -718,6 +718,20 @@ export class LobbyCommand extends Subcommand {
 			});
 		}
 
+		if (lobbiesToCreate.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid interval!")
+						.setDescription(
+							"The interval and/or date you provided is invalid. Please make sure that at least one lobby is within the tryout's date range. Any lobbies that are not within the date range will not be created.",
+						),
+				],
+			});
+
+			return;
+		}
 
 		let infoField = `Stage: \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
 		infoField += `Lobby count: \`${lobbiesToCreate.length}\`\n`;
