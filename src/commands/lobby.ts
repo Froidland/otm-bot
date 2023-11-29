@@ -472,13 +472,16 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		let embedDescription = "**__Tryout Lobby info:__**\n";
-		embedDescription += `**Lobby ID:** \`${customId}\`\n`;
-		embedDescription += `**Start Date:** \`${startDate.toFormat(
+		let infoField = `Lobby ID: \`${customId}\`\n`;
+		infoField += `Stage: \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
+		infoField += `Schedule: \`${startDate.toFormat(
 			"DDDD T",
 		)}\` (<t:${startDate.toSeconds()}:R>)\n`;
-		embedDescription += `**Auto Ref:** \`${auto ? "Yes" : "No"}\`\n`;
-		embedDescription += `**Player Limit:** \`${playerLimit}\`\n`;
+
+		let settingsField = `Auto Ref: ${
+			auto ? ":green_circle: **Enabled**" : ":red_circle: **Disabled**"
+		}\n`;
+		settingsField += `Player Limit: \`${playerLimit}\`\n`;
 
 		try {
 			await db.tryoutLobby.create({
@@ -501,7 +504,16 @@ export class LobbyCommand extends Subcommand {
 					new EmbedBuilder()
 						.setColor("Green")
 						.setTitle("Tryout lobby created!")
-						.setDescription(embedDescription)
+						.setFields(
+							{
+								name: "Info",
+								value: infoField,
+							},
+							{
+								name: "Settings",
+								value: settingsField,
+							},
+						)
 						.setFooter({
 							text: `Unique ID: ${id}`,
 						}),
@@ -686,7 +698,7 @@ export class LobbyCommand extends Subcommand {
 
 			if (
 				currentSchedule.day !== startDate.day ||
-				currentSchedule > DateTime.fromJSDate(tryout.end_date as Date)
+				currentSchedule > DateTime.fromJSDate(tryout.end_date)
 			) {
 				break;
 			}
@@ -706,39 +718,34 @@ export class LobbyCommand extends Subcommand {
 			});
 		}
 
-		let embedDescription = "**__Tryout Lobbies info:__**\n";
-		embedDescription += `**Tryout:** \`${tryout.name}\`\n`;
-		embedDescription += `**Stage:** \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
-		embedDescription += `**Lobby count:** \`${lobbiesToCreate.length}\`\n\n`;
-		embedDescription += "**__Details:__**\n";
+
+		let infoField = `Stage: \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
+		infoField += `Lobby count: \`${lobbiesToCreate.length}\`\n`;
+
+		let settingsField = `Auto Ref: ${
+			auto ? ":green_circle: **Enabled**" : ":red_circle: **Disabled**"
+		}\n`;
+		settingsField += `Player Limit: \`${playerLimit}\`\n`;
+
+		let lobbiesField = "";
 
 		for (const lobby of lobbiesToCreate) {
-			embedDescription += `Lobby \`${lobby.custom_id}\`\n`;
-			embedDescription += `\\- Unique ID: \`${lobby.id}\`\n`;
-			embedDescription += `\\- Start Date: \`${DateTime.fromJSDate(
-				lobby.schedule as Date,
+			lobbiesField += `Lobby \`${lobby.custom_id}\`\n`;
+			lobbiesField += `Unique ID: \`${lobby.id}\`\n`;
+			lobbiesField += `\\Start Date: \`${DateTime.fromJSDate(
+				new Date(lobby.schedule),
 				{
 					zone: "utc",
 				},
 			).toFormat("DDDD T")}\` (<t:${DateTime.fromJSDate(
-				lobby.schedule as Date,
+				new Date(lobby.schedule),
 			).toSeconds()}:R>)\n`;
-			embedDescription += `\\- Player Limit: \`${lobby.player_limit}\`\n`;
-			embedDescription += "\n";
+			lobbiesField += "\n";
 		}
 
 		try {
 			await db.tryoutLobby.createMany({
 				data: lobbiesToCreate,
-			});
-
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle("Tryout lobbies created!")
-						.setDescription(embedDescription),
-				],
 			});
 		} catch (error) {
 			this.container.logger.error(error);
@@ -753,7 +760,31 @@ export class LobbyCommand extends Subcommand {
 						),
 				],
 			});
+
+			return;
 		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Tryout lobbies created!")
+					.setFields(
+						{
+							name: "Info",
+							value: infoField,
+						},
+						{
+							name: "Settings",
+							value: settingsField,
+						},
+						{
+							name: "Created lobbies",
+							value: lobbiesField,
+						},
+					),
+			],
+		});
 	}
 
 	public async chatInputClaim(
@@ -1848,44 +1879,56 @@ export class LobbyCommand extends Subcommand {
 
 		const lobby = stage.lobbies[0];
 
-		let embedDescription = "**Details:**\n";
-		embedDescription += `\\- **Stage:** \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
-		embedDescription += `\\- **Lobby:** \`${lobby.custom_id}\`\n`;
-		embedDescription += `\\- **Auto-ref:** \`${
-			lobby.auto_ref ? "Yes" : "No"
-		}\`\n`;
-		embedDescription += `\\- **Referee:** ${
+		let infoField = `Stage: \`${stage.name}\` (\`${stage.custom_id}\`)\n`;
+		infoField += `Referee: ${
 			lobby.referee ? `<@${lobby.referee.discord_id}>` : "*No referee assigned*"
 		}\n`;
-		embedDescription += `\\- **Bancho ID:** ${
+		infoField += `Bancho ID: ${
 			lobby.bancho_id
 				? `[${lobby.bancho_id}](https://osu.ppy.sh/community/matches/${lobby.bancho_id})`
 				: "`None`"
 		}\n`;
-		embedDescription += `\\- **Schedule:** \`${DateTime.fromJSDate(
-			lobby.schedule as Date,
-			{
-				zone: "utc",
-			},
-		).toFormat("DDDD T")}\` (<t:${DateTime.fromJSDate(
-			lobby.schedule as Date,
-		).toSeconds()}:R>)\n\n`;
-		embedDescription += `**Players (${lobby._count.players}/${lobby.player_limit}):**\n`;
+		infoField += `Schedule: \`${DateTime.fromJSDate(lobby.schedule, {
+			zone: "utc",
+		}).toFormat("DDDD T")}\` (<t:${DateTime.fromJSDate(
+			lobby.schedule,
+		).toSeconds()}:R>)\n`;
+
+		const settingsField = `Auto-ref: ${
+			lobby.auto_ref
+				? ":green_circle: **Enabled**"
+				: ":red_circle: **Disabled**"
+		}\n`;
+
+		let playersField = "";
 
 		if (lobby._count.players > 0) {
 			for (const player of lobby.players) {
-				embedDescription += `\\- <@${player.player.discord_id}> (\`${player.player.osu_username}\` - \`#${player.player.osu_id}\`)\n`;
+				playersField += `<@${player.player.discord_id}> (\`${player.player.osu_username}\` - \`#${player.player.osu_id}\`)\n`;
 			}
 		} else {
-			embedDescription += "*No players in this lobby*\n";
+			playersField += "*No players in this lobby*\n";
 		}
 
 		await interaction.editReply({
 			embeds: [
 				new EmbedBuilder()
 					.setColor("Blue")
-					.setTitle(`Lobby \`${lobby.custom_id}\` info`)
-					.setDescription(embedDescription)
+					.setTitle(`Lobby \`${lobby.custom_id}\``)
+					.setFields(
+						{
+							name: "Info",
+							value: infoField,
+						},
+						{
+							name: "Settings",
+							value: settingsField,
+						},
+						{
+							name: `Players (${lobby._count.players}/${lobby.player_limit})`,
+							value: playersField,
+						},
+					)
 					.setFooter({
 						text: `Unique ID: ${lobby.id}`,
 					}),

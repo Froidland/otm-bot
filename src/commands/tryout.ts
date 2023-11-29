@@ -2686,22 +2686,6 @@ export class TryoutCommand extends Subcommand {
 					end_date: date.toJSDate(),
 				},
 			});
-
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle("Success")
-						.setDescription(
-							`The tryout end date has been updated from \`${DateTime.fromJSDate(
-								tryout.end_date,
-								{
-									zone: "utc",
-								},
-							).toFormat("DDDD T")}\` to \`${date.toFormat("DDDD T")}\`.`,
-						),
-				],
-			});
 		} catch (error) {
 			this.container.logger.error(error);
 
@@ -2715,7 +2699,31 @@ export class TryoutCommand extends Subcommand {
 						),
 				],
 			});
+
+			return;
 		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Success")
+					.setDescription(
+						`The tryout end date has been updated from \`${DateTime.fromJSDate(
+							tryout.end_date,
+							{
+								zone: "utc",
+							},
+						).toFormat("DDDD T")}\` to \`${date.toFormat("DDDD T")}\`.`,
+					)
+					.setFields({
+						name: "Previous date",
+						value: DateTime.fromJSDate(tryout.end_date, {
+							zone: "utc",
+						}).toFormat("DDDD T"),
+					}),
+			],
+		});
 	}
 
 	public async chatInputEditStaffChannel(
