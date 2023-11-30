@@ -1350,17 +1350,6 @@ export class LobbyCommand extends Subcommand {
 					},
 				},
 			});
-
-			await interaction.editReply({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle("Lobby joined!")
-						.setDescription(
-							`You have successfully joined lobby \`${lobbyId}\`.`,
-						),
-				],
-			});
 		} catch (error) {
 			this.container.logger.error(error);
 
@@ -1374,7 +1363,18 @@ export class LobbyCommand extends Subcommand {
 						),
 				],
 			});
+
+			return;
 		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle("Lobby joined!")
+					.setDescription(`You have successfully joined lobby \`${lobbyId}\`.`),
+			],
+		});
 	}
 
 	public async chatInputLeave(
