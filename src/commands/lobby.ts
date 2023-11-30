@@ -1514,9 +1514,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		let tryout = null;
-
-		tryout = await db.tryout.findFirst({
+		const tryout = await db.tryout.findFirst({
 			where: {
 				OR: [
 					{
