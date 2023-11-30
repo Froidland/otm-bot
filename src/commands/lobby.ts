@@ -316,7 +316,7 @@ export class LobbyCommand extends Subcommand {
 							builder
 								.setName("unassign-id")
 								.setDescription(
-									"Manually unassign a player from a tryout lobby by their osu! ID when the user is not in the server.",
+									"Manually unassign a player from a tryout lobby by their osu! ID.",
 								)
 								.addStringOption((option) =>
 									option
