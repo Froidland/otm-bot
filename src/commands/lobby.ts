@@ -1150,7 +1150,14 @@ export class LobbyCommand extends Subcommand {
 
 		const tryout = await db.tryout.findFirst({
 			where: {
-				player_channel_id: interaction.channel.id,
+				OR: [
+					{
+						staff_channel_id: interaction.channel?.id,
+					},
+					{
+						player_channel_id: interaction.channel?.id,
+					},
+				],
 			},
 			include: {
 				_count: {
@@ -1172,7 +1179,7 @@ export class LobbyCommand extends Subcommand {
 						.setColor("Red")
 						.setTitle("Invalid channel!")
 						.setDescription(
-							"This command can only be used in a tryout player channel.",
+							"This command can only be used in a tryout channel.",
 						),
 				],
 			});
@@ -1219,7 +1226,7 @@ export class LobbyCommand extends Subcommand {
 				custom_id: lobbyId,
 				stage: {
 					tryout: {
-						player_channel_id: interaction.channel?.id,
+						id: tryout.id,
 					},
 					is_published: true,
 				},
