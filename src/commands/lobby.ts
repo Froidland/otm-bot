@@ -14,9 +14,9 @@ import {
 	EmbedBuilder,
 	SlashCommandSubcommandBuilder,
 	SlashCommandSubcommandGroupBuilder,
-	userMention,
 } from "discord.js";
 import { DateTime } from "luxon";
+import { v2 } from "osu-api-extended";
 
 @ApplyOptions<Subcommand.Options>({
 	description: "Commands for managing tryout lobbies.",
@@ -80,6 +80,10 @@ import { DateTime } from "luxon";
 					chatInputRun: "chatInputPlayerUnassignId",
 				},
 			],
+		},
+		{
+			name: "finish",
+			chatInputRun: "chatInputFinish",
 		},
 	],
 })
@@ -338,6 +342,32 @@ export class LobbyCommand extends Subcommand {
 											"The osu! ID of the player to unassign from the lobby.",
 										)
 										.setRequired(true),
+								),
+						),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("finish")
+						.setDescription("Mark a tryout lobby as finished.")
+						.addStringOption((option) =>
+							option
+								.setName("lobby-id")
+								.setDescription("The ID of the lobby to mark as finished.")
+								.setRequired(true),
+						)
+						.addStringOption((option) =>
+							option
+								.setName("bancho-id-or-link")
+								.setDescription(
+									"The match ID or link of the lobby use as reference. (Set to 0 if you want to skip the lobby)",
+								)
+								.setRequired(true),
+						)
+						.addBooleanOption((option) =>
+							option
+								.setName("remove-absent")
+								.setDescription(
+									"Whether or not to remove absent players from the lobby. Defaults to true. Ignored when skipped.",
 								),
 						),
 				),
@@ -2709,5 +2739,405 @@ export class LobbyCommand extends Subcommand {
 				],
 			});
 		}
+	}
+
+	public async chatInputFinish(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const lobbyId = interaction.options
+			.getString("lobby-id", true)
+			.trim()
+			.toUpperCase();
+
+		const banchoIdOrLink = interaction.options
+			.getString("bancho-id-or-link", true)
+			.trim();
+
+		const removeAbsent =
+			interaction.options.getBoolean("remove-absent", false) || true;
+
+		const regex = Regexes.matchId.exec(banchoIdOrLink);
+
+		console.log(regex);
+
+		if (!regex) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid Bancho ID or link!")
+						.setDescription(
+							"The Bancho ID or link you provided is invalid. Please make sure you are providing a valid Bancho ID or link.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const banchoId = +regex[1];
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tryout = await db.tryout.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channel?.id,
+					},
+					{
+						staff_channel_id: interaction.channel?.id,
+					},
+				],
+			},
+			include: {
+				stages: {
+					where: {
+						lobbies: {
+							some: {
+								custom_id: lobbyId,
+							},
+						},
+					},
+					include: {
+						lobbies: {
+							where: {
+								custom_id: lobbyId,
+							},
+							include: {
+								players: {
+									include: {
+										player: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!tryout) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be used in a tryout channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!hasTryoutRefereeRole(interaction, tryout) &&
+			!hasTryoutAdminRole(interaction, tryout)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do that."),
+				],
+			});
+
+			return;
+		}
+
+		if (tryout.stages.length < 1) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid match!")
+						.setDescription("There are no lobbies that match the provided ID."),
+				],
+			});
+
+			return;
+		}
+
+		const lobby = tryout.stages[0].lobbies[0];
+
+		if (!hasTryoutAdminRole(interaction, tryout)) {
+			if (lobby.referee_id !== user.id) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Not a referee!")
+							.setDescription(
+								"You are not the referee for this lobby. Only the referee and organizers can finish the lobby.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (lobby.auto_ref && lobby.status !== "Override") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Auto-ref is enabled!")
+						.setDescription(
+							"You cannot finish a lobby with auto-ref enabled unless you override it. Otherwise, the lobby will be automatically finished when lobby ends.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (lobby.status === "Completed") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Already finished!")
+						.setDescription(
+							"The lobby you are trying to finish has already been finished.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (banchoId === 0) {
+			if (lobby.status === "Skipped") {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Already skipped!")
+							.setDescription(
+								"The lobby you are trying to skip has already been skipped.",
+							),
+					],
+				});
+
+				return;
+			}
+
+			try {
+				await db.tryoutLobby.update({
+					where: {
+						id: lobby.id,
+					},
+					data: {
+						status: "Skipped",
+					},
+				});
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Something went wrong!")
+							.setDescription(
+								"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+							),
+					],
+				});
+
+				return;
+			}
+
+			// TODO: Make this prettier.
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Yellow")
+						.setTitle(`Skipped lobby \`${lobby.custom_id}\``)
+						.setDescription("No further changes were made."),
+				],
+			});
+
+			return;
+		}
+
+		const match = await v2.matches.details(banchoId);
+
+		// @ts-expect-error osu-api-extended shenanigans
+		if (match.error !== undefined) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid Bancho ID!")
+						.setDescription(
+							"The Bancho ID you provided is invalid. Please make sure you are providing a valid Bancho ID.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const lastMatchEvent = match.events.find(
+			(e) => e.id === match.latest_event_id,
+		);
+
+		if (!lastMatchEvent) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Something went wrong!")
+						.setDescription(
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (lastMatchEvent.detail.type !== "match-disbanded") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Match not disbanded!")
+						.setDescription(
+							"The match has to be disbanded before you can finish the lobby. Try using `!mp close` and then try again.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		console.log({ events: match.events.map((e) => e.game) });
+
+		const inMatchPlayerOsuIds = match.users.map((u) => u.id.toString());
+
+		const inMatchPlayers = lobby.players.filter((p) =>
+			inMatchPlayerOsuIds.find((id) => id === p.player.osu_id),
+		);
+
+		const inMatchPlayerIds = inMatchPlayers.map((p) => p.player.id);
+
+		const missingPlayers = lobby.players.filter((p) =>
+			inMatchPlayerOsuIds.find((id) => id === p.player.osu_id),
+		);
+
+		const missingPlayerIds = missingPlayers.map((p) => p.player.id);
+
+		try {
+			await db.tryoutLobby.update({
+				where: {
+					id: lobby.id,
+				},
+				data: {
+					status: "Completed",
+					bancho_id: banchoId,
+					players: {
+						deleteMany: removeAbsent
+							? {
+									user_id: {
+										in: missingPlayerIds,
+									},
+							  }
+							: undefined,
+						updateMany: {
+							where: {
+								user_id: {
+									in: inMatchPlayerIds,
+								},
+							},
+							data: {
+								played: true,
+							},
+						},
+					},
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Something went wrong!")
+						.setDescription(
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle(`Finished lobby \`${lobby.custom_id}\``)
+					.setFields(
+						{
+							name: "Status",
+							value: `${LobbyStatusEmoji.Completed} **Completed**`,
+							inline: true,
+						},
+						{
+							name: "Bancho ID",
+							value: `[${banchoId}](https://osu.ppy.sh/community/matches/${banchoId})`,
+							inline: true,
+						},
+						{
+							name: "Maps played",
+							value: `${match.events.filter((e) => e.game).length}`,
+							inline: true,
+						},
+						{
+							name: "Removed players",
+							value: missingPlayers.length
+								? missingPlayers
+										.map(
+											(p) =>
+												`<@${p.player.discord_id}> (\`${p.player.osu_username}\` - \`#${p.player.osu_id}\`)`,
+										)
+										.join("\n")
+								: "*No players removed*",
+						},
+						{
+							name: "Updated players",
+							value: inMatchPlayers.length
+								? inMatchPlayers
+										.map(
+											(p) =>
+												`<@${p.player.discord_id}> (\`${p.player.osu_username}\` - \`#${p.player.osu_id}\`)`,
+										)
+										.join("\n")
+								: "*No players updated*",
+						},
+					),
+			],
+		});
 	}
 }
