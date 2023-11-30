@@ -1,6 +1,11 @@
 import db from "@/db";
 import { InvalidDateTime, NoAccountEmbed } from "@/embeds";
-import { hasTryoutAdminRole, hasTryoutRefereeRole } from "@/utils";
+import {
+	LobbyStatusEmoji,
+	Regexes,
+	hasTryoutAdminRole,
+	hasTryoutRefereeRole,
+} from "@/utils";
 import { createId } from "@paralleldrive/cuid2";
 import { Prisma } from "@prisma/client";
 import { ApplyOptions } from "@sapphire/decorators";
@@ -1941,17 +1946,20 @@ export class LobbyCommand extends Subcommand {
 				? `[${lobby.bancho_id}](https://osu.ppy.sh/community/matches/${lobby.bancho_id})`
 				: "`None`"
 		}\n`;
-		infoField += `Schedule: \`${DateTime.fromJSDate(lobby.schedule, {
-			zone: "utc",
-		}).toFormat("DDDD T")}\` (<t:${DateTime.fromJSDate(
-			lobby.schedule,
-		).toSeconds()}:R>)\n`;
+		infoField += `Status: ${LobbyStatusEmoji[lobby.status]} **${
+			lobby.status
+		}**\n`;
 
-		const settingsField = `Auto-ref: ${
+		let settingsField = `Auto-ref: ${
 			lobby.auto_ref
 				? ":green_circle: **Enabled**"
 				: ":red_circle: **Disabled**"
 		}\n`;
+		settingsField += `Schedule: \`${DateTime.fromJSDate(lobby.schedule, {
+			zone: "utc",
+		}).toFormat("DDDD T")}\` (<t:${DateTime.fromJSDate(
+			lobby.schedule,
+		).toSeconds()}:R>)\n`;
 
 		let playersField = "";
 
