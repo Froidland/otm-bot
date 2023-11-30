@@ -1253,6 +1253,37 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
+		if (
+			new Date() >
+			DateTime.fromJSDate(lobby.schedule).minus({ minutes: 15 }).toJSDate()
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Lobby has already started!")
+						.setDescription(
+							"You cannot join a lobby that starts in less than 15 minutes or has already started.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (lobby.status !== "Pending") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Lobby has already started!")
+						.setDescription("You cannot join a lobby that is not pending."),
+				],
+			});
+
+			return;
+		}
+
 		const previousLobby = await db.playersOnTryoutLobbies.findFirst({
 			where: {
 				user_id: user.id,
