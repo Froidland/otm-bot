@@ -60,6 +60,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 						include: {
 							player: {
 								select: {
+									id: true,
 									osu_id: true,
 									osu_username: true,
 									discord_id: true,
@@ -69,6 +70,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 					},
 					creator: {
 						select: {
+							id: true,
 							osu_id: true,
 							osu_username: true,
 							discord_id: true,
@@ -78,6 +80,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			},
 			referee: {
 				select: {
+					id: true,
 					osu_id: true,
 					osu_username: true,
 					discord_id: true,
@@ -137,6 +140,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const referee = lobby.referee
 			? {
+					id: lobby.referee.id,
 					osuId: lobby.referee.osu_id,
 					osuUsername: lobby.referee.osu_username,
 					discordId: lobby.referee.discord_id,
@@ -147,6 +151,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 		const playerChannelId = tournament.player_channel_id;
 
 		const captain = {
+			id: lobby.team.creator.id,
 			osuId: lobby.team.creator.osu_id,
 			osuUsername: lobby.team.creator.osu_username,
 			discordId: lobby.team.creator.discord_id,
@@ -154,6 +159,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const players = lobby.team.players.map((player) => {
 			return {
+				id: player.player.id,
 				osuId: player.player.osu_id,
 				osuUsername: player.player.osu_username,
 				discordId: player.player.discord_id,

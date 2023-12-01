@@ -1,4 +1,5 @@
 export type LobbyUser = {
+	id: string;
 	osuId: string;
 	osuUsername: string;
 	discordId: string | null;

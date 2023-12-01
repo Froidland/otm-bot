@@ -56,6 +56,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 				include: {
 					player: {
 						select: {
+							id: true,
 							osu_id: true,
 							osu_username: true,
 							discord_id: true,
@@ -65,6 +66,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 			},
 			referee: {
 				select: {
+					id: true,
 					osu_id: true,
 					osu_username: true,
 					discord_id: true,
@@ -123,6 +125,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const referee = lobby.referee
 			? {
+					id: lobby.referee.id,
 					osuId: lobby.referee.osu_id,
 					osuUsername: lobby.referee.osu_username,
 					discordId: lobby.referee.discord_id,
@@ -134,6 +137,7 @@ async function workerHandler(job: Job<JobData, void, string>) {
 
 		const players = lobby.players.map((p) => {
 			return {
+				id: p.player.id,
 				osuId: p.player.osu_id,
 				osuUsername: p.player.osu_username,
 				discordId: p.player.discord_id,
