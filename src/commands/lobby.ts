@@ -3113,17 +3113,6 @@ export class LobbyCommand extends Subcommand {
 							inline: true,
 						},
 						{
-							name: "Removed players",
-							value: missingPlayers.length
-								? missingPlayers
-										.map(
-											(p) =>
-												`<@${p.player.discord_id}> (\`${p.player.osu_username}\` - \`#${p.player.osu_id}\`)`,
-										)
-										.join("\n")
-								: "*No players removed*",
-						},
-						{
 							name: "Updated players",
 							value: inMatchPlayers.length
 								? inMatchPlayers
@@ -3133,6 +3122,17 @@ export class LobbyCommand extends Subcommand {
 										)
 										.join("\n")
 								: "*No players updated*",
+						},
+						{
+							name: "Removed players",
+							value: missingPlayers.length
+								? missingPlayers
+										.map(
+											(p) =>
+												`<@${p.player.discord_id}> (\`${p.player.osu_username}\` - \`#${p.player.osu_id}\`)`,
+										)
+										.join("\n")
+								: "*No players removed*",
 						},
 					),
 			],
