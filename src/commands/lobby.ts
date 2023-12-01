@@ -2979,10 +2979,10 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		const match = await v2.matches.details(banchoId);
+		const apiMatch = await v2.matches.details(banchoId);
 
 		// @ts-expect-error osu-api-extended shenanigans
-		if (match.error !== undefined) {
+		if (apiMatch.error !== undefined) {
 			await interaction.editReply({
 				embeds: [
 					new EmbedBuilder()
@@ -2997,8 +2997,8 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		const lastMatchEvent = match.events.find(
-			(e) => e.id === match.latest_event_id,
+		const lastMatchEvent = apiMatch.events.find(
+			(e) => e.id === apiMatch.latest_event_id,
 		);
 
 		if (!lastMatchEvent) {
@@ -3031,7 +3031,7 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		const inMatchPlayerOsuIds = match.users.map((u) => u.id.toString());
+		const inMatchPlayerOsuIds = apiMatch.users.map((u) => u.id.toString());
 
 		const inMatchPlayers = lobby.players.filter((p) =>
 			inMatchPlayerOsuIds.find((id) => id === p.player.osu_id),
@@ -3109,7 +3109,7 @@ export class LobbyCommand extends Subcommand {
 						},
 						{
 							name: "Maps played",
-							value: `${match.events.filter((e) => e.game).length}`,
+							value: `${apiMatch.events.filter((e) => e.game).length}`,
 							inline: true,
 						},
 						{
