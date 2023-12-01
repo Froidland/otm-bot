@@ -3031,8 +3031,6 @@ export class LobbyCommand extends Subcommand {
 			return;
 		}
 
-		console.log({ events: match.events.map((e) => e.game) });
-
 		const inMatchPlayerOsuIds = match.users.map((u) => u.id.toString());
 
 		const inMatchPlayers = lobby.players.filter((p) =>
