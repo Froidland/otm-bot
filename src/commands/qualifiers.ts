@@ -1,6 +1,8 @@
 import db from "@/db";
 import { NoAccountEmbed, staffQualifierLobbyScheduleEmbed } from "@/embeds";
 import {
+	LobbyStatusEmoji,
+	Regexes,
 	hasTournamentMappoolerRole,
 	hasTournamentOrganizerRole,
 	hasTournamentRefereeRole,
@@ -83,6 +85,10 @@ const modCombinations = [
 		{
 			name: "publish",
 			chatInputRun: "chatInputPublish",
+		},
+		{
+			name: "finish",
+			chatInputRun: "chatInputFinish",
 		},
 	],
 })
@@ -209,6 +215,25 @@ export class QualifiersCommand extends Subcommand {
 					builder
 						.setName("publish")
 						.setDescription("Publish the qualifiers mappool."),
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName("finish")
+						.setDescription("Mark a qualifier lobby as finished.")
+						.addStringOption((option) =>
+							option
+								.setName("team")
+								.setDescription("The name of the team to mark as finished.")
+								.setRequired(true),
+						)
+						.addStringOption((option) =>
+							option
+								.setName("bancho-id-or-link")
+								.setDescription(
+									"The match ID or link of the lobby use as reference. (Set to 0 to skip the lobby)",
+								)
+								.setRequired(true),
+						),
 				),
 		);
 	}
@@ -1812,6 +1837,359 @@ export class QualifiersCommand extends Subcommand {
 					.setColor("Green")
 					.setTitle("Success")
 					.setDescription("The qualifiers mappool has been published."),
+			],
+		});
+	}
+
+	public async chatInputFinish(
+		interaction: Subcommand.ChatInputCommandInteraction,
+	) {
+		await interaction.deferReply();
+
+		const teamName = interaction.options.getString("team", true).trim();
+
+		const banchoIdOrLink = interaction.options
+			.getString("bancho-id-or-link", true)
+			.trim();
+
+		const regex = Regexes.matchId.exec(banchoIdOrLink);
+
+		if (!regex) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid link!")
+						.setDescription(
+							"The bancho ID or link you provided is invalid. Please make sure it's a valid ID or match link.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const banchoId = +regex[1];
+
+		const user = await db.user.findFirst({
+			where: {
+				discord_id: interaction.user.id,
+			},
+		});
+
+		if (!user) {
+			await interaction.editReply({
+				embeds: [NoAccountEmbed],
+			});
+
+			return;
+		}
+
+		const tournament = await db.tournament.findFirst({
+			where: {
+				OR: [
+					{
+						player_channel_id: interaction.channelId,
+					},
+					{
+						referee_channel_id: interaction.channelId,
+					},
+					{
+						staff_channel_id: interaction.channelId,
+					},
+					{
+						mappooler_channel_id: interaction.channelId,
+					},
+				],
+			},
+			include: {
+				teams: {
+					where: {
+						name: teamName,
+					},
+					include: {
+						players: {
+							include: {
+								player: true,
+							},
+						},
+						qualifier_lobby: true,
+					},
+				},
+			},
+		});
+
+		if (!tournament) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid channel!")
+						.setDescription(
+							"This command can only be executed in a tournament channel.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (
+			!hasTournamentRefereeRole(interaction, tournament) &&
+			!hasTournamentOrganizerRole(interaction, tournament)
+		) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid permissions!")
+						.setDescription("You don't have permission to do this!"),
+				],
+			});
+
+			return;
+		}
+
+		if (tournament.teams.length === 0) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid team!")
+						.setDescription("The team you provided doesn't exist."),
+				],
+			});
+
+			return;
+		}
+
+		const team = tournament.teams[0];
+
+		if (!team.qualifier_lobby) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid lobby!")
+						.setDescription(
+							"The team you provided doesn't have a qualifier lobby scheduled.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (team.qualifier_lobby.status === "Completed") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid lobby!")
+						.setDescription(
+							"The team you provided has already played their qualifier lobby.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (team.qualifier_lobby.referee_id !== user.id) {
+			if (!hasTournamentOrganizerRole(interaction, tournament)) {
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Invalid permissions!")
+							.setDescription(
+								"Only the assigned referee and the organizers can finish the lobby.",
+							),
+					],
+				});
+
+				return;
+			}
+		}
+
+		if (banchoId === 0) {
+			try {
+				await db.team.update({
+					where: {
+						id: team.id,
+					},
+					data: {
+						qualifier_lobby: {
+							update: {
+								status: "Skipped",
+							},
+						},
+					},
+				});
+			} catch (error) {
+				this.container.logger.error(error);
+
+				await interaction.editReply({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle("Something went wrong!")
+							.setDescription(
+								"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+							),
+					],
+				});
+
+				return;
+			}
+
+			return;
+		}
+
+		const apiMatch = await v2.matches.details(banchoId);
+
+		// @ts-expect-error osu-api-extended shenanigans
+		if (apiMatch.error !== undefined) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Invalid match!")
+						.setDescription(
+							"The match for the Bancho ID or Link you provided doesn't exist. Please make sure you provided a valid one.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const lastMatchEvent = (await apiMatch).events.find(
+			(e) => e.id === apiMatch.latest_event_id,
+		);
+
+		if (!lastMatchEvent) {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Something went wrong!")
+						.setDescription(
+							"An unexpected error occurred. Please try again later or contact a staff member if the issue persists.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		if (lastMatchEvent.detail.type !== "match-disbanded") {
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("Match not disbanded!")
+						.setDescription(
+							"The match has to be disbanded before you can finish the lobby. Try using `!mp close` and then try again.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		try {
+			await db.team.update({
+				where: {
+					id: team.id,
+				},
+				data: {
+					qualifier_played: true,
+					qualifier_lobby: {
+						update: {
+							status: "Completed",
+							bancho_id: banchoId,
+						},
+					},
+				},
+			});
+		} catch (error) {
+			this.container.logger.error(error);
+
+			await interaction.editReply({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle("An error occurred!")
+						.setDescription(
+							"An error occurred while finishing the lobby. Please try again later.",
+						),
+				],
+			});
+
+			return;
+		}
+
+		const inMatchPlayerOsuIds = apiMatch.users.map((u) => u.id.toString());
+
+		const inMatchPlayers = team.players.filter((p) =>
+			inMatchPlayerOsuIds.find((id) => id === p.player.osu_id),
+		);
+
+		const apiMatchGames = apiMatch.events.filter((e) => e.game);
+
+		const mapsPlayedPerPlayer = new Map<string, number>();
+
+		for (const player of inMatchPlayers) {
+			mapsPlayedPerPlayer.set(
+				player.player.osu_id,
+				apiMatchGames.filter((m) =>
+					m.game.scores.some(
+						(s) => s.user_id.toString() === player.player.osu_id,
+					),
+				).length,
+			);
+		}
+
+		await interaction.editReply({
+			embeds: [
+				new EmbedBuilder()
+					.setColor("Green")
+					.setTitle(
+						`Finished lobby for ${
+							tournament.type === "TeamVsTeam" ? "team" : "player"
+						} \`${team.name}\``,
+					)
+					.setFields(
+						{
+							name: "Status",
+							value: `${LobbyStatusEmoji.Completed} Completed`,
+							inline: true,
+						},
+						{
+							name: "Bancho ID",
+							value: `[${banchoId}](https://osu.ppy.sh/community/matches/${banchoId})`,
+							inline: true,
+						},
+						{
+							name: "Map played",
+							value: `${apiMatchGames.length}`,
+							inline: true,
+						},
+						{
+							name: "Players in lobby",
+							value: inMatchPlayers
+								.map(
+									(p) =>
+										`<@${p.player.discord_id}> (\`${
+											p.player.osu_username
+										}\` - \`#${p.player.osu_id}\`) | \`${
+											mapsPlayedPerPlayer.get(p.player.osu_id) || 0
+										}\` maps played`,
+								)
+								.join("\n"),
+						},
+					),
 			],
 		});
 	}
