@@ -17,7 +17,7 @@ type Scoring = "ScoreV1" | "ScoreV2";
 	subcommands: [
 		{
 			name: "create",
-			chatInputRun: "chatInputRunCreate",
+			chatInputRun: "chatInputCreate",
 			preconditions: ["ServerAdminOnly"],
 		},
 		{
@@ -26,7 +26,7 @@ type Scoring = "ScoreV1" | "ScoreV2";
 			entries: [
 				{
 					name: "send",
-					chatInputRun: "chatInputRunEmbedSend",
+					chatInputRun: "chatInputEmbedSend",
 				},
 			],
 		},
@@ -36,13 +36,13 @@ type Scoring = "ScoreV1" | "ScoreV2";
 			entries: [
 				{
 					name: "list",
-					chatInputRun: "chatInputRunPlayerList",
+					chatInputRun: "chatInputPlayerList",
 				},
 			],
 		},
 		{
 			name: "info",
-			chatInputRun: "chatInputRunInfo",
+			chatInputRun: "chatInputInfo",
 		},
 	],
 })
@@ -262,7 +262,7 @@ export class TournamentCommand extends Subcommand {
 		);
 	}
 
-	public async chatInputRunCreate(
+	public async chatInputCreate(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
@@ -792,7 +792,7 @@ export class TournamentCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunEmbedSend(
+	public async chatInputEmbedSend(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({
@@ -981,7 +981,7 @@ export class TournamentCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunPlayerList(
+	public async chatInputPlayerList(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -1260,7 +1260,7 @@ export class TournamentCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunInfo(
+	public async chatInputInfo(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });

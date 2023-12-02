@@ -15,19 +15,19 @@ const urlRegex =
 	subcommands: [
 		{
 			name: "invite",
-			chatInputRun: "chatInputRunInvite",
+			chatInputRun: "chatInputInvite",
 		},
 		{
 			name: "kick",
-			chatInputRun: "chatInputRunKick",
+			chatInputRun: "chatInputKick",
 		},
 		{
 			name: "info",
-			chatInputRun: "chatInputRunInfo",
+			chatInputRun: "chatInputInfo",
 		},
 		{
 			name: "list",
-			chatInputRun: "chatInputRunList",
+			chatInputRun: "chatInputList",
 		},
 		{
 			name: "edit",
@@ -35,21 +35,21 @@ const urlRegex =
 			entries: [
 				{
 					name: "name",
-					chatInputRun: "chatInputRunEditName",
+					chatInputRun: "chatInputEditName",
 				},
 				{
 					name: "timezone",
-					chatInputRun: "chatInputRunEditTimezone",
+					chatInputRun: "chatInputEditTimezone",
 				},
 				{
 					name: "icon",
-					chatInputRun: "chatInputRunEditIcon",
+					chatInputRun: "chatInputEditIcon",
 				},
 			],
 		},
 		{
 			name: "remove",
-			chatInputRun: "chatInputRunRemove",
+			chatInputRun: "chatInputRemove",
 		},
 	],
 })
@@ -175,7 +175,7 @@ export class TeamCommand extends Subcommand {
 		);
 	}
 
-	public async chatInputRunInvite(
+	public async chatInputInvite(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -441,7 +441,7 @@ export class TeamCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunKick(
+	public async chatInputKick(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -680,7 +680,7 @@ export class TeamCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputRunInfo(
+	public async chatInputInfo(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -834,7 +834,7 @@ export class TeamCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunList(
+	public async chatInputList(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -1101,7 +1101,7 @@ export class TeamCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunEditName(
+	public async chatInputEditName(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -1272,7 +1272,7 @@ export class TeamCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunEditTimezone(
+	public async chatInputEditTimezone(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply();
@@ -1446,7 +1446,7 @@ export class TeamCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunEditIcon(
+	public async chatInputEditIcon(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
@@ -1631,7 +1631,7 @@ export class TeamCommand extends Subcommand {
 		});
 	}
 
-	public async chatInputRunRemove(
+	public async chatInputRemove(
 		interaction: Subcommand.ChatInputCommandInteraction,
 	) {
 		await interaction.deferReply({ ephemeral: true });
