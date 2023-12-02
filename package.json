@@ -30,7 +30,7 @@
 		"@sapphire/decorators": "^6.0.2",
 		"@sapphire/discord.js-utilities": "^7.0.3",
 		"@sapphire/framework": "^4.7.2",
-		"@sapphire/pieces": "^3.7.1",
+		"@sapphire/pieces": "^3.10.0",
 		"@sapphire/plugin-hmr": "^2.0.2",
 		"@sapphire/plugin-logger": "^3.0.6",
 		"@sapphire/plugin-subcommands": "^5.0.0",

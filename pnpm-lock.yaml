@@ -24,8 +24,8 @@ dependencies:
     specifier: ^4.7.2
     version: 4.7.2
   '@sapphire/pieces':
-    specifier: ^3.7.1
-    version: 3.7.1
+    specifier: ^3.10.0
+    version: 3.10.0
   '@sapphire/plugin-hmr':
     specifier: ^2.0.2
     version: 2.0.2
@@ -595,7 +595,7 @@ packages:
       '@sapphire/discord-utilities': 3.1.1
       '@sapphire/discord.js-utilities': 7.0.3
       '@sapphire/lexure': 1.1.5
-      '@sapphire/pieces': 3.7.1
+      '@sapphire/pieces': 3.10.0
       '@sapphire/ratelimits': 2.4.7
       '@sapphire/result': 2.6.4
       '@sapphire/stopwatch': 1.5.0
@@ -609,8 +609,8 @@ packages:
       '@sapphire/result': 2.6.4
     dev: false
 
-  /@sapphire/pieces@3.7.1:
-    resolution: {integrity: sha512-ORjeFRRKaUrDuXMMZ4fUKBOm2olI55urAZbcw9Bfx7wu/JEo55UxuqQUMMvKwYZ3zK4A6A0OswkzSjf0H02v0Q==}
+  /@sapphire/pieces@3.10.0:
+    resolution: {integrity: sha512-iBaux50dA+VYjtBqmaceWcskdmw7ua51ojEPkyaSJyg2t9ln/Wc9NqYoQheRCWltZeDTERCUBIYYMqDuCs1Okw==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dependencies:
       '@discordjs/collection': 1.5.3
