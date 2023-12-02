@@ -24,6 +24,8 @@ import {
 	TryoutLobby,
 	lobbyStore,
 } from "./store";
+import { v2 } from "osu-api-extended";
+import { LobbyStatusEmoji } from "@/utils";
 
 /**
  * Creates a lobby in bancho linked to the given lobby, stores it in memory and handles all the necessary setup and events.
@@ -476,8 +478,181 @@ export async function endLobby(
 
 	lobbyStore.delete(banchoLobby.id);
 
-	if (skipped) {
+	let notificationChannel = null;
+
+	try {
+		notificationChannel = await container.client.channels.fetch(
+			lobby.staffNotifChannelId,
+		);
+
+		if (!notificationChannel?.isTextBased()) {
+			container.logger.error(
+				`[AutoRef] Could not fetch notification channel for lobby ${lobby.id}.`,
+			);
+
+			notificationChannel = null;
+		}
+	} catch (error) {
+		container.logger.error(error);
+
+		container.logger.error(
+			`[AutoRef] Could not fetch notification channel for lobby ${lobby.id}.`,
+		);
+		notificationChannel = null;
+	}
+
+	const apiMatch = await v2.matches.details(banchoLobby.id);
+
+	// @ts-expect-error osu-api-extended shenanigans
+	if (apiMatch.error !== undefined) {
+		container.logger.error(
+			`[AutoRef] Could not fetch match details for match ${banchoLobby.id}.`,
+		);
+
+		if (notificationChannel) {
+			await notificationChannel.send({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle(
+							`Could not fetch match details for match \`${banchoLobby.id}\``,
+						)
+						.setDescription(
+							`The match details could not be fetched from the osu! API. Players will not be updated automatically. Please use command ${
+								lobby.type === "tryout"
+									? "`/lobby finish`"
+									: "`/qualifiers finish`"
+							} in order to finish the lobby.`,
+						),
+				],
+			});
+		}
+
+		try {
+			if (lobby.type === "tryout") {
+				await db.tryoutLobby.update({
+					where: {
+						id: lobby.id,
+					},
+					data: {
+						status: "Failed",
+					},
+				});
+			}
+
+			if (lobby.type === "qualifier") {
+				await db.tournamentQualifierLobby.update({
+					where: {
+						id: lobby.id,
+					},
+					data: {
+						status: "Failed",
+					},
+				});
+			}
+		} catch (error) {
+			container.logger.error(error);
+
+			if (notificationChannel) {
+				await notificationChannel.send({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Red")
+							.setTitle(
+								`Could not update lobby status for lobby \`${lobby.id}\``,
+							)
+							.setDescription(
+								`The lobby status could not be updated in the database. Please use command ${
+									lobby.type === "tryout"
+										? "`/lobby finish`"
+										: "`/qualifiers finish`"
+								} in order to finish the lobby.`,
+							),
+					],
+				});
+			}
+		}
+
 		return;
+	}
+
+	const inMatchPlayerOsuIds = apiMatch.users.map((u) => u.id.toString());
+
+	const inMatchPlayers = lobby.players.filter((p) =>
+		inMatchPlayerOsuIds.find((id) => id === p.osuId),
+	);
+
+	const inMatchPlayerIds = inMatchPlayers.map((p) => p.id);
+
+	const missingPlayers = lobby.players.filter((p) =>
+		inMatchPlayerOsuIds.find((id) => id === p.osuId),
+	);
+
+	const missingPlayerIds = missingPlayers.map((p) => p.id);
+
+	try {
+		if (lobby.type === "tryout") {
+			await db.tryoutLobby.update({
+				where: {
+					id: lobby.id,
+				},
+				data: {
+					status: skipped ? "Skipped" : "Completed",
+					players: {
+						deleteMany: {
+							user_id: {
+								in: missingPlayerIds,
+							},
+						},
+						updateMany: {
+							where: {
+								user_id: {
+									in: inMatchPlayerIds,
+								},
+							},
+							data: {
+								played: true,
+							},
+						},
+					},
+				},
+			});
+		}
+
+		if (lobby.type === "qualifier") {
+			await db.tournamentQualifierLobby.update({
+				where: {
+					id: lobby.id,
+				},
+				data: {
+					status: skipped ? "Skipped" : "Completed",
+					team: {
+						update: {
+							qualifier_played: true,
+						},
+					},
+				},
+			});
+		}
+	} catch (error) {
+		container.logger.error(error);
+
+		if (notificationChannel) {
+			await notificationChannel.send({
+				embeds: [
+					new EmbedBuilder()
+						.setColor("Red")
+						.setTitle(`Could not update lobby status for lobby \`${lobby.id}\``)
+						.setDescription(
+							`The lobby status could not be updated in the database. Please use command ${
+								lobby.type === "tryout"
+									? "`/lobby finish`"
+									: "`/qualifiers finish`"
+							} in order to finish the lobby. Players were not updated automatically.`,
+						),
+				],
+			});
+		}
 	}
 
 	try {
@@ -486,23 +661,78 @@ export async function endLobby(
 		);
 
 		if (notificationChannel?.isTextBased()) {
-			await notificationChannel.send({
-				embeds: [
-					new EmbedBuilder()
-						.setColor("Green")
-						.setTitle(
-							lobby.type === "tryout"
-								? `Tryout lobby \`${lobby.customId}\` finished`
-								: `Qualifier lobby for team \`${lobby.teamName}\` finished`,
-						)
-						.setDescription(
-							`The lobby has been closed. You can view the results [here](https://osu.ppy.sh/community/matches/${lobby.banchoId}).`,
-						),
-				],
-			});
+			if (lobby.type === "tryout") {
+				await notificationChannel.send({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Green")
+							.setTitle(`Finished lobby \`${lobby.customId}\``)
+							.setFields(
+								{
+									name: "Status",
+									value: `${LobbyStatusEmoji.Completed} **Completed**`,
+									inline: true,
+								},
+								{
+									name: "Bancho ID",
+									value: `[${banchoLobby.id}](https://osu.ppy.sh/community/matches/${banchoLobby.id})`,
+									inline: true,
+								},
+								{
+									name: "Maps played",
+									value: `${apiMatch.events.filter((e) => e.game).length}`,
+									inline: true,
+								},
+								{
+									name: "Updated players",
+									value: inMatchPlayers.length
+										? inMatchPlayers
+												.map(
+													(p) =>
+														`<@${p.discordId}> (\`${p.osuUsername}\` - \`#${p.osuId}\`)`,
+												)
+												.join("\n")
+										: "*No players updated*",
+								},
+								{
+									name: "Removed players",
+									value: missingPlayers.length
+										? missingPlayers
+												.map(
+													(p) =>
+														`<@${p.discordId}> (\`${p.osuUsername}\` - \`#${p.osuId}\`)`,
+												)
+												.join("\n")
+										: "*No players removed*",
+								},
+							),
+					],
+				});
+			}
+
+			// TODO: Pending implementation of /qualifiers finish command.
+			// TODO: Implement behaviour of the Discord command for finishing a lobby.
+			if (lobby.type === "qualifier") {
+				await notificationChannel.send({
+					embeds: [
+						new EmbedBuilder()
+							.setColor("Green")
+							.setTitle(
+								`Qualifier lobby for team \`${lobby.teamName}\` finished`,
+							)
+							.setDescription(
+								`The lobby has been closed. You can view the results [here](https://osu.ppy.sh/community/matches/${lobby.banchoId}).`,
+							),
+					],
+				});
+			}
 		}
 	} catch (error) {
 		container.logger.error(error);
+
+		container.logger.error(
+			`[AutoRef] Could not send finish notification for ${lobby.type} lobby ${lobby.id}.`,
+		);
 	}
 }
 

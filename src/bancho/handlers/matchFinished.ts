@@ -29,28 +29,6 @@ export async function matchFinished(
 	if (!nextPick) {
 		lobby.state = "finished";
 
-		if (lobby.type === "tryout") {
-			await db.tryoutLobby.update({
-				where: {
-					id: lobby.id,
-				},
-				data: {
-					status: "Completed",
-				},
-			});
-		}
-
-		if (lobby.type === "qualifier") {
-			await db.tournamentQualifierLobby.update({
-				where: {
-					id: lobby.id,
-				},
-				data: {
-					status: "Completed",
-				},
-			});
-		}
-
 		await banchoLobby.channel.sendMessage(
 			"You have finished the mappool, you are now free to leave the lobby. The lobby will close in 2 minutes.",
 		);
