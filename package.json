@@ -29,7 +29,7 @@
 		"@prisma/client": "5.6.0",
 		"@sapphire/decorators": "^6.0.2",
 		"@sapphire/discord.js-utilities": "^7.0.3",
-		"@sapphire/framework": "^4.7.2",
+		"@sapphire/framework": "^4.8.5",
 		"@sapphire/pieces": "^3.7.1",
 		"@sapphire/plugin-hmr": "^2.0.2",
 		"@sapphire/plugin-logger": "^3.0.6",
