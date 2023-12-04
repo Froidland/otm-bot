@@ -50,7 +50,7 @@
 		"winston-loki": "^6.0.8"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.4.0",
+		"@biomejs/biome": "1.4.1",
 		"@types/adm-zip": "^0.5.4",
 		"@types/luxon": "^3.3.4",
 		"@types/node": "^20.9.0",
